@@ -2,7 +2,7 @@ import axios from 'axios';
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
-const API_URL = 'http://localhost:3000'; // Adjust as needed
+const API_URL = 'http://localhost:3001'; // Adjust as needed
 
 // Helper to get initial user state
 const getInitialUser = () => {

@@ -17,9 +17,10 @@ export interface UserProperties {
   bio?: string;
   isPublic: boolean;
   themePreference: 'light' | 'dark' | 'auto';
-  homeLocation?: any; // GeoJSON Point
-  createdAt: Date;
-  updatedAt: Date;
+  homeLocationLat?: number;
+  homeLocationLng?: number;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export class User extends Model implements UserProperties {
@@ -33,9 +34,10 @@ export class User extends Model implements UserProperties {
   bio?: string;
   isPublic!: boolean;
   themePreference!: 'light' | 'dark' | 'auto';
-  homeLocation?: any;
-  createdAt!: Date;
-  updatedAt!: Date;
+  homeLocationLat?: number;
+  homeLocationLng?: number;
+  created_at!: Date;
+  updated_at!: Date;
 
   static get tableName() {
     return 'users';
@@ -64,9 +66,10 @@ export class User extends Model implements UserProperties {
           enum: ['light', 'dark', 'auto'],
           default: 'auto'
         },
-        homeLocation: { type: ['object', 'null'] },
-        createdAt: { type: 'string', format: 'date-time' },
-        updatedAt: { type: 'string', format: 'date-time' }
+        homeLocationLat: { type: ['number', 'null'] },
+        homeLocationLng: { type: ['number', 'null'] },
+        created_at: { type: 'string', format: 'date-time' },
+        updated_at: { type: 'string', format: 'date-time' }
       }
     };
   }
@@ -116,19 +119,19 @@ export class User extends Model implements UserProperties {
     };
   }
 
-  // Hooks para timestamps
+  // Hooks for timestamps
   async $beforeInsert() {
     await super.$beforeInsert({} as any);
-    this.createdAt = new Date();
-    this.updatedAt = new Date();
+    this.created_at = new Date();
+    this.updated_at = new Date();
   }
 
   async $beforeUpdate() {
     await super.$beforeUpdate({}, {} as any);
-    this.updatedAt = new Date();
+    this.updated_at = new Date();
   }
 
-  // Método para obtener nombre completo
+  // Get full name method
   get fullName(): string {
     if (this.firstName && this.lastName) {
       return `${this.firstName} ${this.lastName}`;
@@ -136,7 +139,7 @@ export class User extends Model implements UserProperties {
     return this.firstName || this.lastName || this.username;
   }
 
-  // Método para obtener países visitados
+  // Get visited countries method
   async getVisitedCountries(): Promise<any[]> {
     const { Country } = await import('../geo/entities/country.entity');
     return await Country.query()
@@ -146,7 +149,7 @@ export class User extends Model implements UserProperties {
       .select('countries.*');
   }
 
-  // Método para obtener estadísticas básicas
+  // Get basic stats method
   async getBasicStats(): Promise<any> {
     const [tripsCount, locationsCount, countriesCount] = await Promise.all([
       Trip.query().where('userId', this.id).count('* as count').first(),
@@ -165,7 +168,7 @@ export class User extends Model implements UserProperties {
     };
   }
 
-  // Método para verificar si un país está en un estado específico
+  // Method to check if a country is in a specific status
   async hasCountryStatus(countryId: number, status: 'visited' | 'planned' | 'wishlist'): Promise<boolean> {
     const result = await UserCountryStatus.query()
       .where('userId', this.id)
@@ -176,7 +179,7 @@ export class User extends Model implements UserProperties {
     return !!result;
   }
 
-  // Método para obtener perfil público
+  // Get public profile method
   getPublicProfile(): Partial<UserProperties> {
     return {
       id: this.id,
@@ -186,7 +189,7 @@ export class User extends Model implements UserProperties {
       avatarUrl: this.avatarUrl,
       bio: this.bio,
       isPublic: this.isPublic,
-      createdAt: this.createdAt
+      created_at: this.created_at
     };
   }
 }

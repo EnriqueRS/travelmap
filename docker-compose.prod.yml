@@ -228,7 +228,7 @@ services:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
     ports:
-      - "3000:3000"
+      - "3001:3001"
     networks:
       - travelmap-prod-network
     depends_on:

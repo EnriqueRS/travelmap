@@ -48,9 +48,12 @@ export class AuthService {
       throw new UnauthorizedException('Email already exists');
     }
 
-    // Hash password and create user
-    // Note: hashing is done in UsersService.create in this implementation
-    const user = await this.usersService.create(userDto);
+    // Hash password and build entity-shaped data for UsersService
+    const { password, homeLocation, ...rest } = userDto;
+    const passwordHash = await bcrypt.hash(password, await bcrypt.genSalt());
+    const toCreate: Partial<User> = { ...rest, passwordHash, homeLocationLat: homeLocation.coordinates[0], homeLocationLng: homeLocation.coordinates[1] };
+    console.log(toCreate);
+    const user = await this.usersService.create(toCreate);
 
     // Login the user immediately
     return this.login(user);
