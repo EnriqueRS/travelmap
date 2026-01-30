@@ -52,7 +52,6 @@ export class AuthService {
     const { password, homeLocation, ...rest } = userDto;
     const passwordHash = await bcrypt.hash(password, await bcrypt.genSalt());
     const toCreate: Partial<User> = { ...rest, passwordHash, homeLocationLat: homeLocation.coordinates[0], homeLocationLng: homeLocation.coordinates[1] };
-    console.log(toCreate);
     const user = await this.usersService.create(toCreate);
 
     // Login the user immediately

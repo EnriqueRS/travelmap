@@ -19,8 +19,22 @@
     try {
       loading = true
       errorMessage = ""
-      await authService.login(username, password)
-      goto("/profile")
+      authService
+        .login(username, password)
+        .then((res) => {
+          if (res.access_token) {
+            goto("/profile")
+          } else {
+            errorMessage = res.data.message
+          }
+        })
+        .catch((error: any) => {
+          errorMessage =
+            error.response?.data?.message || "Credenciales inválidas"
+        })
+        .finally(() => {
+          loading = false
+        })
     } catch (error: any) {
       errorMessage = error.response?.data?.message || "Credenciales inválidas"
     } finally {
