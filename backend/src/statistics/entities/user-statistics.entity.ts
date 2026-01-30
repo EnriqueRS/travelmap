@@ -1,5 +1,5 @@
 import { Model } from 'objection';
-import { User } from '../../auth/entities/user.entity';
+import { User } from '../../users/user.entity';
 
 export interface UserStatisticsProperties {
   id: number;
@@ -81,15 +81,15 @@ export class UserStatistics extends Model implements UserStatisticsProperties {
   static async calculateForUser(userId: number): Promise<UserStatistics> {
     // This would calculate statistics based on user's trips, locations, etc.
     // For now, return a basic statistics object
-    return await UserStatistics.query().findOne({ userId }) || 
-           await UserStatistics.query().insert({
-             userId,
-             totalTrips: 0,
-             totalLocations: 0,
-             countriesVisited: 0,
-             totalDistance: 0,
-             averageTripDuration: 0,
-             lastActiveDate: new Date()
-           });
+    return await UserStatistics.query().findOne({ userId }) ||
+      await UserStatistics.query().insert({
+        userId,
+        totalTrips: 0,
+        totalLocations: 0,
+        countriesVisited: 0,
+        totalDistance: 0,
+        averageTripDuration: 0,
+        lastActiveDate: new Date()
+      });
   }
 }

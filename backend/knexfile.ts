@@ -1,6 +1,6 @@
 // backend/knexfile.ts
 import type { Knex } from 'knex';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();

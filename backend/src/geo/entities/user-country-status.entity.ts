@@ -1,6 +1,7 @@
 // backend/src/geo/entities/user-country-status.entity.ts
 import { Model } from 'objection';
 import { Country } from './country.entity';
+import { User } from '../../users/user.entity';
 
 export interface UserCountryStatusProperties {
   id: number;
@@ -39,8 +40,8 @@ export class UserCountryStatus extends Model implements UserCountryStatusPropert
         id: { type: 'integer' },
         userId: { type: 'integer' },
         countryId: { type: 'integer' },
-        status: { 
-          type: 'string', 
+        status: {
+          type: 'string',
           enum: ['visited', 'planned', 'wishlist'],
           default: 'wishlist'
         },
@@ -64,7 +65,7 @@ export class UserCountryStatus extends Model implements UserCountryStatusPropert
       },
       user: {
         relation: Model.BelongsToOneRelation,
-        modelClass: require('../auth/entities/user.entity').User,
+        modelClass: User,
         join: {
           from: 'user_country_statuses.userId',
           to: 'users.id'
@@ -109,9 +110,9 @@ export class UserCountryStatus extends Model implements UserCountryStatusPropert
         'countries.*',
         'user_country_statuses.status as status'
       );
-    
+
     return results as Array<Country & { status: string }>;
   }
 
-  
+
 }

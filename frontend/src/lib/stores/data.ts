@@ -44,7 +44,7 @@ export interface UserProfile {
   };
 }
 
-// Datos iniciales de ejemplo
+// Initial demo data
 const initialTrips: Trip[] = [
   {
     id: '1',
@@ -114,21 +114,44 @@ const initialProfile: UserProfile = {
   }
 };
 
-// Stores con persistencia
+// Stores con persistencia y soporte de autenticación
 const createPersistentStore = <T>(key: string, startValue: T) => {
   const storedValue = browser ? localStorage.getItem(key) : null;
-  const initial = storedValue ? JSON.parse(storedValue) : startValue;
 
+  // If user is logged in, use persistence. If not, use mock data (startValue)
+  // Note: Ideally, if the user logs in, we should load their data from the backend.
+  // For now, we'll keep the logic simple: 
+  // - If there is a user: persist in localStorage (eventually sync with backend)
+  // - If there is no user: use mock data in memory (do not persist changes to the mock for the next refresh)
+
+  // Simplification: Always start with storedValue if it exists, otherwise startValue.
+  // But if we log out, we want to clean up.
+
+  const initial = storedValue ? JSON.parse(storedValue) : startValue;
   const store = writable<T>(initial);
 
   if (browser) {
     store.subscribe(value => {
+      // Only persist if there is a logged in user OR if it is demo data that we want to save locally
+      // For this exercise, we will always save locally, but we could differentiate.
       localStorage.setItem(key, JSON.stringify(value));
     });
   }
 
   return store;
 };
+
+// Function to reset stores to initial values (useful in logout)
+export const resetStores = () => {
+  trips.set(initialTrips);
+  locations.set(initialLocations);
+  userProfile.set(initialProfile);
+  if (browser) {
+    localStorage.removeItem('travelmap_trips');
+    localStorage.removeItem('travelmap_locations');
+    localStorage.removeItem('travelmap_profile');
+  }
+}
 
 export const trips = createPersistentStore<Trip[]>('travelmap_trips', initialTrips);
 export const locations = createPersistentStore<Location[]>('travelmap_locations', initialLocations);

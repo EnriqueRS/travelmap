@@ -1,6 +1,13 @@
 <script lang="ts">
   import "../app.css"
-  import { Map, Globe, Compass, User, Home } from "lucide-svelte"
+  import { Map, Globe, Compass, User, Home, LogOut, LogIn } from "lucide-svelte"
+  import { currentUser, authService } from "$lib/services/auth"
+  import { goto } from "$app/navigation"
+
+  function handleLogout() {
+    authService.logout()
+    goto("/login")
+  }
 </script>
 
 <nav class="navbar">
@@ -8,7 +15,12 @@
     <div class="nav-brand">
       <Globe size={24} />
       <span class="brand-text">TravelMap</span>
+      {#if !$currentUser}
+        <span class="demo-badge">Modo Demo</span>
+      {/if}
     </div>
+
+    <!-- Demo Banner for Mobile/Desktop if needed, or just keep it subtle in header -->
 
     <div class="nav-links">
       <a href="/" class="nav-link">
@@ -35,9 +47,30 @@
         <User size={18} />
         <span>Perfil</span>
       </a>
+
+      {#if $currentUser}
+        <button class="nav-link logout-btn" on:click={handleLogout}>
+          <LogOut size={18} />
+          <span>Salir</span>
+        </button>
+      {:else}
+        <a href="/login" class="nav-link login-btn">
+          <LogIn size={18} />
+          <span>Acceder</span>
+        </a>
+      {/if}
     </div>
   </div>
 </nav>
+
+{#if !$currentUser}
+  <div class="demo-banner">
+    <p>
+      👀 Estás viendo datos de demostración. <a href="/login">Inicia sesión</a>
+      o <a href="/register">Regístrate</a> para guardar tus propios viajes.
+    </p>
+  </div>
+{/if}
 
 <main>
   <slot />
@@ -162,5 +195,61 @@
     main {
       padding: 1rem;
     }
+
+    .demo-banner {
+      font-size: 0.8rem;
+      padding: 0.5rem;
+    }
+  }
+
+  .demo-badge {
+    background: #f59e0b;
+    color: #0f172a;
+    font-size: 0.75rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 9999px;
+    margin-left: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .demo-banner {
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    color: white;
+    text-align: center;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 900;
+  }
+
+  .demo-banner a {
+    color: white;
+    font-weight: bold;
+    text-decoration: underline;
+  }
+
+  .logout-btn {
+    background: transparent;
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #ef4444;
+    cursor: pointer;
+  }
+
+  .logout-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-color: #ef4444;
+  }
+
+  .login-btn {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    color: #60a5fa;
+  }
+
+  .login-btn:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
   }
 </style>

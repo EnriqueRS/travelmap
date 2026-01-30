@@ -1,10 +1,10 @@
 // backend/src/auth/entities/user.entity.ts
 import { Model } from 'objection';
-import { Trip } from '../../trips/entities/trip.entity';
-import { Location } from '../../locations/entities/location.entity';
-import { Photo } from '../../media/entities/photo.entity';
-import { UserCountryStatus } from '../../geo/entities/user-country-status.entity';
-import { UserStatistics } from '../../statistics/entities/user-statistics.entity';
+import { Trip } from '../trips/entities/trip.entity';
+import { Location } from '../locations/entities/location.entity';
+import { Photo } from '../media/entities/photo.entity';
+import { UserCountryStatus } from '../geo/entities/user-country-status.entity';
+import { UserStatistics } from '../statistics/entities/user-statistics.entity';
 
 export interface UserProperties {
   id: number;
@@ -17,6 +17,7 @@ export interface UserProperties {
   bio?: string;
   isPublic: boolean;
   themePreference: 'light' | 'dark' | 'auto';
+  homeLocation?: any; // GeoJSON Point
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,6 +33,7 @@ export class User extends Model implements UserProperties {
   bio?: string;
   isPublic!: boolean;
   themePreference!: 'light' | 'dark' | 'auto';
+  homeLocation?: any;
   createdAt!: Date;
   updatedAt!: Date;
 
@@ -57,11 +59,12 @@ export class User extends Model implements UserProperties {
         avatarUrl: { type: 'string', maxLength: 500 },
         bio: { type: 'string', maxLength: 1000 },
         isPublic: { type: 'boolean', default: false },
-        themePreference: { 
-          type: 'string', 
+        themePreference: {
+          type: 'string',
           enum: ['light', 'dark', 'auto'],
           default: 'auto'
         },
+        homeLocation: { type: ['object', 'null'] },
         createdAt: { type: 'string', format: 'date-time' },
         updatedAt: { type: 'string', format: 'date-time' }
       }
@@ -135,7 +138,7 @@ export class User extends Model implements UserProperties {
 
   // Método para obtener países visitados
   async getVisitedCountries(): Promise<any[]> {
-    const { Country } = await import('../../geo/entities/country.entity');
+    const { Country } = await import('../geo/entities/country.entity');
     return await Country.query()
       .join('user_country_statuses', 'countries.id', 'user_country_statuses.countryId')
       .where('user_country_statuses.userId', this.id)
@@ -169,7 +172,7 @@ export class User extends Model implements UserProperties {
       .where('countryId', countryId)
       .where('status', status)
       .first();
-    
+
     return !!result;
   }
 

@@ -1,6 +1,6 @@
 // backend/src/locations/entities/location.entity.ts
 import { Model } from 'objection';
-import { User } from '../../auth/entities/user.entity';
+import { User } from '../../users/user.entity';
 import { Trip } from '../../trips/entities/trip.entity';
 import { Country } from '../../geo/entities/country.entity';
 import { Photo } from '../../media/entities/photo.entity';
@@ -60,8 +60,8 @@ export class Location extends Model implements LocationProperties {
         countryId: { type: 'integer' },
         visitDate: { type: 'string', format: 'date' },
         rating: { type: 'integer', minimum: 1, maximum: 5 },
-        category: { 
-          type: 'string', 
+        category: {
+          type: 'string',
           enum: ['city', 'landmark', 'nature', 'restaurant', 'accommodation', 'transport', 'activity', 'shopping', 'nightlife', 'cultural'],
           default: 'city'
         },
@@ -118,12 +118,12 @@ export class Location extends Model implements LocationProperties {
       const { v4: uuidv4 } = require('uuid');
       this.id = uuidv4();
     }
-    
+
     // Determinar país automáticamente si no está establecido
     if (this.coordinates && !this.countryId) {
       await this.determineCountry();
     }
-    
+
     this.createdAt = new Date();
     this.updatedAt = new Date();
   }
@@ -212,7 +212,7 @@ export class Location extends Model implements LocationProperties {
         .where('category', this.category)
         .count('* as count')
         .first(),
-      
+
       Location.query()
         .where('userId', this.userId)
         .where('countryId', this.countryId)
@@ -232,7 +232,7 @@ export class Location extends Model implements LocationProperties {
     if (!this.coordinates || !this.coordinates.coordinates) {
       return { lng: 0, lat: 0 };
     }
-    
+
     return {
       lng: this.coordinates.coordinates[0],
       lat: this.coordinates.coordinates[1]
@@ -250,7 +250,7 @@ export class Location extends Model implements LocationProperties {
   // Método estático para buscar ubicaciones por bounds
   static async findByBounds(
     userId: number,
-    bounds: { 
+    bounds: {
       southwest: { lng: number; lat: number };
       northeast: { lng: number; lat: number };
     }

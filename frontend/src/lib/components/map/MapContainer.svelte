@@ -6,6 +6,11 @@
   import "leaflet/dist/leaflet.css"
   import "leaflet.markercluster/dist/MarkerCluster.css"
   import "leaflet.markercluster/dist/MarkerCluster.Default.css"
+  import markerIconUrl from "leaflet/dist/images/marker-icon.png"
+  import markerIconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png"
+  import markerShadowUrl from "leaflet/dist/images/marker-shadow.png"
+  import { geocode } from "$lib/utils/geocode"
+  import { Search } from "lucide-svelte"
 
   export let height = "100%"
   export let locations: Location[] = []
@@ -16,6 +21,9 @@
   let markerClusterGroup: any
   let L: any
   let currentTileLayer: any
+  let searchQuery = ""
+  let searchLoading = false
+  let searchError = ""
 
   // Reactive update when locations prop changes
   $: if (map && browser && L && markerClusterGroup && locations) {
@@ -177,13 +185,13 @@
 
       console.log("Leaflet loaded:", L.version)
 
-      // Fix for Leaflet images in webpack/vite
+      // Use Leaflet marker images from package (Vite resolves URLs)
       // @ts-ignore
       delete L.Icon.Default.prototype._getIconUrl
       L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "/images/marker-icon-2x.png",
-        iconUrl: "/images/marker-icon.png",
-        shadowUrl: "/images/marker-shadow.png",
+        iconRetinaUrl: markerIconRetinaUrl,
+        iconUrl: markerIconUrl,
+        shadowUrl: markerShadowUrl,
       })
 
       // Expose L to window for plugins that rely on global L
@@ -192,6 +200,7 @@
 
       // Import plugin explicitly
       // We use the file path found in verification to ensure it resolves
+      // @ts-ignore
       await import("leaflet.markercluster/dist/leaflet.markercluster.js")
 
       console.log("MarkerCluster plugin loaded:", !!L.markerClusterGroup)
@@ -249,6 +258,24 @@
     }
   })
 
+  async function handleSearch() {
+    if (!searchQuery.trim() || !map) return
+    searchError = ""
+    searchLoading = true
+    try {
+      const result = await geocode(searchQuery)
+      if (result) {
+        map.setView([result.lat, result.lng], 12)
+      } else {
+        searchError = "No se encontró la ubicación."
+      }
+    } catch (e) {
+      searchError = "Error al buscar."
+    } finally {
+      searchLoading = false
+    }
+  }
+
   onDestroy(() => {
     if (map) {
       map.remove()
@@ -256,12 +283,99 @@
   })
 </script>
 
-```
-<div bind:this={mapContainer} class="map-wrapper" style="height: {height}" />
+<div class="map-outer">
+  <div class="map-search-bar">
+    <input
+      type="text"
+      class="map-search-input"
+      placeholder="Buscar ciudad o lugar..."
+      bind:value={searchQuery}
+      on:keydown={(e) => e.key === "Enter" && handleSearch()}
+    />
+    <button
+      type="button"
+      class="map-search-btn"
+      disabled={searchLoading || !searchQuery.trim()}
+      on:click={handleSearch}
+      title="Buscar en el mapa"
+    >
+      <Search size={18} />
+      <span>{searchLoading ? "..." : "Buscar"}</span>
+    </button>
+  </div>
+  {#if searchError}
+    <p class="map-search-error">{searchError}</p>
+  {/if}
+  <div bind:this={mapContainer} class="map-wrapper" style="height: {height}" />
+</div>
 
 <style>
+  .map-outer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+  .map-search-bar {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    z-index: 1000;
+    display: flex;
+    gap: 0.5rem;
+    max-width: 24rem;
+  }
+  .map-search-input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid rgba(71, 85, 105, 0.6);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.95);
+    color: #e2e8f0;
+    font-size: 0.875rem;
+    font-family: inherit;
+  }
+  .map-search-input::placeholder {
+    color: #64748b;
+  }
+  .map-search-input:focus {
+    outline: none;
+    border-color: rgba(96, 165, 250, 0.8);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+  .map-search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: 8px;
+    background: #3b82f6;
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .map-search-btn:hover:not(:disabled) {
+    background: #2563eb;
+  }
+  .map-search-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .map-search-error {
+    position: absolute;
+    top: 3.25rem;
+    left: 0.75rem;
+    z-index: 1000;
+    margin: 0;
+    font-size: 0.8125rem;
+    color: #f87171;
+  }
   .map-wrapper {
     width: 100%;
+    height: 100%;
     z-index: 1;
     background: #1a1a1a;
   }

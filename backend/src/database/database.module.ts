@@ -2,6 +2,7 @@ import { Module, Global } from '@nestjs/common';
 import { Knex } from 'knex';
 import { knex } from 'knex';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Model } from 'objection';
 
 export const KNEX_CONNECTION = 'KNEX_CONNECTION';
 
@@ -35,11 +36,13 @@ export const KNEX_CONNECTION = 'KNEX_CONNECTION';
           searchPath: ['public', 'postgis'],
         };
 
-        return knex(knexConfig);
+        const knexInstance = knex(knexConfig);
+        Model.knex(knexInstance);
+        return knexInstance;
       },
       inject: [ConfigService],
     },
   ],
   exports: [KNEX_CONNECTION],
 })
-export class DatabaseModule {}
+export class DatabaseModule { }

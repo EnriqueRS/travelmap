@@ -1,6 +1,6 @@
 // backend/src/trips/entities/trip.entity.ts
 import { Model } from 'objection';
-import { User } from '../../auth/entities/user.entity';
+import { User } from '../../users/user.entity';
 import { Location } from '../../locations/entities/location.entity';
 import { Photo } from '../../media/entities/photo.entity';
 import { ItineraryDay } from '../../itinerary/entities/itinerary-day.entity';
@@ -53,8 +53,8 @@ export class Trip extends Model implements TripProperties {
         userId: { type: 'integer' },
         title: { type: 'string', minLength: 1, maxLength: 200 },
         description: { type: 'string', maxLength: 2000 },
-        status: { 
-          type: 'string', 
+        status: {
+          type: 'string',
           enum: ['planned', 'ongoing', 'completed', 'cancelled'],
           default: 'planned'
         },
@@ -143,14 +143,14 @@ export class Trip extends Model implements TripProperties {
   // Método para obtener el número de países visitados en este viaje
   async getUniqueCountriesCount(): Promise<number> {
     const Location = require('../locations/entities/location.entity').Location;
-    
+
     const result = await Location.query()
       .where('tripId', this.id)
       .whereNotNull('countryId')
       .distinct('countryId')
       .count('countryId as count')
       .first();
-    
+
     return parseInt(result?.count || '0');
   }
 
@@ -202,8 +202,8 @@ export class Trip extends Model implements TripProperties {
           ST_SetSRID(ST_MakePoint(?, ?), 4326)
         ) as distance
       `, [
-        locations[i-1].coordinates.coordinates[0],
-        locations[i-1].coordinates.coordinates[1],
+        locations[i - 1].coordinates.coordinates[0],
+        locations[i - 1].coordinates.coordinates[1],
         locations[i].coordinates.coordinates[0],
         locations[i].coordinates.coordinates[1]
       ]);

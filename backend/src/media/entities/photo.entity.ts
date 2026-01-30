@@ -1,5 +1,5 @@
 import { Model } from 'objection';
-import { User } from '../../auth/entities/user.entity';
+import { User } from '../../users/user.entity';
 import { Location } from '../../locations/entities/location.entity';
 import { Trip } from '../../trips/entities/trip.entity';
 
