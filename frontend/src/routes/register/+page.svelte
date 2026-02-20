@@ -11,6 +11,8 @@
     AlertCircle,
     Globe,
     ArrowRight,
+    Eye,
+    EyeOff,
   } from "lucide-svelte"
 
   let username = ""
@@ -21,6 +23,7 @@
   let homeLocation: { lat: number; lng: number } | null = null
   let errorMessage = ""
   let loading = false
+  let showPassword = false
 
   async function handleRegister() {
     try {
@@ -138,11 +141,27 @@
             <input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
-              bind:value={password}
+              value={password}
+              on:input={(e) => (password = e.currentTarget.value)}
               placeholder="••••••••"
             />
+            <button
+              type="button"
+              class="auth-input-toggle"
+              on:click={() => (showPassword = !showPassword)}
+              aria-label={showPassword
+                ? "Ocultar contraseña"
+                : "Mostrar contraseña"}
+              title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {#if showPassword}
+                <EyeOff class="auth-toggle-icon" />
+              {:else}
+                <Eye class="auth-toggle-icon" />
+              {/if}
+            </button>
           </div>
         </div>
 
@@ -398,6 +417,7 @@
   }
   .auth-input-wrap input {
     padding-left: 2.75rem;
+    padding-right: 3rem;
   }
   .auth-input-wrap input::placeholder,
   .auth-field input::placeholder {
@@ -408,6 +428,31 @@
     outline: none;
     border-color: rgba(96, 165, 250, 0.8);
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  }
+
+  .auth-input-toggle {
+    position: absolute;
+    right: 1rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+  .auth-input-toggle:hover {
+    color: #94a3b8;
+  }
+  .auth-input-toggle:focus {
+    outline: none;
+    color: #60a5fa;
+  }
+  .auth-toggle-icon {
+    width: 1.25rem;
+    height: 1.25rem;
   }
 
   .auth-field-location {

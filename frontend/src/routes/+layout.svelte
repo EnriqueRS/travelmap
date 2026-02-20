@@ -3,6 +3,13 @@
   import { Map, Globe, Compass, User, Home, LogOut, LogIn } from "lucide-svelte"
   import { currentUser, authService } from "$lib/services/auth"
   import { goto } from "$app/navigation"
+  import { onMount } from "svelte"
+
+  onMount(() => {
+    if ($currentUser?.access_token) {
+      authService.fetchUserData($currentUser.access_token)
+    }
+  })
 
   function handleLogout() {
     authService.logout()

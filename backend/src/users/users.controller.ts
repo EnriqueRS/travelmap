@@ -16,9 +16,20 @@ export class UsersController {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
+    // Get real-time stats
+    const basicStats = await user.getBasicStats();
 
     // Exclude password hash
     const { passwordHash, ...result } = user;
-    return result;
+
+    return {
+      ...result,
+      statistics: {
+        countriesVisited: basicStats.countriesVisited,
+        tripsCompleted: basicStats.tripsCount,
+        placesVisited: basicStats.locationsCount,
+        photosUploaded: 0
+      }
+    };
   }
 }

@@ -8,12 +8,15 @@
     Globe,
     ArrowRight,
     AlertCircle,
+    Eye,
+    EyeOff,
   } from "lucide-svelte"
 
   let username = ""
   let password = ""
   let errorMessage = ""
   let loading = false
+  let showPassword = false
 
   async function handleLogin() {
     try {
@@ -83,11 +86,27 @@
             <Lock class="auth-input-icon" />
             <input
               id="password"
-              type="password"
-              bind:value={password}
+              type={showPassword ? "text" : "password"}
+              value={password}
+              on:input={(e) => (password = e.currentTarget.value)}
               required
               placeholder="••••••••"
             />
+            <button
+              type="button"
+              class="auth-input-toggle"
+              on:click={() => (showPassword = !showPassword)}
+              aria-label={showPassword
+                ? "Ocultar contraseña"
+                : "Mostrar contraseña"}
+              title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {#if showPassword}
+                <EyeOff class="auth-toggle-icon" />
+              {:else}
+                <Eye class="auth-toggle-icon" />
+              {/if}
+            </button>
           </div>
         </div>
         {#if errorMessage}
@@ -287,7 +306,7 @@
   }
   .auth-input-wrap input {
     width: 100%;
-    padding: 0.875rem 1rem 0.875rem 2.75rem;
+    padding: 0.875rem 3rem 0.875rem 2.75rem;
     border-radius: 0.75rem;
     border: 1px solid rgba(71, 85, 105, 0.6);
     background: rgba(30, 41, 59, 0.8);
@@ -303,6 +322,31 @@
     outline: none;
     border-color: rgba(96, 165, 250, 0.8);
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  }
+
+  .auth-input-toggle {
+    position: absolute;
+    right: 1rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+  .auth-input-toggle:hover {
+    color: #94a3b8;
+  }
+  .auth-input-toggle:focus {
+    outline: none;
+    color: #60a5fa;
+  }
+  .auth-toggle-icon {
+    width: 1.25rem;
+    height: 1.25rem;
   }
 
   .auth-error {
