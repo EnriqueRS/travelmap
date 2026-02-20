@@ -9,14 +9,22 @@ export class MediaService {
    * Guarda un registro local para una foto externa subida con Immich o Google
    */
   async addExternalPhoto(tripId: string, userId: number, externalData: any): Promise<Photo> {
+    const { v4: uuidv4 } = require('uuid');
     const photo = await Photo.query().insert({
+      id: uuidv4(),
       userId,
       tripId,
       url: externalData.url,
       provider: externalData.provider,
       externalId: externalData.externalId,
       showOnMap: externalData.showOnMap || false,
-      isCover: false
+      isCover: false,
+      isHidden: false,
+      metadata: {
+        size: 0,
+        format: 'external',
+        exif: externalData.exifInfo
+      }
     });
     return photo;
   }
@@ -25,16 +33,19 @@ export class MediaService {
    * Registra una foto local almacenada por Multer
    */
   async addLocalPhoto(tripId: string, userId: number, file: Express.Multer.File): Promise<Photo> {
+    const { v4: uuidv4 } = require('uuid');
     const photoUrl = `/uploads/photos/${file.filename}`;
 
     // Si queremos parsear EXIF location para rellenar locationId iría aquí o en fondo...
     const photo = await Photo.query().insert({
+      id: uuidv4(),
       userId,
       tripId,
       provider: 'local',
       url: photoUrl,
       showOnMap: false,
       isCover: false,
+      isHidden: false,
       metadata: {
         size: file.size,
         format: path.extname(file.originalname).replace('.', '')
@@ -56,7 +67,7 @@ export class MediaService {
   /**
    * Modifica propiedades lógicas de la foto (si se muestra en mapa o es la portada)
    */
-  async updatePhoto(id: string, userId: number, data: { showOnMap?: boolean, isCover?: boolean }): Promise<Photo> {
+  async updatePhoto(id: string, userId: number, data: { showOnMap?: boolean, isCover?: boolean, isHidden?: boolean }): Promise<Photo> {
     const photo = await Photo.query().findOne({ id, userId });
 
     if (!photo) {

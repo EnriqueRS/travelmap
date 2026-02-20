@@ -21,6 +21,7 @@ export interface PhotoProperties {
   externalId?: string;
   showOnMap: boolean;
   isCover: boolean;
+  isHidden: boolean;
   created_at: Date;
   updated_at: Date;
 }
@@ -43,6 +44,7 @@ export class Photo extends Model implements PhotoProperties {
   externalId?: string;
   showOnMap!: boolean;
   isCover!: boolean;
+  isHidden!: boolean;
   created_at!: Date;
   updated_at!: Date;
 
@@ -70,6 +72,7 @@ export class Photo extends Model implements PhotoProperties {
         externalId: { type: 'string', maxLength: 255 },
         showOnMap: { type: 'boolean', default: false },
         isCover: { type: 'boolean', default: false },
+        isHidden: { type: 'boolean', default: false },
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' }
       }

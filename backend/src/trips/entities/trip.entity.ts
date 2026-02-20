@@ -120,7 +120,7 @@ export class Trip extends Model implements TripProperties {
   async $beforeInsert() {
     await super.$beforeInsert({} as any);
     if (!this.id) {
-      // Generar UUID si no existe
+      // Generate UUID if not exists
       const { v4: uuidv4 } = require('uuid');
       this.id = uuidv4();
     }

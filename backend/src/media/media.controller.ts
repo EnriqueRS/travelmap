@@ -36,7 +36,7 @@ export class MediaController {
   async updatePhoto(
     @Request() req,
     @Param('id') id: string,
-    @Body() data: { showOnMap?: boolean; isCover?: boolean }
+    @Body() data: { showOnMap?: boolean; isCover?: boolean; isHidden?: boolean }
   ) {
     return this.mediaService.updatePhoto(id, req.user.userId, data);
   }
