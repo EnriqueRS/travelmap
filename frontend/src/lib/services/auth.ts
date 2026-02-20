@@ -45,9 +45,43 @@ export const authService = {
       localStorage.setItem('user', JSON.stringify(data));
     }
     currentUser.set(data);
+    // Fetch user data if we have a token
+    if (data?.access_token) {
+      this.fetchUserData(data.access_token);
+    }
   },
 
   getCurrentUser() {
     return getInitialUser();
+  },
+
+  async fetchUserData(token: string) {
+    try {
+      const response = await axios.get(`${API_URL}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const { updateStores } = await import('../stores/data');
+      updateStores(response.data);
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+    }
+  },
+
+  async updateProfile(userData: any) {
+    // Get current token
+    const currentUserData = getInitialUser();
+    const token = currentUserData?.access_token;
+
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await axios.patch(`${API_URL}/users/me`, userData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    // Update local stores with the new data
+    const { updateStores } = await import('../stores/data');
+    updateStores(response.data);
+
+    return response.data;
   }
 };

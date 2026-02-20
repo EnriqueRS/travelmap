@@ -4,7 +4,7 @@
   export let type: "trip" | "location" | "profile" = "location"
   export let className: string = ""
 
-  // Generar un color basado en el texto para consistencia
+  // color generator based on the text for consistency
   function stringToColor(str: string): string {
     let hash = 0
     for (let i = 0; i < str.length; i++) {
@@ -15,6 +15,7 @@
     return `hsl(${h}, 70%, 50%)`
   }
 
+  // gradient generator based on the text for consistency
   function getGradient(str: string): string {
     const c1 = stringToColor(str)
     const c2 = stringToColor(str.split("").reverse().join(""))
@@ -89,7 +90,7 @@
 
   .text {
     font-size: 1.2rem;
-    max-width: 90%;
+    max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

@@ -15,4 +15,15 @@ export class UsersService {
     // passwordHash is expected to be already set by AuthService (hashed there)
     return User.query().insert(data);
   }
+  async findByIdWithData(id: number): Promise<User | undefined> {
+    const { Location } = await import('../locations/entities/location.entity');
+
+    return User.query()
+      .findById(id)
+      .withGraphFetched({
+        trips: true,
+        locations: true,
+        countryStatuses: true
+      });
+  }
 }

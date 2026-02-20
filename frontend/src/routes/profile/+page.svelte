@@ -1,20 +1,106 @@
 <script lang="ts">
-  import { User, Map, Calendar, Camera, Settings, X, Home } from "lucide-svelte"
+  import {
+    User,
+    Map,
+    Calendar,
+    Camera,
+    Settings,
+    X,
+    Home,
+    Upload,
+    RefreshCw,
+  } from "lucide-svelte"
   import { userProfile, locations } from "$lib/stores/data"
   import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
+  import LocationPicker from "$lib/components/map/LocationPicker.svelte"
+  import { authService } from "$lib/services/auth"
 
   // Modal
   let showEditModal = false
   let editData = { ...$userProfile }
+  let isSaving = false
+  let saveMessage = { type: "", text: "" }
+
+  // Avatar logic
+  let avatarTab: "preset" | "upload" = "preset"
+  let avatarFile: File | null = null
+  let avatarPreview: string | null = null
+
+  const avatarPresets = [
+    "https://api.dicebear.com/7.x/shapes/svg?seed=Felix",
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=Zoe",
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=Jack",
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=Precious",
+    "https://api.dicebear.com/7.x/bottts/svg?seed=Aneka",
+    "https://api.dicebear.com/7.x/identicon/svg?seed=Map",
+  ]
 
   // Ensure homeLocation structure exists in editData if not present
   if (!editData.homeLocation) {
     editData.homeLocation = { name: "", coordinates: [0, 0] }
   }
 
-  function handleSave() {
-    userProfile.set(editData)
-    showEditModal = false
+  function handleAvatarFile(e: Event) {
+    const input = e.target as HTMLInputElement
+    if (input.files && input.files[0]) {
+      avatarFile = input.files[0]
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        avatarPreview = e.target?.result as string
+        editData.avatar = avatarPreview // Update edit data immediately for preview
+      }
+      reader.readAsDataURL(avatarFile)
+    }
+  }
+
+  function selectPreset(url: string) {
+    editData.avatar = url
+    avatarPreview = null
+    avatarFile = null
+  }
+
+  async function handleSave() {
+    isSaving = true
+    saveMessage = { type: "", text: "" }
+
+    try {
+      // If we have stats, we should keep them, but here we only edit specific fields
+      // The backend should handle partial updates or we send the full object
+      // For now, let's send what we have in editData
+
+      // Note: We are sending the whole profile structure as per the store,
+      // but the backend `updateProfile` sends it to PATCH /users/me
+
+      const payload: any = {
+        name: editData.name,
+        bio: editData.bio,
+        avatar: editData.avatar,
+      }
+
+      if (editData.homeLocation && editData.homeLocation.coordinates) {
+        payload.homeLocationLat = editData.homeLocation.coordinates[0]
+        payload.homeLocationLng = editData.homeLocation.coordinates[1]
+      }
+
+      await authService.updateProfile(payload)
+
+      saveMessage = {
+        type: "success",
+        text: "Perfil actualizado correctamente",
+      }
+      setTimeout(() => {
+        showEditModal = false
+        saveMessage = { type: "", text: "" }
+      }, 1500)
+    } catch (error: any) {
+      console.error("Error saving profile:", error)
+      const detail =
+        error.response?.data?.message || error.message || "Error desconocido"
+      saveMessage = { type: "error", text: `Error al guardar: ${detail}` }
+    } finally {
+      isSaving = false
+    }
   }
 
   // Statistics Calculation
@@ -208,6 +294,83 @@
             <textarea id="bio" bind:value={editData.bio} rows="4" />
           </div>
 
+          <div class="form-group">
+            <label for="avatar">Avatar</label>
+            <div class="avatar-selection">
+              <div class="avatar-tabs">
+                <button
+                  type="button"
+                  class:active={avatarTab === "preset"}
+                  on:click={() => (avatarTab = "preset")}>Presets</button
+                >
+                <button
+                  type="button"
+                  class:active={avatarTab === "upload"}
+                  on:click={() => (avatarTab = "upload")}>Subir Imagen</button
+                >
+              </div>
+
+              <div class="current-avatar-preview">
+                {#if editData.avatar && editData.avatar.startsWith("http")}
+                  <img
+                    src={editData.avatar}
+                    alt="Avatar preview"
+                    class="avatar-preview-img"
+                  />
+                {:else if editData.avatar && editData.avatar.startsWith("data:")}
+                  <img
+                    src={editData.avatar}
+                    alt="Avatar preview"
+                    class="avatar-preview-img"
+                  />
+                {:else}
+                  <ImagePlaceholder
+                    text={editData.name}
+                    type="profile"
+                    className="avatar-preview-placeholder"
+                  />
+                {/if}
+              </div>
+
+              {#if avatarTab === "preset"}
+                <div class="presets-grid">
+                  {#each avatarPresets as preset}
+                    <button
+                      type="button"
+                      class="preset-btn"
+                      class:selected={editData.avatar === preset}
+                      on:click={() => selectPreset(preset)}
+                    >
+                      <img src={preset} alt="Preset avatar" />
+                    </button>
+                  {/each}
+                </div>
+              {:else}
+                <div class="upload-area">
+                  <input
+                    type="file"
+                    id="avatar-upload"
+                    accept="image/*"
+                    on:change={handleAvatarFile}
+                    style="display: none;"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    on:click={() =>
+                      document.getElementById("avatar-upload")?.click()}
+                  >
+                    <Upload size={18} />
+                    Seleccionar Archivo
+                  </button>
+                  {#if avatarFile}
+                    <span class="file-name">{avatarFile.name}</span>
+                  {/if}
+                </div>
+              {/if}
+            </div>
+          </div>
+
           <div
             class="form-group"
             style="padding-top: 1rem; border-top: 1px solid #334155;"
@@ -216,38 +379,55 @@
               Ubicación de Casa
             </h3>
             {#if editData.homeLocation}
-              <label for="homeName">Ciudad / Nombre</label>
-              <input
-                id="homeName"
-                type="text"
-                bind:value={editData.homeLocation.name}
-                placeholder="Ej. Madrid"
-              />
+              <div class="form-group">
+                <label for="homeName">Ciudad / Nombre</label>
+                <input
+                  id="homeName"
+                  type="text"
+                  bind:value={editData.homeLocation.name}
+                  placeholder="Ej. Madrid"
+                />
+              </div>
 
-              <div
-                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;"
-              >
-                <div>
-                  <label for="homeLat">Latitud</label>
-                  <input
-                    id="homeLat"
-                    type="number"
-                    step="any"
-                    bind:value={editData.homeLocation.coordinates[0]}
+              <div class="map-wrapper" style="margin-top: 1rem;">
+                <label style="margin-bottom: 0.5rem; display: block;"
+                  >Seleccionar en mapa</label
+                >
+                {#if showEditModal}
+                  <!-- Re-render map when modal opens -->
+                  <LocationPicker
+                    initialLocation={editData.homeLocation.coordinates[0] !== 0
+                      ? {
+                          lat: editData.homeLocation.coordinates[0],
+                          lng: editData.homeLocation.coordinates[1],
+                        }
+                      : null}
+                    on:locationSelect={(e) => {
+                      if (editData.homeLocation) {
+                        editData.homeLocation.coordinates = [
+                          e.detail.lat,
+                          e.detail.lng,
+                        ]
+                        // Optional: clear name if we want to force manual entry or try to fetch it
+                      }
+                    }}
+                    height="300px"
                   />
-                </div>
-                <div>
-                  <label for="homeLng">Longitud</label>
-                  <input
-                    id="homeLng"
-                    type="number"
-                    step="any"
-                    bind:value={editData.homeLocation.coordinates[1]}
-                  />
-                </div>
+                {/if}
+                <p class="text-sm text-gray-400 mt-2">
+                  Coordenadas: {editData.homeLocation.coordinates[0].toFixed(
+                    4
+                  )}, {editData.homeLocation.coordinates[1].toFixed(4)}
+                </p>
               </div>
             {/if}
           </div>
+
+          {#if saveMessage.text}
+            <div class="message {saveMessage.type}">
+              {saveMessage.text}
+            </div>
+          {/if}
 
           <div class="modal-actions">
             <button
@@ -255,9 +435,9 @@
               class="btn btn-secondary"
               on:click={() => (showEditModal = false)}>Cancelar</button
             >
-            <button type="submit" class="btn btn-primary"
-              >Guardar Cambios</button
-            >
+            <button type="submit" class="btn btn-primary" disabled={isSaving}>
+              {isSaving ? "Guardando..." : "Guardar Cambios"}
+            </button>
           </div>
         </form>
       </div>
@@ -568,5 +748,112 @@
       justify-content: center;
       gap: 1rem;
     }
+  }
+
+  /* Avatar Selection Styles */
+  .avatar-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .avatar-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 0.5rem;
+  }
+
+  .avatar-tabs button {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .avatar-tabs button.active {
+    color: #60a5fa;
+    border-bottom: 2px solid #60a5fa;
+  }
+
+  .current-avatar-preview {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+  }
+
+  .avatar-preview-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #60a5fa;
+  }
+
+  .presets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .preset-btn {
+    background: #334155;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+
+  .preset-btn:hover {
+    transform: scale(1.1);
+  }
+
+  .preset-btn.selected {
+    border-color: #60a5fa;
+  }
+
+  .preset-btn img {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .upload-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+    border: 2px dashed #334155;
+    border-radius: 8px;
+    justify-content: center;
+  }
+
+  .file-name {
+    color: #cbd5e1;
+    font-size: 0.9rem;
+  }
+
+  .message {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 500;
+  }
+
+  .message.success {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid #059669;
+  }
+
+  .message.error {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid #dc2626;
   }
 </style>

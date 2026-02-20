@@ -157,6 +157,42 @@ export const trips = createPersistentStore<Trip[]>('travelmap_trips', initialTri
 export const locations = createPersistentStore<Location[]>('travelmap_locations', initialLocations);
 export const userProfile = createPersistentStore<UserProfile>('travelmap_profile', initialProfile);
 
+export const updateStores = (userData: any) => {
+  if (!userData) return;
+
+  if (userData.trips) {
+    trips.set(userData.trips);
+  }
+
+  if (userData.locations) {
+    locations.set(userData.locations);
+  }
+
+  if (userData.statistics) {
+    userProfile.update(profile => ({
+      ...profile,
+      stats: {
+        countriesVisited: userData.statistics.countriesVisited || 0,
+        tripsCompleted: userData.statistics.tripsCompleted || 0,
+        placesVisited: userData.statistics.placesVisited || 0,
+        photosUploaded: userData.statistics.photosUploaded || 0
+      }
+    }));
+  }
+
+  // Update profile basic info
+  userProfile.update(profile => ({
+    ...profile,
+    name: userData.username, // or firstName + lastName
+    avatar: userData.avatarUrl || profile.avatar,
+    bio: userData.bio || profile.bio,
+    homeLocation: userData.homeLocationLat && userData.homeLocationLng ? {
+      name: 'Home', // We might need to geocode this or store the name
+      coordinates: [userData.homeLocationLat, userData.homeLocationLng]
+    } : profile.homeLocation
+  }));
+};
+
 // Helpers
 export const getCategoryEmoji = (category: string) => {
   const map: Record<string, string> = {
