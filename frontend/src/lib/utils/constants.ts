@@ -24,6 +24,7 @@ export const COUNTRY_STATUS_COLORS = {
 
 export const LOCATION_CATEGORIES = [
   { value: 'city', label: 'Ciudad', icon: '🏙️' },
+  { value: 'layover', label: 'Ciudad de escala', icon: '✈️' },
   { value: 'landmark', label: 'Monumento', icon: '🏛️' },
   { value: 'nature', label: 'Naturaleza', icon: '🏔️' },
   { value: 'restaurant', label: 'Restaurante', icon: '🍽️' },

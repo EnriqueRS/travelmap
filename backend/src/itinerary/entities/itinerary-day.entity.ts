@@ -13,8 +13,8 @@ export interface ItineraryDayProperties {
   notes?: string;
   estimatedBudget?: number;
   actualBudget?: number;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export class ItineraryDay extends Model implements ItineraryDayProperties {
@@ -27,8 +27,8 @@ export class ItineraryDay extends Model implements ItineraryDayProperties {
   notes?: string;
   estimatedBudget?: number;
   actualBudget?: number;
-  createdAt!: Date;
-  updatedAt!: Date;
+  created_at!: Date;
+  updated_at!: Date;
 
   static get tableName() {
     return 'itinerary_days';
@@ -52,8 +52,8 @@ export class ItineraryDay extends Model implements ItineraryDayProperties {
         notes: { type: 'string' },
         estimatedBudget: { type: 'number', minimum: 0 },
         actualBudget: { type: 'number', minimum: 0 },
-        createdAt: { type: 'string', format: 'date-time' },
-        updatedAt: { type: 'string', format: 'date-time' }
+        created_at: { type: 'string', format: 'date-time' },
+        updated_at: { type: 'string', format: 'date-time' }
       }
     };
   }
@@ -89,12 +89,12 @@ export class ItineraryDay extends Model implements ItineraryDayProperties {
 
   async $beforeInsert() {
     await super.$beforeInsert({} as any);
-    this.createdAt = new Date();
-    this.updatedAt = new Date();
+    this.created_at = new Date();
+    this.updated_at = new Date();
   }
 
   async $beforeUpdate() {
     await super.$beforeUpdate({}, {} as any);
-    this.updatedAt = new Date();
+    this.updated_at = new Date();
   }
 }

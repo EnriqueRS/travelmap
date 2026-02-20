@@ -8,33 +8,39 @@ import { ItineraryDay } from '../../itinerary/entities/itinerary-day.entity';
 export interface TripProperties {
   id: string; // UUID
   userId: number;
-  title: string;
+  name: string;
   description?: string;
-  status: 'planned' | 'ongoing' | 'completed' | 'cancelled';
+  status: 'Planificado' | 'En curso' | 'Completado' | 'Cancelado';
   startDate?: Date;
   endDate?: Date;
+  countries?: string[];
   totalCost?: number;
   currency: string;
   isPublic: boolean;
-  coverImageUrl?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  coverImage?: string;
+  linkedAlbumId?: string;
+  linkedAlbumProvider?: 'immich';
+  created_at: Date;
+  updated_at: Date;
 }
 
 export class Trip extends Model implements TripProperties {
   id!: string; // UUID
   userId!: number;
-  title!: string;
+  name!: string;
   description?: string;
-  status!: 'planned' | 'ongoing' | 'completed' | 'cancelled';
+  status!: 'Planificado' | 'En curso' | 'Completado' | 'Cancelado';
   startDate?: Date;
   endDate?: Date;
+  countries?: string[];
   totalCost?: number;
   currency!: string;
   isPublic!: boolean;
-  coverImageUrl?: string;
-  createdAt!: Date;
-  updatedAt!: Date;
+  coverImage?: string;
+  linkedAlbumId?: string;
+  linkedAlbumProvider?: 'immich';
+  created_at!: Date;
+  updated_at!: Date;
 
   static get tableName() {
     return 'trips';
@@ -47,25 +53,28 @@ export class Trip extends Model implements TripProperties {
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['id', 'userId', 'title', 'status', 'currency'],
+      required: ['id', 'userId', 'name', 'status'],
       properties: {
         id: { type: 'string', format: 'uuid' },
         userId: { type: 'integer' },
-        title: { type: 'string', minLength: 1, maxLength: 200 },
+        name: { type: 'string', minLength: 1, maxLength: 200 },
         description: { type: 'string', maxLength: 2000 },
         status: {
           type: 'string',
-          enum: ['planned', 'ongoing', 'completed', 'cancelled'],
-          default: 'planned'
+          enum: ['Planificado', 'En curso', 'Completado', 'Cancelado'],
+          default: 'Planificado'
         },
         startDate: { type: 'string', format: 'date' },
         endDate: { type: 'string', format: 'date' },
+        countries: { type: 'array', items: { type: 'string' } },
         totalCost: { type: 'number', minimum: 0 },
-        currency: { type: 'string', minLength: 3, maxLength: 3, default: 'USD' },
+        currency: { type: 'string', minLength: 3, maxLength: 3, default: 'EUR' },
         isPublic: { type: 'boolean', default: false },
-        coverImageUrl: { type: 'string', maxLength: 500 },
-        createdAt: { type: 'string', format: 'date-time' },
-        updatedAt: { type: 'string', format: 'date-time' }
+        coverImage: { type: 'string', maxLength: 500 },
+        linkedAlbumId: { type: 'string', maxLength: 255 },
+        linkedAlbumProvider: { type: 'string', enum: ['immich'] },
+        created_at: { type: 'string', format: 'date-time' },
+        updated_at: { type: 'string', format: 'date-time' }
       }
     };
   }
@@ -115,13 +124,13 @@ export class Trip extends Model implements TripProperties {
       const { v4: uuidv4 } = require('uuid');
       this.id = uuidv4();
     }
-    this.createdAt = new Date();
-    this.updatedAt = new Date();
+    this.created_at = new Date();
+    this.updated_at = new Date();
   }
 
   async $beforeUpdate() {
     await super.$beforeUpdate({}, {} as any);
-    this.updatedAt = new Date();
+    this.updated_at = new Date();
   }
 
   // Método para obtener duración en días

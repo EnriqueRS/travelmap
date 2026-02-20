@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte"
+  import { onMount, onDestroy, createEventDispatcher } from "svelte"
   import { browser } from "$app/environment"
   import { userProfile } from "$lib/stores/data"
   import type { Location } from "$lib/stores/data"
@@ -24,6 +24,8 @@
   let searchQuery = ""
   let searchLoading = false
   let searchError = ""
+
+  const dispatch = createEventDispatcher()
 
   // Reactive update when locations prop changes
   $: if (map && browser && L && markerClusterGroup && locations) {
@@ -136,6 +138,7 @@
     const map: Record<string, string> = {
       Naturaleza: "🌲",
       Ciudad: "🏙️",
+      "Ciudad de escala": "✈️",
       Playa: "🏖️",
       Montaña: "🏔️",
       Cultura: "🏛️",
@@ -219,6 +222,10 @@
 
       // Zoom control top-left as in design
       L.control.zoom({ position: "topleft" }).addTo(map)
+
+      map.on("click", (e: any) => {
+        dispatch("mapclick", { lat: e.latlng.lat, lng: e.latlng.lng })
+      })
 
       if (L.markerClusterGroup) {
         // Initialize Cluster Group with custom styles

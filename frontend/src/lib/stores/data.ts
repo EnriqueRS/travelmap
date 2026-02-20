@@ -7,7 +7,7 @@ export interface Location {
   name: string;
   description: string;
   country: string;
-  category: 'Naturaleza' | 'Ciudad' | 'Playa' | 'Montaña' | 'Cultura' | 'Otro';
+  category: 'Naturaleza' | 'Ciudad' | 'Ciudad de escala' | 'Playa' | 'Montaña' | 'Cultura' | 'Otro';
   coordinates: [number, number]; // [lat, lng]
   rating: number;
   visitedDate: string;
@@ -114,26 +114,36 @@ const initialProfile: UserProfile = {
   }
 };
 
+// Helper para comprobar si hay usuario autenticado (browser solo)
+const hasUserSession = () => {
+  if (browser) {
+    return !!localStorage.getItem('user');
+  }
+  return false;
+};
+
 // Stores con persistencia y soporte de autenticación
 const createPersistentStore = <T>(key: string, startValue: T) => {
   const storedValue = browser ? localStorage.getItem(key) : null;
 
-  // If user is logged in, use persistence. If not, use mock data (startValue)
-  // Note: Ideally, if the user logs in, we should load their data from the backend.
-  // For now, we'll keep the logic simple: 
-  // - If there is a user: persist in localStorage (eventually sync with backend)
-  // - If there is no user: use mock data in memory (do not persist changes to the mock for the next refresh)
+  // Si hay un storedValue string, se parchea
+  let initial = storedValue ? JSON.parse(storedValue) : null;
 
-  // Simplification: Always start with storedValue if it exists, otherwise startValue.
-  // But if we log out, we want to clean up.
+  // Si no hay valor persistido en storage localStorage de DOM (key de travels, locs, etc)...
+  if (!initial) {
+    // Si el usuario ESTÁ logueado, queremos empezar en vacío ([], {}...)
+    // Si NO ESTÁ logueado, cargamos los datos de prueba startValue
+    if (hasUserSession()) {
+      initial = Array.isArray(startValue) ? [] : {};
+    } else {
+      initial = startValue;
+    }
+  }
 
-  const initial = storedValue ? JSON.parse(storedValue) : startValue;
-  const store = writable<T>(initial);
+  const store = writable<T>(initial as T);
 
   if (browser) {
     store.subscribe(value => {
-      // Only persist if there is a logged in user OR if it is demo data that we want to save locally
-      // For this exercise, we will always save locally, but we could differentiate.
       localStorage.setItem(key, JSON.stringify(value));
     });
   }
@@ -161,7 +171,26 @@ export const updateStores = (userData: any) => {
   if (!userData) return;
 
   if (userData.trips) {
-    trips.set(userData.trips);
+    const formattedTrips = userData.trips.map((t: any) => {
+      // Si el status ya viene en español (como en la DB nueva), respetarlo; si viene en inglés por legacy, adaptarlo
+      let finalStatus = t.status;
+      if (t.status === 'planned') finalStatus = 'Planificado';
+      if (t.status === 'ongoing') finalStatus = 'En curso';
+      if (t.status === 'completed') finalStatus = 'Completado';
+
+      return {
+        id: t.id,
+        name: t.name || t.title,
+        description: t.description,
+        startDate: t.startDate,
+        endDate: t.endDate,
+        status: finalStatus,
+        coverImage: t.coverImage || t.coverImageUrl,
+        countries: t.countries || [],
+        locations: t.locations ? t.locations.map((l: any) => l.id) : []
+      };
+    });
+    trips.set(formattedTrips);
   }
 
   if (userData.locations) {
@@ -198,6 +227,7 @@ export const getCategoryEmoji = (category: string) => {
   const map: Record<string, string> = {
     'Naturaleza': '🌲',
     'Ciudad': '🏙️',
+    'Ciudad de escala': '✈️',
     'Playa': '🏖️',
     'Montaña': '🏔️',
     'Cultura': '🏛️',

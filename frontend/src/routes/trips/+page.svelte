@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Compass, Map, Plus, Calendar } from "lucide-svelte"
   import { trips, getStatusColor } from "$lib/stores/data"
+  import { formatDate } from "$lib/utils/formatters"
   import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
 
   function getStatusIcon(status: string) {
@@ -71,10 +72,10 @@
             <div class="trip-dates">
               <div class="date-item">
                 <Calendar size={16} />
-                <span>{trip.startDate}</span>
+                <span>{formatDate(trip.startDate)}</span>
               </div>
               <div class="date-item">
-                <span>hasta {trip.endDate}</span>
+                <span>hasta {formatDate(trip.endDate)}</span>
               </div>
             </div>
 
@@ -236,6 +237,7 @@
     line-height: 1.5;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }

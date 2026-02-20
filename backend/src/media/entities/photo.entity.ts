@@ -17,8 +17,12 @@ export interface PhotoProperties {
     height?: number;
     exif?: any;
   };
-  createdAt: Date;
-  updatedAt: Date;
+  provider: 'local' | 'immich';
+  externalId?: string;
+  showOnMap: boolean;
+  isCover: boolean;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export class Photo extends Model implements PhotoProperties {
@@ -35,8 +39,12 @@ export class Photo extends Model implements PhotoProperties {
     height?: number;
     exif?: any;
   };
-  createdAt!: Date;
-  updatedAt!: Date;
+  provider!: 'local' | 'immich';
+  externalId?: string;
+  showOnMap!: boolean;
+  isCover!: boolean;
+  created_at!: Date;
+  updated_at!: Date;
 
   static get tableName() {
     return 'photos';
@@ -58,8 +66,12 @@ export class Photo extends Model implements PhotoProperties {
         locationId: { type: 'string' },
         tripId: { type: 'string' },
         metadata: { type: 'object' },
-        createdAt: { type: 'string', format: 'date-time' },
-        updatedAt: { type: 'string', format: 'date-time' }
+        provider: { type: 'string', enum: ['local', 'immich'], default: 'local' },
+        externalId: { type: 'string', maxLength: 255 },
+        showOnMap: { type: 'boolean', default: false },
+        isCover: { type: 'boolean', default: false },
+        created_at: { type: 'string', format: 'date-time' },
+        updated_at: { type: 'string', format: 'date-time' }
       }
     };
   }
@@ -95,12 +107,12 @@ export class Photo extends Model implements PhotoProperties {
 
   async $beforeInsert() {
     await super.$beforeInsert({} as any);
-    this.createdAt = new Date();
-    this.updatedAt = new Date();
+    this.created_at = new Date();
+    this.updated_at = new Date();
   }
 
   async $beforeUpdate() {
     await super.$beforeUpdate({}, {} as any);
-    this.updatedAt = new Date();
+    this.updated_at = new Date();
   }
 }

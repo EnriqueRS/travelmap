@@ -14,6 +14,53 @@
   import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
   import LocationPicker from "$lib/components/map/LocationPicker.svelte"
   import { authService } from "$lib/services/auth"
+  import { integrationsService } from "$lib/services/integrations"
+  import { onMount } from "svelte"
+
+  // Estado Integraciones
+  let immichStatus = { isConnected: false, url: "" }
+  let immichConfig = { url: "", apiKey: "" }
+  let isSavingImmich = false
+  let immichMessage = { type: "", text: "" }
+
+  onMount(async () => {
+    try {
+      const status = await integrationsService.checkStatus()
+      if (status.immich) {
+        immichStatus.isConnected = true
+        immichStatus.url = status.url
+        immichConfig.url = status.url // Prellenar url
+      }
+    } catch (e) {
+      console.error("No se pudo comprobar el estado de immich", e)
+    }
+  })
+
+  async function handleImmichSave() {
+    isSavingImmich = true
+    immichMessage = { type: "", text: "" }
+    try {
+      const res = await integrationsService.setupImmich(
+        immichConfig.url,
+        immichConfig.apiKey
+      )
+      immichStatus.isConnected = true
+      immichStatus.url = res.url
+      immichMessage = {
+        type: "success",
+        text: "Conectado. Tus álbumes ya pueden vincularse a tus viajes.",
+      }
+    } catch (e: any) {
+      immichMessage = {
+        type: "error",
+        text:
+          e.response?.data?.message ||
+          "Error al conectar. Verifica tu URL y API Key.",
+      }
+    } finally {
+      isSavingImmich = false
+    }
+  }
 
   // Modal
   let showEditModal = false
@@ -269,6 +316,92 @@
           Bienvenido a tu perfil de TravelMap. Aquí puedes ver tu progreso y
           gestionar tu información personal.
         </p>
+
+        <div class="integrations-container" style="margin-top: 2rem;">
+          <h2>🔗 Integraciones</h2>
+          <div class="integration-card">
+            <div
+              class="integration-header"
+              style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;"
+            >
+              <h3
+                style="margin: 0; color: #cbd5e1; display:flex; gap:0.5rem; align-items:center;"
+              >
+                <img
+                  src="/favicon.png"
+                  alt="Immich"
+                  style="width:20px; filter: grayscale(1) brightness(2);"
+                />
+                Immich Server
+              </h3>
+              {#if immichStatus.isConnected}
+                <span
+                  class="status-badge connected"
+                  style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem;"
+                  >Conectado</span
+                >
+              {:else}
+                <span
+                  class="status-badge disconnected"
+                  style="background: rgba(239, 68, 68, 0.2); color: #f87171; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem;"
+                  >Desconectado</span
+                >
+              {/if}
+            </div>
+
+            <p style="font-size: 0.9rem; color:#94a3b8; margin-bottom: 1rem;">
+              Conecta tu servidor auto-hospedado de Immich para incrustar tus
+              álbumes de fotos en tus viajes.
+            </p>
+
+            <form on:submit|preventDefault={handleImmichSave}>
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label style="font-size: 0.85rem;"
+                  >URL de la API (Servidor)</label
+                >
+                <input
+                  type="url"
+                  bind:value={immichConfig.url}
+                  placeholder="Ej: https://photos.midominio.com/api"
+                  required
+                  style="font-size:0.9rem; padding: 0.5rem;"
+                />
+              </div>
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label style="font-size: 0.85rem;">API Key</label>
+                <input
+                  type="password"
+                  bind:value={immichConfig.apiKey}
+                  placeholder="Pégala desde Immich > Configuración"
+                  required
+                  style="font-size:0.9rem; padding: 0.5rem;"
+                />
+              </div>
+
+              <button
+                type="submit"
+                class="btn btn-primary"
+                style="width: 100%; justify-content:center;"
+                disabled={isSavingImmich}
+              >
+                {isSavingImmich
+                  ? "Validando..."
+                  : immichStatus.isConnected
+                  ? "Actualizar Credenciales"
+                  : "Conectar Immich"}
+              </button>
+
+              {#if immichMessage.text}
+                <div
+                  class="message {immichMessage.type}"
+                  style="margin-top:1rem; font-size:0.85rem;"
+                >
+                  {immichMessage.text}
+                </div>
+              {/if}
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   </section>

@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { onMount } from "svelte"
+  import { onMount, createEventDispatcher } from "svelte"
   import MapContainer from "$lib/components/map/MapContainer.svelte"
+  import CountryPicker from "$lib/components/ui/CountryPicker.svelte"
   import { locations, trips } from "$lib/stores/data"
+  import type { Location, Trip } from "$lib/stores/data"
   import {
     Search,
     Plus,
@@ -16,6 +18,93 @@
   // Bind to map component
   let mapComponent: any
   let currentLayer: "default" | "satellite" = "default"
+
+  // Modal State
+  let showAddLocationModal = false
+  let newLocationLat = 0
+  let newLocationLng = 0
+  let newLocationName = ""
+  let newLocationCountry = ""
+  let newLocationCategory:
+    | "Naturaleza"
+    | "Ciudad"
+    | "Ciudad de escala"
+    | "Playa"
+    | "Montaña"
+    | "Cultura"
+    | "Otro" = "Naturaleza"
+  let newLocationTripId = ""
+  let newTripName = ""
+
+  function handleMapClick(e: CustomEvent<{ lat: number; lng: number }>) {
+    newLocationLat = e.detail.lat
+    newLocationLng = e.detail.lng
+    newLocationName = ""
+    newLocationCountry = ""
+    newLocationCategory = "Naturaleza"
+    newLocationTripId = ""
+    newTripName = ""
+    showAddLocationModal = true
+  }
+
+  function saveNewLocation() {
+    if (!newLocationName) {
+      alert("Introduce un nombre")
+      return
+    }
+
+    let finalTripId = newLocationTripId
+
+    if (newLocationTripId === "new") {
+      if (!newTripName) {
+        alert("Introduce un nombre para el nuevo viaje")
+        return
+      }
+      finalTripId = crypto.randomUUID()
+      const newTrip: Trip = {
+        id: finalTripId,
+        name: newTripName,
+        description: "",
+        startDate: new Date().toISOString().split("T")[0],
+        endDate: new Date().toISOString().split("T")[0],
+        countries: newLocationCountry ? [newLocationCountry] : [],
+        status: "Planificado",
+        coverImage: "default-cover",
+        locations: [],
+      }
+      trips.update((t) => [...t, newTrip])
+    }
+
+    const newLocId = crypto.randomUUID()
+
+    const newLoc: Location = {
+      id: newLocId,
+      name: newLocationName,
+      description: "",
+      country: newLocationCountry || "Desconocido",
+      category: newLocationCategory,
+      coordinates: [newLocationLat, newLocationLng],
+      rating: 5,
+      visitedDate: new Date().toISOString().split("T")[0],
+      images: [],
+      tripId: finalTripId || undefined,
+    }
+
+    locations.update((locs) => [...locs, newLoc])
+
+    if (finalTripId && finalTripId !== "") {
+      trips.update((t) =>
+        t.map((trip) => {
+          if (trip.id === finalTripId) {
+            return { ...trip, locations: [...trip.locations, newLocId] }
+          }
+          return trip
+        })
+      )
+    }
+
+    showAddLocationModal = false
+  }
 
   // Filters
   let showVisited = true
@@ -212,6 +301,7 @@
         locations={filteredLocations}
         {showHome}
         height="100%"
+        on:mapclick={handleMapClick}
       />
 
       <!-- Floating Map Controls -->
@@ -224,6 +314,92 @@
     </div>
   </section>
 </main>
+
+{#if showAddLocationModal}
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <h3
+        style="margin-top: 0; color: #f8fafc; margin-bottom: 0.5rem; font-size: 1.25rem;"
+      >
+        Añadir nueva ubicación
+      </h3>
+      <p
+        style="color: #94a3b8; font-size: 0.85rem; margin-top: 0; margin-bottom: 1.5rem;"
+      >
+        Lat: {newLocationLat.toFixed(4)}, Lng: {newLocationLng.toFixed(4)}
+      </p>
+
+      <div class="form-group">
+        <label>
+          Nombre del lugar
+          <input
+            type="text"
+            bind:value={newLocationName}
+            placeholder="Ej: Playa Escondida"
+          />
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label for="country-picker"> País (opcional) </label>
+        <CountryPicker id="country-picker" bind:value={newLocationCountry} />
+      </div>
+
+      <div class="form-group">
+        <label>
+          Categoría
+          <select bind:value={newLocationCategory}>
+            <option value="Naturaleza">Naturaleza 🌲</option>
+            <option value="Ciudad">Ciudad 🏙️</option>
+            <option value="Ciudad de escala">Ciudad de escala ✈️</option>
+            <option value="Playa">Playa 🏖️</option>
+            <option value="Montaña">Montaña 🏔️</option>
+            <option value="Cultura">Cultura 🏛️</option>
+            <option value="Otro">Otro 📍</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label>
+          Viaje
+          <select bind:value={newLocationTripId}>
+            <option value="">Ninguno</option>
+            <option value="new">+ Crear nuevo viaje...</option>
+            {#each $trips as trip}
+              <option value={trip.id}>{trip.name}</option>
+            {/each}
+          </select>
+        </label>
+      </div>
+
+      {#if newLocationTripId === "new"}
+        <div class="form-group">
+          <label>
+            Nombre del nuevo viaje
+            <input
+              type="text"
+              bind:value={newTripName}
+              placeholder="Ej: Roadtrip Costa Oeste"
+            />
+          </label>
+        </div>
+      {/if}
+
+      <div class="modal-actions">
+        <button
+          class="btn-cancel"
+          on:click={() => (showAddLocationModal = false)}>Cancelar</button
+        >
+        <button
+          class="btn-sidebar-action"
+          style="width: auto; padding: 0.5rem 1.5rem;"
+          on:click={saveNewLocation}>Guardar</button
+        >
+      </div>
+    </div>
+  </div>
+{/if}
 
 <style>
   :global(body) {
@@ -472,6 +648,7 @@
     width: 300px;
     display: flex;
     align-items: center;
+    gap: 0.3rem;
   }
 
   .search-icon {
@@ -579,5 +756,83 @@
     .topbar-center {
       order: 3;
     }
+  }
+
+  /* Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .modal-content {
+    background: #1e293b;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    border: 1px solid #334155;
+    color: #e2e8f0;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-group label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #cbd5e1;
+  }
+
+  .form-group input,
+  .form-group select {
+    background: #0f172a;
+    border: 1px solid #334155;
+    padding: 0.75rem;
+    border-radius: 6px;
+    color: white;
+    font-size: 1rem;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: #6366f1;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .btn-cancel {
+    background: transparent;
+    border: 1px solid #475569;
+    color: #cbd5e1;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel:hover {
+    background: #334155;
+    color: white;
   }
 </style>

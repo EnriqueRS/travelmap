@@ -18,8 +18,8 @@ export interface LocationProperties {
   category: string;
   elevation?: number; // metros
   timezone?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export class Location extends Model implements LocationProperties {
@@ -35,8 +35,8 @@ export class Location extends Model implements LocationProperties {
   category!: string;
   elevation?: number; // metros
   timezone?: string;
-  createdAt!: Date;
-  updatedAt!: Date;
+  created_at!: Date;
+  updated_at!: Date;
 
   static get tableName() {
     return 'locations';
@@ -67,8 +67,8 @@ export class Location extends Model implements LocationProperties {
         },
         elevation: { type: 'number' }, // metros sobre el nivel del mar
         timezone: { type: 'string', maxLength: 50 }, // timezone database
-        createdAt: { type: 'string', format: 'date-time' },
-        updatedAt: { type: 'string', format: 'date-time' }
+        created_at: { type: 'string', format: 'date-time' },
+        updated_at: { type: 'string', format: 'date-time' }
       }
     };
   }
@@ -124,8 +124,8 @@ export class Location extends Model implements LocationProperties {
       await this.determineCountry();
     }
 
-    this.createdAt = new Date();
-    this.updatedAt = new Date();
+    this.created_at = new Date();
+    this.updated_at = new Date();
   }
 
   async $beforeUpdate() {
@@ -134,7 +134,7 @@ export class Location extends Model implements LocationProperties {
     if (this.coordinates && !this.countryId) {
       await this.determineCountry();
     }
-    this.updatedAt = new Date();
+    this.updated_at = new Date();
   }
 
   // Método para determinar el país basado en coordenadas

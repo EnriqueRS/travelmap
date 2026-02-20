@@ -4,11 +4,15 @@
   import { currentUser, authService } from "$lib/services/auth"
   import { goto } from "$app/navigation"
   import { onMount } from "svelte"
+  import Toast from "$lib/components/ui/Toast.svelte"
 
-  onMount(() => {
+  let isInitializing = true
+
+  onMount(async () => {
     if ($currentUser?.access_token) {
-      authService.fetchUserData($currentUser.access_token)
+      await authService.fetchUserData($currentUser.access_token)
     }
+    isInitializing = false
   })
 
   function handleLogout() {
@@ -17,78 +21,86 @@
   }
 </script>
 
-<nav class="navbar">
-  <div class="nav-container">
-    <div class="nav-brand">
-      <Globe size={24} />
-      <span class="brand-text">TravelMap</span>
-      {#if !$currentUser}
-        <span class="demo-badge">Modo Demo</span>
-      {/if}
-    </div>
+{#if isInitializing && $currentUser}
+  <div class="loading-screen">
+    <div class="spinner" />
+    <p>Cargando tu mapa...</p>
+  </div>
+{:else}
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <Globe size={24} />
+        <span class="brand-text">TravelMap</span>
+        {#if !$currentUser}
+          <span class="demo-badge">Modo Demo</span>
+        {/if}
+      </div>
 
-    <!-- Demo Banner for Mobile/Desktop if needed, or just keep it subtle in header -->
+      <!-- Demo Banner for Mobile/Desktop if needed, or just keep it subtle in header -->
 
-    <div class="nav-links">
-      <a href="/" class="nav-link">
-        <Home size={18} />
-        <span>Inicio</span>
-      </a>
-
-      <a href="/map" class="nav-link">
-        <Map size={18} />
-        <span>Mapa</span>
-      </a>
-
-      <a href="/trips" class="nav-link">
-        <Compass size={18} />
-        <span>Viajes</span>
-      </a>
-
-      <a href="/locations" class="nav-link">
-        <Map size={18} />
-        <span>Ubicaciones</span>
-      </a>
-
-      <a href="/profile" class="nav-link">
-        <User size={18} />
-        <span>Perfil</span>
-      </a>
-
-      {#if $currentUser}
-        <button class="nav-link logout-btn" on:click={handleLogout}>
-          <LogOut size={18} />
-          <span>Salir</span>
-        </button>
-      {:else}
-        <a href="/login" class="nav-link login-btn">
-          <LogIn size={18} />
-          <span>Acceder</span>
+      <div class="nav-links">
+        <a href="/" class="nav-link">
+          <Home size={18} />
+          <span>Inicio</span>
         </a>
-      {/if}
+
+        <a href="/map" class="nav-link">
+          <Map size={18} />
+          <span>Mapa</span>
+        </a>
+
+        <a href="/trips" class="nav-link">
+          <Compass size={18} />
+          <span>Viajes</span>
+        </a>
+
+        <a href="/locations" class="nav-link">
+          <Map size={18} />
+          <span>Ubicaciones</span>
+        </a>
+
+        <a href="/profile" class="nav-link">
+          <User size={18} />
+          <span>Perfil</span>
+        </a>
+
+        {#if $currentUser}
+          <button class="nav-link logout-btn" on:click={handleLogout}>
+            <LogOut size={18} />
+            <span>Salir</span>
+          </button>
+        {:else}
+          <a href="/login" class="nav-link login-btn">
+            <LogIn size={18} />
+            <span>Acceder</span>
+          </a>
+        {/if}
+      </div>
     </div>
-  </div>
-</nav>
+  </nav>
 
-{#if !$currentUser}
-  <div class="demo-banner">
-    <p>
-      👀 Estás viendo datos de demostración. <a href="/login">Inicia sesión</a>
-      o <a href="/register">Regístrate</a> para guardar tus propios viajes.
-    </p>
-  </div>
+  {#if !$currentUser}
+    <div class="demo-banner">
+      <p>
+        👀 Estás viendo datos de demostración. <a href="/login">Inicia sesión</a
+        >
+        o <a href="/register">Regístrate</a> para guardar tus propios viajes.
+      </p>
+    </div>
+  {/if}
+
+  <main>
+    <slot />
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <p>&copy; 2026 TravelMap. Todos los derechos reservados.</p>
+      <p>Explora el mundo, comparte tus aventuras.</p>
+    </div>
+  </footer>
 {/if}
-
-<main>
-  <slot />
-</main>
-
-<footer class="footer">
-  <div class="footer-content">
-    <p>&copy; 2026 TravelMap. Todos los derechos reservados.</p>
-    <p>Explora el mundo, comparte tus aventuras.</p>
-  </div>
-</footer>
 
 <style>
   :global(body) {
@@ -258,5 +270,36 @@
   .login-btn:hover {
     background: rgba(59, 130, 246, 0.2);
     color: #93c5fd;
+  }
+
+  .loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #0f172a;
+    color: #cbd5e1;
+    z-index: 9999;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border-top-color: #60a5fa;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 1rem;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 </style>

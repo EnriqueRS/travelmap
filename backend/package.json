@@ -23,7 +23,7 @@
     "migrate:make": "knex migrate:make",
     "seed": "knex seed:run",
     "seed:make": "knex seed:make",
-    "db:reset": "knex migrate:rollback:all && knex migrate:latest && knex seed:run"
+    "db:reset": "knex migrate:rollback --all && knex migrate:latest && knex seed:run"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

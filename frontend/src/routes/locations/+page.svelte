@@ -1,7 +1,9 @@
 <script lang="ts">
   import { Map, Star, Calendar, Camera, Heart, Plus, X } from "lucide-svelte"
   import { locations, getCategoryEmoji, type Location } from "$lib/stores/data"
+  import { formatDate } from "$lib/utils/formatters"
   import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
+  import CountryPicker from "$lib/components/ui/CountryPicker.svelte"
 
   // Filtros
   let categoryFilter = ""
@@ -85,6 +87,7 @@
           <option value="">Todas</option>
           <option value="Naturaleza">Naturaleza</option>
           <option value="Ciudad">Ciudad</option>
+          <option value="Ciudad de escala">Ciudad de escala</option>
           <option value="Cultura">Cultura</option>
           <option value="Playa">Playa</option>
           <option value="Montaña">Montaña</option>
@@ -103,11 +106,10 @@
 
       <div class="filter-group">
         <label for="country-filter">País:</label>
-        <input
-          type="text"
+        <CountryPicker
           id="country-filter"
           bind:value={countryFilter}
-          placeholder="Buscar por país..."
+          placeholder="Todos los países"
         />
       </div>
     </div>
@@ -139,7 +141,7 @@
                 </div>
                 <div class="meta-item">
                   <Calendar size={16} />
-                  <span>{location.visitedDate}</span>
+                  <span>{formatDate(location.visitedDate)}</span>
                 </div>
               </div>
 
@@ -191,13 +193,7 @@
 
           <div class="form-group">
             <label for="loc-country">País</label>
-            <input
-              id="loc-country"
-              type="text"
-              bind:value={newLocation.country}
-              required
-              placeholder="Ej: Francia"
-            />
+            <CountryPicker id="loc-country" bind:value={newLocation.country} />
           </div>
 
           <div class="row">
@@ -206,6 +202,7 @@
               <select id="loc-category" bind:value={newLocation.category}>
                 <option value="Naturaleza">Naturaleza</option>
                 <option value="Ciudad">Ciudad</option>
+                <option value="Ciudad de escala">Ciudad de escala</option>
                 <option value="Cultura">Cultura</option>
                 <option value="Playa">Playa</option>
                 <option value="Montaña">Montaña</option>

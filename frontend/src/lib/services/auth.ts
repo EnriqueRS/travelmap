@@ -2,7 +2,7 @@ import axios from 'axios';
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
-const API_URL = 'http://localhost:3001'; // Adjust as needed
+export const API_URL = 'http://localhost:3001'; // Adjust as needed
 
 // Helper to get initial user state
 const getInitialUser = () => {
@@ -11,6 +11,11 @@ const getInitialUser = () => {
     return user ? JSON.parse(user) : null;
   }
   return null;
+};
+
+export const getToken = () => {
+  const user = getInitialUser();
+  return user?.access_token || null;
 };
 
 export const currentUser = writable(getInitialUser());
@@ -69,8 +74,7 @@ export const authService = {
 
   async updateProfile(userData: any) {
     // Get current token
-    const currentUserData = getInitialUser();
-    const token = currentUserData?.access_token;
+    const token = getToken();
 
     if (!token) throw new Error('No authentication token found');
 
