@@ -5,35 +5,33 @@ import { UserIntegration } from '../users/user-integration.entity';
 @Injectable()
 export class IntegrationsService {
   /**
-   * Valida y guarda las credenciales de Immich.
-   * Verifica la API Key contra la URL proporcionada probando un endpoint de Immich.
+   * Validates and stores Immich credentials.
+   * Verifies the API Key against the provided URL by testing an Immich endpoint.
    */
   async setupImmich(userId: number, url: string, apiKey: string): Promise<UserIntegration> {
-    // Normalizar URL (quitar slash final y asegurar http/https)
+    // Normalize URL (remove trailing slash and ensure http/https)
     let baseUrl = url.trim();
     if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
 
-    // Inyectar /api si no la han puesto o lo han puesto mal
+    // Inject /api if not provided or incorrectly provided
     if (!baseUrl.endsWith('/api')) {
       baseUrl = `${baseUrl}/api`;
     }
 
     try {
-      console.log(`${baseUrl}/server/ping`);
-      // Validar conexión haciendo ping a /server/ping (Immich standard)
+      // Validate connection by pinging /server/ping (Immich standard)
       const response = await axios.get(`${baseUrl}/server/ping`, {
         headers: {
-          'x-api-key': apiKey,
           'Accept': 'application/json'
         },
         timeout: 5000 // 5s timeout
       });
 
       if (response.data.res !== 'pong') {
-        throw new BadRequestException('El servidor respondió pero no parece ser una instancia de Immich válida.');
+        throw new BadRequestException('Server response was not "pong"');
       }
 
-      // Validar API key probando el endpoint de información del usuario
+      // Validate API key by checking user info
       await axios.get(`${baseUrl}/users/me`, {
         headers: {
           'x-api-key': apiKey,
@@ -46,11 +44,12 @@ export class IntegrationsService {
 
       console.error('Immich Validation Error:', error.message);
       if (error.response?.status === 401 || error.response?.status === 403) {
-        throw new BadRequestException('API Key inválida o sin permisos.');
+        throw new BadRequestException('API Key is invalid or without permissions.');
       }
-      throw new BadRequestException('No se pudo establecer conexión con el servidor especificado.');
+      throw new BadRequestException('Could not establish connection with the specified server.');
     }
 
+    console.log('Immich connection validated successfully.');
     // Upsert database record
     let integration = await UserIntegration.query().findOne({ userId, provider: 'immich' });
 
@@ -60,7 +59,10 @@ export class IntegrationsService {
         access_token: apiKey
       });
     } else {
+      console.log('Immich integration not found, creating new one.');
+      const { v4: uuidv4 } = require('uuid');
       integration = await UserIntegration.query().insert({
+        id: uuidv4(),
         userId,
         provider: 'immich',
         url: baseUrl,
@@ -72,18 +74,18 @@ export class IntegrationsService {
   }
 
   /**
-   * Obtiene la conexión activa de un usuario para un provider.
+   * Get active connection for a user and provider.
    */
   async getIntegration(userId: number, provider: 'immich'): Promise<UserIntegration> {
     const integration = await UserIntegration.query().findOne({ userId, provider });
     if (!integration) {
-      throw new NotFoundException(`No hay conexión activa con ${provider}`);
+      throw new NotFoundException(`No connection found for ${provider}`);
     }
     return integration;
   }
 
   /**
-   * Obtiene los álbumes del usuario desde su servidor de Immich.
+   * Get albums from Immich.
    */
   async getImmichAlbums(userId: number): Promise<any[]> {
     const integration = await this.getIntegration(userId, 'immich');
@@ -94,12 +96,12 @@ export class IntegrationsService {
       });
       return response.data;
     } catch (error) {
-      throw new BadRequestException('Error al contactar con Immich para obtener álbumes.');
+      throw new BadRequestException('Could not contact Immich to get albums.');
     }
   }
 
   /**
-   * Obtiene las fotos de un álbum específico de Immich.
+   * Get album assets from Immich.
    */
   async getImmichAlbumAssets(userId: number, albumId: string): Promise<any[]> {
     const integration = await this.getIntegration(userId, 'immich');
@@ -111,7 +113,7 @@ export class IntegrationsService {
       });
       return response.data.assets || [];
     } catch (error) {
-      throw new BadRequestException('Error al contactar con Immich para obtener las fotos del álbum.');
+      throw new BadRequestException('Could not contact Immich to get album assets.');
     }
   }
 }

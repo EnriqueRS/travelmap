@@ -10,11 +10,11 @@ export async function up(knex: Knex): Promise<void> {
     table.date('visitDate');
     table.text('notes');
     table.timestamps(true, true);
-    
-    // Constraint único para evitar duplicados
+
+    // Unique constraint to prevent duplicates
     table.unique(['userId', 'countryId', 'status']);
-    
-    // Índices
+
+    // Index
     table.index(['userId', 'status']);
     table.index(['countryId']);
   });

@@ -13,7 +13,6 @@ export class IntegrationsController {
     @Body('url') url: string,
     @Body('apiKey') apiKey: string
   ) {
-    console.log(req.user);
     const integration = await this.integrationsService.setupImmich(req.user.userId, url, apiKey);
     return {
       message: 'Conexión con Immich establecida correctamente.',
