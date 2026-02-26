@@ -1,17 +1,17 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte"
-  import flatpickr from "flatpickr"
-  import "flatpickr/dist/flatpickr.min.css"
-  import "flatpickr/dist/themes/dark.css"
-  import { Spanish } from "flatpickr/dist/l10n/es.js"
+  import { onMount, onDestroy } from "svelte";
+  import flatpickr from "flatpickr";
+  import "flatpickr/dist/flatpickr.min.css";
+  import "flatpickr/dist/themes/dark.css";
+  import { Spanish } from "flatpickr/dist/l10n/es.js";
 
-  export let value: string = "" // Valor en DB siempre YYYY-MM-DD
-  export let id: string = ""
-  export let required: boolean = false
-  export let placeholder: string = "DD/MM/AAAA"
+  export let value: string = ""; // Valor en DB siempre YYYY-MM-DD
+  export let id: string = "";
+  export let required: boolean = false;
+  export let placeholder: string = "DD/MM/AAAA";
 
-  let inputElement: HTMLInputElement
-  let fpInstance: any
+  let inputElement: HTMLInputElement;
+  let fpInstance: any;
 
   onMount(() => {
     fpInstance = flatpickr(inputElement, {
@@ -21,19 +21,19 @@
       altFormat: "d/m/Y", // Formato visible al usuario
       defaultDate: value || undefined,
       onChange: (selectedDates, dateStr) => {
-        value = dateStr
+        value = dateStr;
       },
-    })
-  })
+    });
+  });
 
   onDestroy(() => {
     if (fpInstance) {
-      fpInstance.destroy()
+      fpInstance.destroy();
     }
-  })
+  });
 
   $: if (fpInstance && value) {
-    fpInstance.setDate(value, false)
+    fpInstance.setDate(value, false);
   }
 </script>
 

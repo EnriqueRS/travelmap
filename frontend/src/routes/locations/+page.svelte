@@ -1,38 +1,38 @@
 <script lang="ts">
-  import { Map, Star, Calendar, Camera, Heart, Plus, X } from "lucide-svelte"
-  import { locations, getCategoryEmoji, type Location } from "$lib/stores/data"
-  import { formatDate } from "$lib/utils/formatters"
-  import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
-  import CountryPicker from "$lib/components/ui/CountryPicker.svelte"
+  import { Map, Star, Calendar, Camera, Heart, Plus, X } from "lucide-svelte";
+  import { locations, getCategoryEmoji, type Location } from "$lib/stores/data";
+  import { formatDate } from "$lib/utils/formatters";
+  import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte";
+  import CountryPicker from "$lib/components/ui/CountryPicker.svelte";
 
   // Filtros
-  let categoryFilter = ""
-  let ratingFilter = ""
-  let countryFilter = ""
+  let categoryFilter = "";
+  let ratingFilter = "";
+  let countryFilter = "";
 
   // Modal
-  let showModal = false
+  let showModal = false;
   let newLocation: Partial<Location> = {
     category: "Naturaleza",
     rating: 5,
     country: "",
-  }
+  };
 
   $: filteredLocations = $locations.filter((loc) => {
-    const matchCategory = !categoryFilter || loc.category === categoryFilter
-    const matchRating = !ratingFilter || loc.rating >= parseInt(ratingFilter)
+    const matchCategory = !categoryFilter || loc.category === categoryFilter;
+    const matchRating = !ratingFilter || loc.rating >= parseInt(ratingFilter);
     const matchCountry =
       !countryFilter ||
-      loc.country.toLowerCase().includes(countryFilter.toLowerCase())
-    return matchCategory && matchRating && matchCountry
-  })
+      loc.country.toLowerCase().includes(countryFilter.toLowerCase());
+    return matchCategory && matchRating && matchCountry;
+  });
 
   function getRatingStars(rating: number) {
-    return "⭐".repeat(rating)
+    return "⭐".repeat(rating);
   }
 
   function handleAddLocation() {
-    if (!newLocation.name || !newLocation.country) return
+    if (!newLocation.name || !newLocation.country) return;
 
     const location: Location = {
       id: crypto.randomUUID(),
@@ -45,11 +45,11 @@
       visitedDate: new Date().toISOString().split("T")[0],
       images: [],
       ...newLocation,
-    } as Location
+    } as Location;
 
-    locations.update((current) => [location, ...current])
-    showModal = false
-    newLocation = { category: "Naturaleza", rating: 5, country: "" }
+    locations.update((current) => [location, ...current]);
+    showModal = false;
+    newLocation = { category: "Naturaleza", rating: 5, country: "" };
   }
 </script>
 
@@ -161,9 +161,9 @@
         <button
           class="btn btn-secondary mt-4"
           on:click={() => {
-            categoryFilter = ""
-            ratingFilter = ""
-            countryFilter = ""
+            categoryFilter = "";
+            ratingFilter = "";
+            countryFilter = "";
           }}>Limpiar Filtros</button
         >
       </div>

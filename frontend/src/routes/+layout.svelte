@@ -1,23 +1,31 @@
 <script lang="ts">
-  import "../app.css"
-  import { Map, Globe, Compass, User, Home, LogOut, LogIn } from "lucide-svelte"
-  import { currentUser, authService } from "$lib/services/auth"
-  import { goto } from "$app/navigation"
-  import { onMount } from "svelte"
-  import Toast from "$lib/components/ui/Toast.svelte"
+  import "../app.css";
+  import {
+    Map,
+    Globe,
+    Compass,
+    User,
+    Home,
+    LogOut,
+    LogIn,
+  } from "lucide-svelte";
+  import { currentUser, authService } from "$lib/services/auth";
+  import { goto } from "$app/navigation";
+  import { onMount } from "svelte";
+  import Toast from "$lib/components/ui/Toast.svelte";
 
-  let isInitializing = true
+  let isInitializing = true;
 
   onMount(async () => {
     if ($currentUser?.access_token) {
-      await authService.fetchUserData($currentUser.access_token)
+      await authService.fetchUserData($currentUser.access_token);
     }
-    isInitializing = false
-  })
+    isInitializing = false;
+  });
 
   function handleLogout() {
-    authService.logout()
-    goto("/login")
+    authService.logout();
+    goto("/login");
   }
 </script>
 

@@ -1,42 +1,42 @@
 <script lang="ts">
-  export let text: string = ""
-  export let alt: string = ""
-  export let type: "trip" | "location" | "profile" = "location"
-  export let className: string = ""
+  export let text: string = "";
+  export let alt: string = "";
+  export let type: "trip" | "location" | "profile" = "location";
+  export let className: string = "";
 
   // color generator based on the text for consistency
   function stringToColor(str: string): string {
-    let hash = 0
+    let hash = 0;
     for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash)
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
 
-    const h = Math.abs(hash % 360)
-    return `hsl(${h}, 70%, 50%)`
+    const h = Math.abs(hash % 360);
+    return `hsl(${h}, 70%, 50%)`;
   }
 
   // gradient generator based on the text for consistency
   function getGradient(str: string): string {
-    const c1 = stringToColor(str)
-    const c2 = stringToColor(str.split("").reverse().join(""))
-    return `linear-gradient(135deg, ${c1}, ${c2})`
+    const c1 = stringToColor(str);
+    const c2 = stringToColor(str.split("").reverse().join(""));
+    return `linear-gradient(135deg, ${c1}, ${c2})`;
   }
 
   function getIcon(t: string): string {
     switch (t) {
       case "trip":
-        return "✈️"
+        return "✈️";
       case "location":
-        return "📍"
+        return "📍";
       case "profile":
-        return "👤"
+        return "👤";
       default:
-        return "📷"
+        return "📷";
     }
   }
 
-  $: background = getGradient(text || alt || "placeholder")
-  $: icon = getIcon(type)
+  $: background = getGradient(text || alt || "placeholder");
+  $: icon = getIcon(type);
 </script>
 
 <div class="image-placeholder {className}" style="background: {background}">

@@ -2,9 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Photo } from './entities/photo.entity';
 import { Trip } from '../trips/entities/trip.entity';
 import * as path from 'path';
+import * as fs from 'fs';
+import { Response } from 'express';
+import { IntegrationsService } from '../integrations/integrations.service';
+import axios from 'axios';
 
 @Injectable()
 export class MediaService {
+  constructor (private readonly integrationsService: IntegrationsService) { }
   /**
    * Guarda un registro local para una foto externa subida con Immich o Google
    */
@@ -83,7 +88,7 @@ export class MediaService {
 
       // 2. Acoplar al Trip principal (opcional / fallback para old views)
       await Trip.query().findById(photo.tripId).patch({
-        coverImage: photo.url
+        coverImage: photo.id
       });
     }
 
@@ -98,5 +103,47 @@ export class MediaService {
     await photo.$query().delete();
     // Físicamente borrar local file aquí (omitido en MVP standard para prevención)
     return true;
+  }
+
+  /**
+   * Stream a photo directly to the response, bypassing CORS.
+   */
+  async streamPhotoImage(id: string, res: Response) {
+    const photo = await Photo.query().findById(id);
+
+    if (!photo) {
+      throw new NotFoundException('Foto no encontrada');
+    }
+
+    if (photo.provider === 'local') {
+      const filePath = path.join(process.cwd(), photo.url);
+      if (fs.existsSync(filePath)) {
+        return fs.createReadStream(filePath).pipe(res);
+      } else {
+        throw new NotFoundException('Archivo local no encontrado');
+      }
+    } else if (photo.provider === 'immich') {
+      try {
+        const integration = await this.integrationsService.getIntegration(photo.userId, 'immich');
+        const assetUrl = photo.url; // This should be the direct API URL without CORS proxying on the frontend
+
+        const response = await axios.get(assetUrl, {
+          headers: {
+            'x-api-key': integration.access_token,
+            'Accept': 'image/*'
+          },
+          responseType: 'stream'
+        });
+
+        // Optional: pipe the precise content type if we have it
+        res.set('Content-Type', response.headers['content-type']);
+        return response.data.pipe(res);
+      } catch (error) {
+        console.error('Error proxying Immich image:', error);
+        throw new NotFoundException('Error obtaining image from Immich');
+      }
+    } else {
+      throw new NotFoundException('Proveedor de fotos no soportado');
+    }
   }
 }

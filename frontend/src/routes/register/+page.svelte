@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { authService } from "$lib/services/auth"
-  import LocationPicker from "$lib/components/map/LocationPicker.svelte"
-  import { goto } from "$app/navigation"
+  import { authService } from "$lib/services/auth";
+  import LocationPicker from "$lib/components/map/LocationPicker.svelte";
+  import { goto } from "$app/navigation";
   import {
     UserPlus,
     MapPin,
@@ -13,27 +13,27 @@
     ArrowRight,
     Eye,
     EyeOff,
-  } from "lucide-svelte"
+  } from "lucide-svelte";
 
-  let username = ""
-  let email = ""
-  let password = ""
-  let firstName = ""
-  let lastName = ""
-  let homeLocation: { lat: number; lng: number } | null = null
-  let errorMessage = ""
-  let loading = false
-  let showPassword = false
+  let username = "";
+  let email = "";
+  let password = "";
+  let firstName = "";
+  let lastName = "";
+  let homeLocation: { lat: number; lng: number } | null = null;
+  let errorMessage = "";
+  let loading = false;
+  let showPassword = false;
 
   async function handleRegister() {
     try {
       if (!homeLocation) {
-        errorMessage = "Por favor selecciona tu ubicación en el mapa."
-        return
+        errorMessage = "Por favor selecciona tu ubicación en el mapa.";
+        return;
       }
 
-      loading = true
-      errorMessage = ""
+      loading = true;
+      errorMessage = "";
 
       await authService.register({
         username,
@@ -45,19 +45,19 @@
           type: "Point",
           coordinates: [homeLocation.lat, homeLocation.lng],
         },
-      })
+      });
 
-      goto("/profile")
+      goto("/profile");
     } catch (error: any) {
-      errorMessage = error.response?.data?.message || "Error en el registro"
+      errorMessage = error.response?.data?.message || "Error en el registro";
     } finally {
-      loading = false
+      loading = false;
     }
   }
 
   function handleLocationSelect(event: CustomEvent) {
-    homeLocation = event.detail
-    errorMessage = ""
+    homeLocation = event.detail;
+    errorMessage = "";
   }
 </script>
 

@@ -1,45 +1,45 @@
 <script lang="ts">
-  import { onMount, onDestroy, createEventDispatcher } from "svelte"
-  import { browser } from "$app/environment"
-  import "leaflet/dist/leaflet.css"
-  import markerIconUrl from "leaflet/dist/images/marker-icon.png"
-  import markerIconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png"
-  import markerShadowUrl from "leaflet/dist/images/marker-shadow.png"
-  import { geocode } from "$lib/utils/geocode"
-  import { Search } from "lucide-svelte"
+  import { onMount, onDestroy, createEventDispatcher } from "svelte";
+  import { browser } from "$app/environment";
+  import "leaflet/dist/leaflet.css";
+  import markerIconUrl from "leaflet/dist/images/marker-icon.png";
+  import markerIconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
+  import markerShadowUrl from "leaflet/dist/images/marker-shadow.png";
+  import { geocode } from "$lib/utils/geocode";
+  import { Search } from "lucide-svelte";
 
-  export let height = "300px"
-  export let initialLocation: { lat: number; lng: number } | null = null
+  export let height = "300px";
+  export let initialLocation: { lat: number; lng: number } | null = null;
 
-  const dispatch = createEventDispatcher()
-  let mapContainer: HTMLDivElement
-  let map: any
-  let marker: any
-  let L: any
-  let searchQuery = ""
-  let searchLoading = false
-  let searchError = ""
+  const dispatch = createEventDispatcher();
+  let mapContainer: HTMLDivElement;
+  let map: any;
+  let marker: any;
+  let L: any;
+  let searchQuery = "";
+  let searchLoading = false;
+  let searchError = "";
 
   onMount(async () => {
-    if (!browser) return
+    if (!browser) return;
 
     try {
-      const leafletModule = await import("leaflet")
-      L = leafletModule.default
+      const leafletModule = await import("leaflet");
+      L = leafletModule.default;
 
       // Use Leaflet marker images from package (Vite resolves URLs)
       // @ts-ignore
-      delete L.Icon.Default.prototype._getIconUrl
+      delete L.Icon.Default.prototype._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: markerIconRetinaUrl,
         iconUrl: markerIconUrl,
         shadowUrl: markerShadowUrl,
-      })
+      });
 
       map = L.map(mapContainer).setView(
         initialLocation ? [initialLocation.lat, initialLocation.lng] : [20, 0],
-        initialLocation ? 10 : 2,
-      )
+        initialLocation ? 10 : 2
+      );
 
       L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
@@ -48,56 +48,56 @@
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
           subdomains: "abcd",
           maxZoom: 20,
-        },
-      ).addTo(map)
+        }
+      ).addTo(map);
 
       if (initialLocation) {
-        addMarker(initialLocation.lat, initialLocation.lng)
+        addMarker(initialLocation.lat, initialLocation.lng);
       }
 
       map.on("click", (e: any) => {
-        const { lat, lng } = e.latlng
-        addMarker(lat, lng)
-        dispatch("locationSelect", { lat, lng })
-      })
+        const { lat, lng } = e.latlng;
+        addMarker(lat, lng);
+        dispatch("locationSelect", { lat, lng });
+      });
     } catch (e) {
-      console.error("Error initializing map:", e)
+      console.error("Error initializing map:", e);
     }
-  })
+  });
 
   function addMarker(lat: number, lng: number) {
-    if (!map || !L) return
+    if (!map || !L) return;
     if (marker) {
-      map.removeLayer(marker)
+      map.removeLayer(marker);
     }
-    marker = L.marker([lat, lng]).addTo(map)
+    marker = L.marker([lat, lng]).addTo(map);
   }
 
   async function handleSearch() {
-    if (!searchQuery.trim() || !map) return
-    searchError = ""
-    searchLoading = true
+    if (!searchQuery.trim() || !map) return;
+    searchError = "";
+    searchLoading = true;
     try {
-      const result = await geocode(searchQuery)
+      const result = await geocode(searchQuery);
       if (result) {
-        map.setView([result.lat, result.lng], 14)
-        addMarker(result.lat, result.lng)
-        dispatch("locationSelect", { lat: result.lat, lng: result.lng })
+        map.setView([result.lat, result.lng], 14);
+        addMarker(result.lat, result.lng);
+        dispatch("locationSelect", { lat: result.lat, lng: result.lng });
       } else {
-        searchError = "No se encontró la ubicación. Prueba con otra búsqueda."
+        searchError = "No se encontró la ubicación. Prueba con otra búsqueda.";
       }
     } catch (e) {
-      searchError = "Error al buscar. Intenta de nuevo."
+      searchError = "Error al buscar. Intenta de nuevo.";
     } finally {
-      searchLoading = false
+      searchLoading = false;
     }
   }
 
   onDestroy(() => {
     if (map) {
-      map.remove()
+      map.remove();
     }
-  })
+  });
 </script>
 
 <div class="location-picker-wrapper">

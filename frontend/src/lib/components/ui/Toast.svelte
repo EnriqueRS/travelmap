@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { toasts, removeToast } from "$lib/stores/ui"
-  import { CheckCircle2, AlertCircle, Info, X } from "lucide-svelte"
-  import { onMount } from "svelte"
+  import { toasts, removeToast } from "$lib/stores/ui";
+  import { CheckCircle2, AlertCircle, Info, X } from "lucide-svelte";
+  import { onMount } from "svelte";
 
   function getIcon(type: string) {
-    if (type === "success") return CheckCircle2
-    if (type === "error") return AlertCircle
-    return Info
+    if (type === "success") return CheckCircle2;
+    if (type === "error") return AlertCircle;
+    return Info;
   }
 </script>
 

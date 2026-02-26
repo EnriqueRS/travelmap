@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { onMount, createEventDispatcher } from "svelte"
-  import MapContainer from "$lib/components/map/MapContainer.svelte"
-  import CountryPicker from "$lib/components/ui/CountryPicker.svelte"
-  import { locations, trips } from "$lib/stores/data"
-  import type { Location, Trip } from "$lib/stores/data"
+  import { onMount, createEventDispatcher } from "svelte";
+  import MapContainer from "$lib/components/map/MapContainer.svelte";
+  import CountryPicker from "$lib/components/ui/CountryPicker.svelte";
+  import { locations, trips } from "$lib/stores/data";
+  import type { Location, Trip } from "$lib/stores/data";
   import {
     Search,
     Plus,
@@ -13,18 +13,18 @@
     Eye,
     Calendar,
     MapPin,
-  } from "lucide-svelte"
+  } from "lucide-svelte";
 
   // Bind to map component
-  let mapComponent: any
-  let currentLayer: "default" | "satellite" = "default"
+  let mapComponent: any;
+  let currentLayer: "default" | "satellite" = "default";
 
   // Modal State
-  let showAddLocationModal = false
-  let newLocationLat = 0
-  let newLocationLng = 0
-  let newLocationName = ""
-  let newLocationCountry = ""
+  let showAddLocationModal = false;
+  let newLocationLat = 0;
+  let newLocationLng = 0;
+  let newLocationName = "";
+  let newLocationCountry = "";
   let newLocationCategory:
     | "Naturaleza"
     | "Ciudad"
@@ -32,35 +32,35 @@
     | "Playa"
     | "Montaña"
     | "Cultura"
-    | "Otro" = "Naturaleza"
-  let newLocationTripId = ""
-  let newTripName = ""
+    | "Otro" = "Naturaleza";
+  let newLocationTripId = "";
+  let newTripName = "";
 
   function handleMapClick(e: CustomEvent<{ lat: number; lng: number }>) {
-    newLocationLat = e.detail.lat
-    newLocationLng = e.detail.lng
-    newLocationName = ""
-    newLocationCountry = ""
-    newLocationCategory = "Naturaleza"
-    newLocationTripId = ""
-    newTripName = ""
-    showAddLocationModal = true
+    newLocationLat = e.detail.lat;
+    newLocationLng = e.detail.lng;
+    newLocationName = "";
+    newLocationCountry = "";
+    newLocationCategory = "Naturaleza";
+    newLocationTripId = "";
+    newTripName = "";
+    showAddLocationModal = true;
   }
 
   function saveNewLocation() {
     if (!newLocationName) {
-      alert("Introduce un nombre")
-      return
+      alert("Introduce un nombre");
+      return;
     }
 
-    let finalTripId = newLocationTripId
+    let finalTripId = newLocationTripId;
 
     if (newLocationTripId === "new") {
       if (!newTripName) {
-        alert("Introduce un nombre para el nuevo viaje")
-        return
+        alert("Introduce un nombre para el nuevo viaje");
+        return;
       }
-      finalTripId = crypto.randomUUID()
+      finalTripId = crypto.randomUUID();
       const newTrip: Trip = {
         id: finalTripId,
         name: newTripName,
@@ -71,11 +71,11 @@
         status: "Planificado",
         coverImage: "default-cover",
         locations: [],
-      }
-      trips.update((t) => [...t, newTrip])
+      };
+      trips.update((t) => [...t, newTrip]);
     }
 
-    const newLocId = crypto.randomUUID()
+    const newLocId = crypto.randomUUID();
 
     const newLoc: Location = {
       id: newLocId,
@@ -88,35 +88,35 @@
       visitedDate: new Date().toISOString().split("T")[0],
       images: [],
       tripId: finalTripId || undefined,
-    }
+    };
 
-    locations.update((locs) => [...locs, newLoc])
+    locations.update((locs) => [...locs, newLoc]);
 
     if (finalTripId && finalTripId !== "") {
       trips.update((t) =>
         t.map((trip) => {
           if (trip.id === finalTripId) {
-            return { ...trip, locations: [...trip.locations, newLocId] }
+            return { ...trip, locations: [...trip.locations, newLocId] };
           }
-          return trip
+          return trip;
         })
-      )
+      );
     }
 
-    showAddLocationModal = false
+    showAddLocationModal = false;
   }
 
   // Filters
-  let showVisited = true
-  let showPlanned = true
-  let showHome = true
-  let searchQuery = ""
+  let showVisited = true;
+  let showPlanned = true;
+  let showHome = true;
+  let searchQuery = "";
 
   // Stats derivation
-  $: totalLocations = $locations.length
-  $: visitedCount = $locations.length // Approximation, typically derived from trips/dates
-  $: plannedCount = $trips.filter((t) => t.status === "Planificado").length * 5 // Fake multiplier
-  $: regions = new Set($locations.map((l) => l.country)).size
+  $: totalLocations = $locations.length;
+  $: visitedCount = $locations.length; // Approximation, typically derived from trips/dates
+  $: plannedCount = $trips.filter((t) => t.status === "Planificado").length * 5; // Fake multiplier
+  $: regions = new Set($locations.map((l) => l.country)).size;
 
   // Filter Logic
   $: filteredLocations = $locations.filter((loc) => {
@@ -126,39 +126,39 @@
       !loc.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
       !loc.country.toLowerCase().includes(searchQuery.toLowerCase())
     ) {
-      return false
+      return false;
     }
 
     // Status filter
-    let isPlanned = false
-    let isVisited = false
+    let isPlanned = false;
+    let isVisited = false;
 
     if (loc.tripId) {
-      const trip = $trips.find((t) => t.id === loc.tripId)
+      const trip = $trips.find((t) => t.id === loc.tripId);
       if (trip && trip.status === "Planificado") {
-        isPlanned = true
+        isPlanned = true;
       } else {
-        isVisited = true // Completed or In Progress assumed visited
+        isVisited = true; // Completed or In Progress assumed visited
       }
     } else {
       // If no trip, assume visited (standalone location or just saved)
       // For this demo, let's treat it as visited
-      isVisited = true
+      isVisited = true;
     }
 
-    if (showVisited && isVisited) return true
-    if (showPlanned && isPlanned) return true
+    if (showVisited && isVisited) return true;
+    if (showPlanned && isPlanned) return true;
 
-    return false
-  })
+    return false;
+  });
 
   // Fake progress for visual flair
-  let completion = 13
+  let completion = 13;
 
   function toggleLayer() {
-    currentLayer = currentLayer === "default" ? "satellite" : "default"
+    currentLayer = currentLayer === "default" ? "satellite" : "default";
     if (mapComponent) {
-      mapComponent.setMapLayer(currentLayer)
+      mapComponent.setMapLayer(currentLayer);
     }
   }
 </script>

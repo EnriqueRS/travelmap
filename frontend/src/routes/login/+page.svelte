@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { authService } from "$lib/services/auth"
-  import { goto } from "$app/navigation"
+  import { authService } from "$lib/services/auth";
+  import { goto } from "$app/navigation";
   import {
     User,
     Lock,
@@ -10,38 +10,38 @@
     AlertCircle,
     Eye,
     EyeOff,
-  } from "lucide-svelte"
+  } from "lucide-svelte";
 
-  let username = ""
-  let password = ""
-  let errorMessage = ""
-  let loading = false
-  let showPassword = false
+  let username = "";
+  let password = "";
+  let errorMessage = "";
+  let loading = false;
+  let showPassword = false;
 
   async function handleLogin() {
     try {
-      loading = true
-      errorMessage = ""
+      loading = true;
+      errorMessage = "";
       authService
         .login(username, password)
         .then((res) => {
           if (res.access_token) {
-            goto("/profile")
+            goto("/map");
           } else {
-            errorMessage = res.data.message
+            errorMessage = res.data.message;
           }
         })
         .catch((error: any) => {
           errorMessage =
-            error.response?.data?.message || "Credenciales inválidas"
+            error.response?.data?.message || "Credenciales inválidas";
         })
         .finally(() => {
-          loading = false
-        })
+          loading = false;
+        });
     } catch (error: any) {
-      errorMessage = error.response?.data?.message || "Credenciales inválidas"
+      errorMessage = error.response?.data?.message || "Credenciales inválidas";
     } finally {
-      loading = false
+      loading = false;
     }
   }
 </script>

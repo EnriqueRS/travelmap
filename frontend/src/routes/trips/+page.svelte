@@ -1,19 +1,20 @@
 <script lang="ts">
-  import { Compass, Map, Plus, Calendar } from "lucide-svelte"
-  import { trips, getStatusColor } from "$lib/stores/data"
-  import { formatDate } from "$lib/utils/formatters"
-  import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
+  import { Compass, Map, Plus, Calendar } from "lucide-svelte";
+  import { trips, getStatusColor } from "$lib/stores/data";
+  import { formatDate } from "$lib/utils/formatters";
+  import { API_URL } from "$lib/services/auth";
+  import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte";
 
   function getStatusIcon(status: string) {
     switch (status) {
       case "Completado":
-        return "✅"
+        return "✅";
       case "En curso":
-        return "🚗"
+        return "🚗";
       case "Planificado":
-        return "📅"
+        return "📅";
       default:
-        return "❓"
+        return "❓";
     }
   }
 
@@ -25,7 +26,7 @@
     planned: $trips.filter((t) => t.status === "Planificado").length,
     locations: $trips.reduce((acc, t) => acc + t.locations.length, 0),
     countries: new Set($trips.flatMap((t) => t.countries)).size,
-  }
+  };
 </script>
 
 <svelte:head>
@@ -55,7 +56,15 @@
       {#each $trips as trip (trip.id)}
         <div class="trip-card">
           <div class="trip-image">
-            <ImagePlaceholder text={trip.name} type="trip" />
+            {#if trip.coverImage && trip.coverImage.length > 5 && trip.coverImage !== trip.name}
+              <img
+                src={`${API_URL}/media/photos/${trip.coverImage}/image`}
+                alt="Cover"
+                style="width:100%; height:100%; object-fit:cover;"
+              />
+            {:else}
+              <ImagePlaceholder text={trip.name} type="trip" />
+            {/if}
             <div
               class="trip-status"
               style="background-color: {getStatusColor(trip.status)}"

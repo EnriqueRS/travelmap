@@ -9,69 +9,69 @@
     Home,
     Upload,
     RefreshCw,
-  } from "lucide-svelte"
-  import { userProfile, locations } from "$lib/stores/data"
-  import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
-  import LocationPicker from "$lib/components/map/LocationPicker.svelte"
-  import { authService } from "$lib/services/auth"
-  import { integrationsService } from "$lib/services/integrations"
-  import { onMount } from "svelte"
+  } from "lucide-svelte";
+  import { userProfile, locations } from "$lib/stores/data";
+  import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte";
+  import LocationPicker from "$lib/components/map/LocationPicker.svelte";
+  import { authService } from "$lib/services/auth";
+  import { integrationsService } from "$lib/services/integrations";
+  import { onMount } from "svelte";
 
   // Estado Integraciones
-  let immichStatus = { isConnected: false, url: "" }
-  let immichConfig = { url: "", apiKey: "" }
-  let isSavingImmich = false
-  let immichMessage = { type: "", text: "" }
+  let immichStatus = { isConnected: false, url: "" };
+  let immichConfig = { url: "", apiKey: "" };
+  let isSavingImmich = false;
+  let immichMessage = { type: "", text: "" };
 
   onMount(async () => {
     try {
-      const status = await integrationsService.checkStatus()
+      const status = await integrationsService.checkStatus();
       if (status.immich) {
-        immichStatus.isConnected = true
-        immichStatus.url = status.url
-        immichConfig.url = status.url // Prellenar url
+        immichStatus.isConnected = true;
+        immichStatus.url = status.url;
+        immichConfig.url = status.url; // Prellenar url
       }
     } catch (e) {
-      console.error("No se pudo comprobar el estado de immich", e)
+      console.error("No se pudo comprobar el estado de immich", e);
     }
-  })
+  });
 
   async function handleImmichSave() {
-    isSavingImmich = true
-    immichMessage = { type: "", text: "" }
+    isSavingImmich = true;
+    immichMessage = { type: "", text: "" };
     try {
       const res = await integrationsService.setupImmich(
         immichConfig.url,
         immichConfig.apiKey
-      )
-      immichStatus.isConnected = true
-      immichStatus.url = res.url
+      );
+      immichStatus.isConnected = true;
+      immichStatus.url = res.url;
       immichMessage = {
         type: "success",
         text: "Conectado. Tus álbumes ya pueden vincularse a tus viajes.",
-      }
+      };
     } catch (e: any) {
       immichMessage = {
         type: "error",
         text:
           e.response?.data?.message ||
           "Error al conectar. Verifica tu URL y API Key.",
-      }
+      };
     } finally {
-      isSavingImmich = false
+      isSavingImmich = false;
     }
   }
 
   // Modal
-  let showEditModal = false
-  let editData = { ...$userProfile }
-  let isSaving = false
-  let saveMessage = { type: "", text: "" }
+  let showEditModal = false;
+  let editData = { ...$userProfile };
+  let isSaving = false;
+  let saveMessage = { type: "", text: "" };
 
   // Avatar logic
-  let avatarTab: "preset" | "upload" = "preset"
-  let avatarFile: File | null = null
-  let avatarPreview: string | null = null
+  let avatarTab: "preset" | "upload" = "preset";
+  let avatarFile: File | null = null;
+  let avatarPreview: string | null = null;
 
   const avatarPresets = [
     "https://api.dicebear.com/7.x/shapes/svg?seed=Felix",
@@ -81,35 +81,35 @@
     "https://api.dicebear.com/7.x/avataaars/svg?seed=Precious",
     "https://api.dicebear.com/7.x/bottts/svg?seed=Aneka",
     "https://api.dicebear.com/7.x/identicon/svg?seed=Map",
-  ]
+  ];
 
   // Ensure homeLocation structure exists in editData if not present
   if (!editData.homeLocation) {
-    editData.homeLocation = { name: "", coordinates: [0, 0] }
+    editData.homeLocation = { name: "", coordinates: [0, 0] };
   }
 
   function handleAvatarFile(e: Event) {
-    const input = e.target as HTMLInputElement
+    const input = e.target as HTMLInputElement;
     if (input.files && input.files[0]) {
-      avatarFile = input.files[0]
-      const reader = new FileReader()
+      avatarFile = input.files[0];
+      const reader = new FileReader();
       reader.onload = (e) => {
-        avatarPreview = e.target?.result as string
-        editData.avatar = avatarPreview // Update edit data immediately for preview
-      }
-      reader.readAsDataURL(avatarFile)
+        avatarPreview = e.target?.result as string;
+        editData.avatar = avatarPreview; // Update edit data immediately for preview
+      };
+      reader.readAsDataURL(avatarFile);
     }
   }
 
   function selectPreset(url: string) {
-    editData.avatar = url
-    avatarPreview = null
-    avatarFile = null
+    editData.avatar = url;
+    avatarPreview = null;
+    avatarFile = null;
   }
 
   async function handleSave() {
-    isSaving = true
-    saveMessage = { type: "", text: "" }
+    isSaving = true;
+    saveMessage = { type: "", text: "" };
 
     try {
       // If we have stats, we should keep them, but here we only edit specific fields
@@ -123,30 +123,30 @@
         name: editData.name,
         bio: editData.bio,
         avatar: editData.avatar,
-      }
+      };
 
       if (editData.homeLocation && editData.homeLocation.coordinates) {
-        payload.homeLocationLat = editData.homeLocation.coordinates[0]
-        payload.homeLocationLng = editData.homeLocation.coordinates[1]
+        payload.homeLocationLat = editData.homeLocation.coordinates[0];
+        payload.homeLocationLng = editData.homeLocation.coordinates[1];
       }
 
-      await authService.updateProfile(payload)
+      await authService.updateProfile(payload);
 
       saveMessage = {
         type: "success",
         text: "Perfil actualizado correctamente",
-      }
+      };
       setTimeout(() => {
-        showEditModal = false
-        saveMessage = { type: "", text: "" }
-      }, 1500)
+        showEditModal = false;
+        saveMessage = { type: "", text: "" };
+      }, 1500);
     } catch (error: any) {
-      console.error("Error saving profile:", error)
+      console.error("Error saving profile:", error);
       const detail =
-        error.response?.data?.message || error.message || "Error desconocido"
-      saveMessage = { type: "error", text: `Error al guardar: ${detail}` }
+        error.response?.data?.message || error.message || "Error desconocido";
+      saveMessage = { type: "error", text: `Error al guardar: ${detail}` };
     } finally {
-      isSaving = false
+      isSaving = false;
     }
   }
 
@@ -157,29 +157,29 @@
     lat2: number,
     lon2: number
   ) {
-    const R = 6371 // Radius of the earth in km
-    const dLat = deg2rad(lat2 - lat1)
-    const dLon = deg2rad(lon2 - lon1)
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(deg2rad(lat1)) *
         Math.cos(deg2rad(lat2)) *
         Math.sin(dLon / 2) *
-        Math.sin(dLon / 2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    return R * c // Distance in km
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in km
   }
 
   function deg2rad(deg: number) {
-    return deg * (Math.PI / 180)
+    return deg * (Math.PI / 180);
   }
 
-  let furthestPlace: { name: string; distance: number } | null = null
+  let furthestPlace: { name: string; distance: number } | null = null;
 
   $: if ($userProfile.homeLocation && $locations.length > 0) {
-    let maxDist = 0
-    let placeName = ""
-    const home = $userProfile.homeLocation
+    let maxDist = 0;
+    let placeName = "";
+    const home = $userProfile.homeLocation;
 
     $locations.forEach((loc) => {
       const dist = calculateDistance(
@@ -187,17 +187,17 @@
         home.coordinates[1],
         loc.coordinates[0],
         loc.coordinates[1]
-      )
+      );
       if (dist > maxDist) {
-        maxDist = dist
-        placeName = loc.name
+        maxDist = dist;
+        placeName = loc.name;
       }
-    })
+    });
 
     if (maxDist > 0) {
-      furthestPlace = { name: placeName, distance: Math.round(maxDist) }
+      furthestPlace = { name: placeName, distance: Math.round(maxDist) };
     } else {
-      furthestPlace = null
+      furthestPlace = null;
     }
   }
 </script>
@@ -239,8 +239,8 @@
           <button
             class="btn btn-primary"
             on:click={() => {
-              editData = { ...$userProfile }
-              showEditModal = true
+              editData = { ...$userProfile };
+              showEditModal = true;
             }}
           >
             <Settings size={20} />
@@ -540,7 +540,7 @@
                         editData.homeLocation.coordinates = [
                           e.detail.lat,
                           e.detail.lng,
-                        ]
+                        ];
                         // Optional: clear name if we want to force manual entry or try to fetch it
                       }
                     }}

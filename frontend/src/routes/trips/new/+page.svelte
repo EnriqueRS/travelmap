@@ -1,37 +1,37 @@
 <script lang="ts">
-  import { trips } from "$lib/stores/data"
-  import { goto } from "$app/navigation"
-  import type { Trip } from "$lib/stores/data"
-  import CountryPicker from "$lib/components/ui/CountryPicker.svelte"
-  import { tripsService } from "$lib/services/trips"
-  import { toast } from "$lib/stores/ui"
-  import { X } from "lucide-svelte"
-  import DatePicker from "$lib/components/ui/DatePicker.svelte"
+  import { trips } from "$lib/stores/data";
+  import { goto } from "$app/navigation";
+  import type { Trip } from "$lib/stores/data";
+  import CountryPicker from "$lib/components/ui/CountryPicker.svelte";
+  import { tripsService } from "$lib/services/trips";
+  import { toast } from "$lib/stores/ui";
+  import { X } from "lucide-svelte";
+  import DatePicker from "$lib/components/ui/DatePicker.svelte";
 
-  let name = ""
-  let description = ""
-  let startDate = ""
-  let endDate = ""
-  let status: Trip["status"] = "Planificado"
+  let name = "";
+  let description = "";
+  let startDate = "";
+  let endDate = "";
+  let status: Trip["status"] = "Planificado";
 
-  let selectedCountry = ""
-  let selectedCountries: string[] = []
+  let selectedCountry = "";
+  let selectedCountries: string[] = [];
 
   function addCountry() {
     if (selectedCountry && !selectedCountries.includes(selectedCountry)) {
-      selectedCountries = [...selectedCountries, selectedCountry]
-      selectedCountry = "" // Reset
+      selectedCountries = [...selectedCountries, selectedCountry];
+      selectedCountry = ""; // Reset
     }
   }
 
   function removeCountry(country: string) {
-    selectedCountries = selectedCountries.filter((c) => c !== country)
+    selectedCountries = selectedCountries.filter((c) => c !== country);
   }
 
-  let isSubmitting = false
+  let isSubmitting = false;
 
   async function handleSubmit() {
-    isSubmitting = true
+    isSubmitting = true;
     try {
       const newTrip = {
         name,
@@ -42,20 +42,20 @@
         status,
         coverImage: name,
         locations: [],
-      }
+      };
 
       // Persistir en backend
-      const createdTrip = await tripsService.createTrip(newTrip)
-      createdTrip.locations = createdTrip.locations || []
+      const createdTrip = await tripsService.createTrip(newTrip);
+      createdTrip.locations = createdTrip.locations || [];
 
       // Actualizar frontend
-      trips.update((current) => [...current, createdTrip])
-      goto("/trips")
+      trips.update((current) => [...current, createdTrip]);
+      goto("/trips");
     } catch (e) {
-      console.error("Error creando el viaje", e)
-      toast.error("Hubo un error al crear el viaje")
+      console.error("Error creando el viaje", e);
+      toast.error("Hubo un error al crear el viaje");
     } finally {
-      isSubmitting = false
+      isSubmitting = false;
     }
   }
 </script>

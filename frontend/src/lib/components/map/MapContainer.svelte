@@ -1,42 +1,42 @@
 <script lang="ts">
-  import { onMount, onDestroy, createEventDispatcher } from "svelte"
-  import { browser } from "$app/environment"
-  import { userProfile } from "$lib/stores/data"
-  import type { Location } from "$lib/stores/data"
-  import "leaflet/dist/leaflet.css"
-  import "leaflet.markercluster/dist/MarkerCluster.css"
-  import "leaflet.markercluster/dist/MarkerCluster.Default.css"
-  import markerIconUrl from "leaflet/dist/images/marker-icon.png"
-  import markerIconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png"
-  import markerShadowUrl from "leaflet/dist/images/marker-shadow.png"
-  import { geocode } from "$lib/utils/geocode"
-  import { Search } from "lucide-svelte"
+  import { onMount, onDestroy, createEventDispatcher } from "svelte";
+  import { browser } from "$app/environment";
+  import { userProfile } from "$lib/stores/data";
+  import type { Location } from "$lib/stores/data";
+  import "leaflet/dist/leaflet.css";
+  import "leaflet.markercluster/dist/MarkerCluster.css";
+  import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+  import markerIconUrl from "leaflet/dist/images/marker-icon.png";
+  import markerIconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
+  import markerShadowUrl from "leaflet/dist/images/marker-shadow.png";
+  import { geocode } from "$lib/utils/geocode";
+  import { Search } from "lucide-svelte";
 
-  export let height = "100%"
-  export let locations: Location[] = []
-  export let showHome = true
+  export let height = "100%";
+  export let locations: Location[] = [];
+  export let showHome = true;
 
-  let mapContainer: HTMLDivElement
-  let map: any
-  let markerClusterGroup: any
-  let L: any
-  let currentTileLayer: any
-  let searchQuery = ""
-  let searchLoading = false
-  let searchError = ""
+  let mapContainer: HTMLDivElement;
+  let map: any;
+  let markerClusterGroup: any;
+  let L: any;
+  let currentTileLayer: any;
+  let searchQuery = "";
+  let searchLoading = false;
+  let searchError = "";
 
-  const dispatch = createEventDispatcher()
+  const dispatch = createEventDispatcher();
 
   // Reactive update when locations prop changes
   $: if (map && browser && L && markerClusterGroup && locations) {
-    updateMarkers()
+    updateMarkers();
   }
 
   async function updateMarkers() {
-    if (!map || !markerClusterGroup) return
+    if (!map || !markerClusterGroup) return;
 
     // Clear existing layer
-    markerClusterGroup.clearLayers()
+    markerClusterGroup.clearLayers();
 
     // Add new markers
     locations.forEach((loc) => {
@@ -63,7 +63,7 @@
             loc.category
           } • ⭐ ${loc.rating}</p>
         </div>
-      `
+      `;
 
       // Custom Icon logic
       const customIcon = L.divIcon({
@@ -76,37 +76,37 @@
         iconSize: [40, 40],
         iconAnchor: [20, 40],
         popupAnchor: [0, -40],
-      })
+      });
 
       const marker = L.marker([loc.coordinates[0], loc.coordinates[1]], {
         icon: customIcon,
-      }).bindPopup(popupContent)
+      }).bindPopup(popupContent);
 
-      markerClusterGroup.addLayer(marker)
-    })
+      markerClusterGroup.addLayer(marker);
+    });
 
     // Ensure the layer is added to map
     if (!map.hasLayer(markerClusterGroup)) {
-      map.addLayer(markerClusterGroup)
+      map.addLayer(markerClusterGroup);
     }
 
-    updateHomeMarker()
+    updateHomeMarker();
   }
 
   // Separate Home Marker Logic
-  let homeMarker: any
+  let homeMarker: any;
 
   function updateHomeMarker() {
-    if (!map || !L) return
+    if (!map || !L) return;
 
     // Remove existing
     if (homeMarker) {
-      map.removeLayer(homeMarker)
-      homeMarker = null
+      map.removeLayer(homeMarker);
+      homeMarker = null;
     }
 
     if (showHome && $userProfile.homeLocation) {
-      const home = $userProfile.homeLocation
+      const home = $userProfile.homeLocation;
       const customIcon = L.divIcon({
         className: "custom-map-marker",
         html: `<div class="marker-home" style="background-color: #ef4444;">
@@ -115,7 +115,7 @@
         iconSize: [40, 40],
         iconAnchor: [20, 40],
         popupAnchor: [0, -40],
-      })
+      });
 
       homeMarker = L.marker([home.coordinates[0], home.coordinates[1]], {
         icon: customIcon,
@@ -125,13 +125,13 @@
             <h3 style="margin: 0;">🏠 Casa</h3>
             <p>${home.name}</p>
           </div>
-        `)
+        `);
     }
   }
 
   // React to showHome change
   $: if (map && (showHome || !showHome)) {
-    updateHomeMarker()
+    updateHomeMarker();
   }
 
   function getCategoryEmoji(category: string) {
@@ -143,15 +143,15 @@
       Montaña: "🏔️",
       Cultura: "🏛️",
       Otro: "📍",
-    }
-    return map[category] || "📍"
+    };
+    return map[category] || "📍";
   }
 
   export function setMapLayer(type: "default" | "satellite") {
-    if (!map || !L) return
+    if (!map || !L) return;
 
     if (currentTileLayer) {
-      map.removeLayer(currentTileLayer)
+      map.removeLayer(currentTileLayer);
     }
 
     if (type === "satellite") {
@@ -162,7 +162,7 @@
             "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
           maxZoom: 19,
         }
-      )
+      );
     } else {
       currentTileLayer = L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
@@ -172,41 +172,41 @@
           subdomains: "abcd",
           maxZoom: 20,
         }
-      )
+      );
     }
 
-    currentTileLayer.addTo(map)
+    currentTileLayer.addTo(map);
   }
 
   onMount(async () => {
-    if (!browser) return
+    if (!browser) return;
 
     try {
       // Dynamic imports with robust loading
-      const leafletModule = await import("leaflet")
-      L = leafletModule.default
+      const leafletModule = await import("leaflet");
+      L = leafletModule.default;
 
-      console.log("Leaflet loaded:", L.version)
+      console.log("Leaflet loaded:", L.version);
 
       // Use Leaflet marker images from package (Vite resolves URLs)
       // @ts-ignore
-      delete L.Icon.Default.prototype._getIconUrl
+      delete L.Icon.Default.prototype._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: markerIconRetinaUrl,
         iconUrl: markerIconUrl,
         shadowUrl: markerShadowUrl,
-      })
+      });
 
       // Expose L to window for plugins that rely on global L
       // @ts-ignore
-      window.L = L
+      window.L = L;
 
       // Import plugin explicitly
       // We use the file path found in verification to ensure it resolves
       // @ts-ignore
-      await import("leaflet.markercluster/dist/leaflet.markercluster.js")
+      await import("leaflet.markercluster/dist/leaflet.markercluster.js");
 
-      console.log("MarkerCluster plugin loaded:", !!L.markerClusterGroup)
+      console.log("MarkerCluster plugin loaded:", !!L.markerClusterGroup);
 
       // Initialize map
       map = L.map(mapContainer, {
@@ -215,17 +215,17 @@
         zoomControl: false,
         minZoom: 2,
         maxZoom: 18,
-      })
+      });
 
       // Default Dark Mode
-      setMapLayer("default")
+      setMapLayer("default");
 
       // Zoom control top-left as in design
-      L.control.zoom({ position: "topleft" }).addTo(map)
+      L.control.zoom({ position: "topleft" }).addTo(map);
 
       map.on("click", (e: any) => {
-        dispatch("mapclick", { lat: e.latlng.lat, lng: e.latlng.lng })
-      })
+        dispatch("mapclick", { lat: e.latlng.lat, lng: e.latlng.lng });
+      });
 
       if (L.markerClusterGroup) {
         // Initialize Cluster Group with custom styles
@@ -235,59 +235,59 @@
           spiderfyOnMaxZoom: true,
           removeOutsideVisibleBounds: true,
           iconCreateFunction: function (cluster: any) {
-            const childCount = cluster.getChildCount()
-            let c = " marker-cluster-"
+            const childCount = cluster.getChildCount();
+            let c = " marker-cluster-";
             if (childCount < 10) {
-              c += "small"
+              c += "small";
             } else if (childCount < 100) {
-              c += "medium"
+              c += "medium";
             } else {
-              c += "large"
+              c += "large";
             }
 
             return L.divIcon({
               html: "<div><span>" + childCount + "</span></div>",
               className: "marker-cluster" + c,
               iconSize: [40, 40],
-            })
+            });
           },
-        })
+        });
 
-        map.addLayer(markerClusterGroup)
+        map.addLayer(markerClusterGroup);
       } else {
-        console.error("Leaflet MarkerClusterGroup not found!")
+        console.error("Leaflet MarkerClusterGroup not found!");
       }
 
       // Initial marker update
-      updateMarkers()
+      updateMarkers();
     } catch (e) {
-      console.error("Error initializing map:", e)
+      console.error("Error initializing map:", e);
     }
-  })
+  });
 
   async function handleSearch() {
-    if (!searchQuery.trim() || !map) return
-    searchError = ""
-    searchLoading = true
+    if (!searchQuery.trim() || !map) return;
+    searchError = "";
+    searchLoading = true;
     try {
-      const result = await geocode(searchQuery)
+      const result = await geocode(searchQuery);
       if (result) {
-        map.setView([result.lat, result.lng], 12)
+        map.setView([result.lat, result.lng], 12);
       } else {
-        searchError = "No se encontró la ubicación."
+        searchError = "No se encontró la ubicación.";
       }
     } catch (e) {
-      searchError = "Error al buscar."
+      searchError = "Error al buscar.";
     } finally {
-      searchLoading = false
+      searchLoading = false;
     }
   }
 
   onDestroy(() => {
     if (map) {
-      map.remove()
+      map.remove();
     }
-  })
+  });
 </script>
 
 <div class="map-outer">

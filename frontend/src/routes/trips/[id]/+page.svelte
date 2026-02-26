@@ -9,6 +9,7 @@
   import { goto } from "$app/navigation"
   import { formatDate } from "$lib/utils/formatters"
   import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
+  import AlbumModal from "$lib/components/ui/AlbumModal.svelte"
   import { onMount } from "svelte"
   import { mediaService, type AppPhoto } from "$lib/services/media"
   import { integrationsService } from "$lib/services/integrations"
@@ -33,9 +34,39 @@
   let fileInput: HTMLInputElement
 
   let showImmichModal = false
+  let showUnlinkModal = false
   let immichAlbums: any[] = []
-  let selectedAlbumId = ""
   let isLinkingInfo = false
+  let isUnlinkingAlbum = false
+  let showHiddenPhotos = false
+
+  $: hasImmichPhotos = photos.some((p) => p.provider === "immich")
+
+  $: displayedPhotos = [
+    ...(showHiddenPhotos ? photos : photos.filter((p) => !p.isHidden)),
+  ].sort((a, b) => {
+    if (a.isCover === b.isCover) return 0
+    return a.isCover ? -1 : 1
+  })
+
+  $: computedCoverImage = photos.find((p) => p.isCover)
+    ? getImageUrl(photos.find((p) => p.isCover)!)
+    : trip?.coverImage
+    ? `${API_URL}/media/photos/${trip?.coverImage}/image`
+    : null
+
+  let activeIndex = 0
+  $: if (activeIndex >= displayedPhotos.length)
+    activeIndex = Math.max(0, displayedPhotos.length - 1)
+  $: selectedPhoto =
+    displayedPhotos.length > 0 ? displayedPhotos[activeIndex] : null
+
+  $: carouselImages = displayedPhotos.map((p) => ({
+    alt: "Foto del viaje",
+    src: getImageUrl(p),
+  }))
+
+  import { Carousel, Thumbnails } from "flowbite-svelte"
 
   onMount(async () => {
     if (tripId) {
@@ -66,7 +97,8 @@
     }
   }
 
-  async function toggleMapVisibility(photo: AppPhoto) {
+  async function toggleMapVisibility(photo: AppPhoto | null) {
+    if (!photo) return
     try {
       const updated = await mediaService.updatePhoto(photo.id, {
         showOnMap: !photo.showOnMap,
@@ -78,7 +110,23 @@
     }
   }
 
-  async function setCover(photo: AppPhoto) {
+  async function toggleHiddenVisibility(photo: AppPhoto | null) {
+    if (!photo) return
+    try {
+      const updated = await mediaService.updatePhoto(photo.id, {
+        isHidden: !photo.isHidden,
+      })
+      photos = photos.map((p) => (p.id === photo.id ? updated : p))
+      toast.success(
+        updated.isHidden ? "Foto oculta de la galería" : "Foto restaurada"
+      )
+    } catch (err) {
+      toast.error("Error al ocultar la foto")
+    }
+  }
+
+  async function setCover(photo: AppPhoto | null) {
+    if (!photo) return
     try {
       const updated = await mediaService.updatePhoto(photo.id, {
         isCover: true,
@@ -93,23 +141,21 @@
         trips.update((allTrips) =>
           allTrips.map((t) => {
             if (t.id === trip.id) {
-              return { ...t, coverImage: updated.url }
+              return { ...t, coverImage: updated.id }
             }
             return t
           })
         )
       }
+      activeIndex = 0
       toast.success("Portada actualizada")
     } catch (err) {
       toast.error("Error al establecer la portada")
     }
   }
 
-  function getImageUrl(url: string) {
-    if (url.startsWith("/uploads")) {
-      return `${API_URL}${url}`
-    }
-    return url
+  function getImageUrl(photo: AppPhoto) {
+    return `${API_URL}/media/photos/${photo.id}/image`
   }
 
   async function openImmichModal() {
@@ -121,7 +167,8 @@
     }
   }
 
-  async function linkAlbum() {
+  async function handleLinkAlbum(event: CustomEvent<{ albumId: string }>) {
+    const selectedAlbumId = event.detail.albumId
     if (!selectedAlbumId) return
     isLinkingInfo = true
     toast.info("Importando fotos de Immich...")
@@ -142,7 +189,8 @@
         const newPhoto = await mediaService.linkExternalPhoto(
           tripId,
           assetUrl,
-          asset.id
+          asset.id,
+          asset.exifInfo // Pass the exif info along
         )
         photos = [newPhoto, ...photos]
         count++
@@ -156,15 +204,115 @@
       isLinkingInfo = false
     }
   }
+
+  async function handleUnlinkAlbum() {
+    isUnlinkingAlbum = true
+    toast.info("Comprobando álbumes vinculados...")
+    try {
+      const allAlbums = await integrationsService.getImmichAlbums()
+
+      const localImmichExternalIds = new Set(
+        photos
+          .filter((p) => p.provider === "immich")
+          .map((p) => p.externalId || p.id)
+      )
+
+      if (localImmichExternalIds.size > 0) {
+        await Promise.all(
+          allAlbums.map(async (album: any) => {
+            try {
+              const assets = await integrationsService.getImmichAlbumAssets(
+                album.id
+              )
+              album.isLinked = assets.some((a: any) =>
+                localImmichExternalIds.has(a.id)
+              )
+            } catch (e) {
+              album.isLinked = false
+            }
+          })
+        )
+      } else {
+        allAlbums.forEach((a: any) => (a.isLinked = false))
+      }
+
+      immichAlbums = allAlbums.sort(
+        (a: any, b: any) => (b.isLinked ? 1 : 0) - (a.isLinked ? 1 : 0)
+      )
+      showUnlinkModal = true
+    } catch (e) {
+      toast.error("Error cargando álbumes de Immich.")
+    } finally {
+      isUnlinkingAlbum = false
+    }
+  }
+
+  async function handleCommitUnlinkAlbum(
+    event: CustomEvent<{ albumId: string }>
+  ) {
+    const selectedAlbumId = event.detail.albumId
+    if (!selectedAlbumId) return
+
+    isUnlinkingAlbum = true
+    toast.info("Desvinculando fotos del álbum seleccionado...")
+
+    try {
+      // 1. Get the assets for the selected album
+      const assets = await integrationsService.getImmichAlbumAssets(
+        selectedAlbumId
+      )
+      const assetIds = new Set(assets.map((a: any) => a.id))
+
+      // 2. Find local photos that are from Immich AND are part of this album
+      // Note: we linked them with asset.id as externalId (which here is stored in photo param, often url or id mapping, we check the externalId if available, or just fetch the ones from this album).
+      // Assuming mediaService.getTripPhotos returned externalId. Let's filter our state.
+      // If externalId isn't on the frontend model yet, we might need a workaround or fetch it.
+      // Let's assume the backend will handle the exact matching if we pass the asset IDs, OR we just delete ones that match.
+      // To be safe and precise, we will loop through our local immich photos and check if their external provider ID matches the album's assets.
+      // Our `linkExternalPhoto` stores `asset.id` as `externalId`.
+
+      const photosToDelete = photos.filter(
+        (p) => p.provider === "immich" && assetIds.has(p.externalId || p.id)
+      ) // Fallback to p.id if externalId isn't mapped properly in the frontend type, though it should be.
+
+      let deletedCount = 0
+      for (const photo of photosToDelete) {
+        await mediaService.deletePhoto(photo.id)
+        deletedCount++
+      }
+
+      // Remove them from local state
+      photos = photos.filter((p) => !photosToDelete.includes(p))
+      showUnlinkModal = false
+      toast.success(`Se eliminaron ${deletedCount} fotos del álbum.`)
+    } catch (err) {
+      console.error(err)
+      toast.error("Error al desvincular el álbum.")
+    } finally {
+      isUnlinkingAlbum = false
+    }
+  }
+
+  // --- Photo Metadata Modal ---
+  let selectedMetadataPhoto: AppPhoto | null = null
+
+  function showMetadata(photo: AppPhoto | null) {
+    if (!photo) return
+    selectedMetadataPhoto = photo
+  }
+
+  function closeMetadata() {
+    selectedMetadataPhoto = null
+  }
 </script>
 
 {#if trip}
   <div class="page-container">
     <header class="trip-header">
       <div class="trip-cover">
-        {#if trip.coverImage && trip.coverImage.length > 5 && trip.coverImage !== trip.name}
+        {#if computedCoverImage && computedCoverImage.length > 5 && computedCoverImage !== trip.name}
           <img
-            src={getImageUrl(trip.coverImage)}
+            src={computedCoverImage}
             alt="Cover"
             style="width:100%; height:100%; object-fit:cover;"
           />
@@ -224,7 +372,14 @@
     <section class="gallery-section">
       <div class="section-header">
         <h2>📷 Galería Fotográfica</h2>
-        <div class="actions-group" style="display:flex; gap:0.5rem;">
+        <div
+          class="actions-group flex flex-col sm:flex-row gap-2 items-start sm:items-center mt-4 sm:mt-0"
+        >
+          <label class="toggle-hidden-container">
+            <input type="checkbox" bind:checked={showHiddenPhotos} />
+            <span class="toggle-label">Ocultas</span>
+          </label>
+
           <input
             type="file"
             bind:this={fileInput}
@@ -232,58 +387,118 @@
             accept="image/*"
             style="display:none;"
           />
-          <button class="btn btn-sm btn-secondary" on:click={openImmichModal}
-            >Vincular Álbum</button
-          >
-          <button class="btn btn-sm" on:click={() => fileInput.click()}
-            >Subir Foto</button
-          >
+
+          <div class="flex flex-wrap gap-2">
+            <button class="btn btn-sm" on:click={() => fileInput.click()}>
+              Subir Foto
+            </button>
+            <button
+              class="btn btn-sm btn-secondary"
+              on:click={openImmichModal}
+              disabled={isLinkingInfo || isUnlinkingAlbum}
+            >
+              {isLinkingInfo ? "Vinculando..." : "Vincular Álbum"}
+            </button>
+
+            {#if hasImmichPhotos}
+              <button
+                class="btn btn-sm"
+                style="background-color: #ef4444; border-color: #ef4444; color: white;"
+                on:click={handleUnlinkAlbum}
+                disabled={isLinkingInfo || isUnlinkingAlbum}
+              >
+                {isUnlinkingAlbum ? "Desvinculando..." : "Desvincular Álbum"}
+              </button>
+            {/if}
+          </div>
         </div>
       </div>
 
-      {#if photos.length > 0}
-        <div class="gallery-grid">
-          {#each photos as photo (photo.id)}
-            <div class="photo-card" class:is-cover={photo.isCover}>
-              <div class="img-wrapper">
-                <!-- Fix CORS issue displaying images dynamically cross domain in MVP via object-fit -->
-                <img
-                  src={getImageUrl(photo.url)}
-                  alt="Foto del viaje"
-                  loading="lazy"
-                  crossorigin="anonymous"
-                />
-                {#if photo.isCover}
+      {#if displayedPhotos.length > 0}
+        <div class="gallery-container">
+          {#if selectedPhoto}
+            <div
+              class="main-photo-card"
+              class:is-cover={selectedPhoto.isCover}
+              class:is-hidden={selectedPhoto.isHidden}
+            >
+              <div class="main-img-wrapper">
+                <Carousel
+                  images={carouselImages}
+                  bind:index={activeIndex}
+                  slideDuration={0}
+                  let:Controls
+                  let:Indicators
+                  class="h-full w-full"
+                  imgClass="object-contain h-full w-full"
+                >
+                  <Controls />
+                  {#if carouselImages.length <= 8}
+                    <Indicators />
+                  {/if}
+                </Carousel>
+                {#if selectedPhoto.isCover}
                   <span class="cover-badge">PORTADA</span>
                 {/if}
-                {#if photo.provider === "immich"}
-                  <img src="/favicon.png" alt="Immich" class="provider-badge" />
+                {#if selectedPhoto.provider === "immich"}
+                  <img src="/immich.png" alt="Immich" class="provider-badge" />
                 {/if}
+              </div>
+
+              <div
+                class="thumbnails-wrapper bg-slate-900 p-2 border-b border-slate-700"
+              >
+                <Thumbnails
+                  images={carouselImages}
+                  bind:index={activeIndex}
+                  class="flex-nowrap justify-start overflow-x-auto gap-2 p-1 snap-x scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent bg-transparent"
+                  imgClass="h-16 w-16 min-w-[64px] object-cover rounded-md opacity-60 hover:opacity-100 transition-opacity snap-center cursor-pointer"
+                />
               </div>
 
               <div class="photo-actions">
                 <label class="map-toggle">
                   <input
                     type="checkbox"
-                    checked={photo.showOnMap}
-                    on:change={() => toggleMapVisibility(photo)}
+                    checked={selectedPhoto.showOnMap}
+                    on:change={() => toggleMapVisibility(selectedPhoto)}
                   />
                   Mostrar en Mapa
                 </label>
-                {#if !photo.isCover}
-                  <button class="btn-text" on:click={() => setCover(photo)}
-                    >Hacer Portada</button
+
+                <div class="photo-buttons">
+                  {#if !selectedPhoto.isCover}
+                    <button
+                      class="btn btn-sm btn-secondary"
+                      on:click={() => setCover(selectedPhoto)}
+                      >Hacer Portada</button
+                    >
+                  {/if}
+                  {#if selectedPhoto.metadata?.exif}
+                    <button
+                      class="btn-text"
+                      on:click={() => showMetadata(selectedPhoto)}>Info</button
+                    >
+                  {/if}
+                  <button
+                    class="btn-text"
+                    style="color:#ef4444;"
+                    on:click={() => toggleHiddenVisibility(selectedPhoto)}
                   >
-                {/if}
+                    {selectedPhoto.isHidden
+                      ? "Mostrar en Galería"
+                      : "Ocultar de Galería"}
+                  </button>
+                </div>
               </div>
             </div>
-          {/each}
+          {/if}
         </div>
       {:else}
         <div class="empty-state">
           <p>
-            Aún no hay fotos en este viaje. Sube algunas de tus mejores tomas
-            locales o conéctalo con tu librería.
+            Aún no hay fotos {showHiddenPhotos ? "" : "visibles"} en este viaje.
+            Sube algunas de tus mejores tomas locales o conéctalo con tu librería.
           </p>
         </div>
       {/if}
@@ -301,55 +516,91 @@
     <h1>Viaje no encontrado</h1>
     <a href="/trips" class="btn btn-primary">Volver a mis viajes</a>
   </div>
+{/if}
 
-  <!-- Modal Inserción Immich Álbum -->
-  {#if showImmichModal}
-    <div class="modal-backdrop" on:click|self={() => (showImmichModal = false)}>
-      <div class="modal card">
-        <h3>Vincular Álbum Externo (Immich)</h3>
-        <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:1rem;">
-          Elige un álbum para inyectar su contenido en la bóveda de viaje local.
-          Sólo se descargarán los enlaces a los assets.
-        </p>
+{#if showImmichModal}
+  <AlbumModal
+    albums={immichAlbums}
+    {isLinkingInfo}
+    on:close={() => (showImmichModal = false)}
+    on:link={handleLinkAlbum}
+  />
+{/if}
 
-        <div class="form-group">
-          <label>Tus álbumes</label>
-          {#if immichAlbums.length === 0}
-            <p>No se encontraron álbumes en tu cuenta o está cargando...</p>
-          {:else}
-            <select
-              bind:value={selectedAlbumId}
-              style="width:100%; padding:0.5rem; background:#0f172a; border-radius:6px; color:white; margin-bottom:1rem;"
+{#if selectedMetadataPhoto}
+  <div class="modal-backdrop" on:click|self={closeMetadata}>
+    <div class="modal card meta-modal">
+      <header class="modal-header">
+        <h3>Información Fotográfica</h3>
+        <button class="close-btn" on:click={closeMetadata}>&times;</button>
+      </header>
+      <div class="modal-body meta-body">
+        {#if selectedMetadataPhoto.metadata?.exif}
+          <div class="meta-item">
+            <span class="meta-label">Dispositivo</span>
+            <span class="meta-val"
+              >{selectedMetadataPhoto.metadata.exif.make || "Desconocido"}
+              {selectedMetadataPhoto.metadata.exif.model || ""}</span
             >
-              <option value="" disabled>-- Selecciona un Álbum --</option>
-              {#each immichAlbums as alb}
-                <option value={alb.id}
-                  >{alb.albumName} ({alb.assetCount} items)</option
-                >
-              {/each}
-            </select>
-          {/if}
-        </div>
-
-        <div
-          class="modal-actions"
-          style="display:flex; justify-content:flex-end; gap:1rem;"
-        >
-          <button
-            class="btn btn-secondary"
-            on:click={() => (showImmichModal = false)}>Cerrar</button
-          >
-          <button
-            class="btn btn-primary"
-            on:click={linkAlbum}
-            disabled={!selectedAlbumId || isLinkingInfo}
-          >
-            {isLinkingInfo ? "Vinculando..." : "Vincular"}
-          </button>
-        </div>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Fecha de captura</span>
+            <span class="meta-val"
+              >{selectedMetadataPhoto.metadata.exif.dateTimeOriginal
+                ? new Date(
+                    selectedMetadataPhoto.metadata.exif.dateTimeOriginal
+                  ).toLocaleString()
+                : "Desconocida"}</span
+            >
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Ubicación (Lat/Lng)</span>
+            <span class="meta-val">
+              {#if selectedMetadataPhoto.metadata.exif.latitude !== null && selectedMetadataPhoto.metadata.exif.longitude !== null}
+                {selectedMetadataPhoto.metadata.exif.latitude.toFixed(6)}, {selectedMetadataPhoto.metadata.exif.longitude.toFixed(
+                  6
+                )}
+              {:else}
+                No disponible en EXIF
+              {/if}
+            </span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Lente</span>
+            <span class="meta-val"
+              >{selectedMetadataPhoto.metadata.exif.lensModel ||
+                "Desconocido"}</span
+            >
+          </div>
+        {:else}
+          <p>No hay metadatos EXIF disponibles para esta foto.</p>
+        {/if}
       </div>
     </div>
-  {/if}
+  </div>
+{/if}
+
+{#if showImmichModal}
+  <AlbumModal
+    albums={immichAlbums}
+    {isLinkingInfo}
+    on:close={() => (showImmichModal = false)}
+    on:link={handleLinkAlbum}
+  />
+{/if}
+
+{#if showUnlinkModal}
+  <AlbumModal
+    title="Desvincular Álbum"
+    description="Selecciona un álbum de Immich para eliminar sus fotos de este viaje. Las fotos seleccionadas desaparecerán de TravelMap, pero seguirán intactas en tu servidor de Immich."
+    actionText="Desvincular"
+    loadingText="Desvinculando..."
+    actionClass="btn-danger"
+    albums={immichAlbums}
+    isLinkingInfo={isUnlinkingAlbum}
+    on:close={() => (showUnlinkModal = false)}
+    on:link={handleCommitUnlinkAlbum}
+  />
 {/if}
 
 <style>
@@ -514,79 +765,108 @@
   }
 
   /* Gallery UI */
-  .gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  .gallery-container {
+    display: flex;
+    flex-direction: column;
     gap: 1.5rem;
   }
 
-  .photo-card {
+  .main-photo-card {
     background: #0f172a;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
     border: 1px solid #334155;
     transition: transform 0.2s;
   }
 
-  .photo-card.is-cover {
+  .main-photo-card.is-cover {
     border: 2px solid #60a5fa;
   }
 
-  .photo-card:hover {
-    transform: translateY(-3px);
+  .main-photo-card.is-hidden {
+    opacity: 0.6;
+    border: 1px dashed #64748b;
   }
 
-  .img-wrapper {
+  .main-img-wrapper {
     position: relative;
-    height: 160px;
-    background: #000;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 70vh;
+    background: #0f172a; /* slate-900 */
+    border-radius: 0.5rem;
+    overflow: hidden;
   }
 
-  .img-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  .carousel-container {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    /* scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: #475569 #1e293b;
+  }
+  .cover-dot {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    width: 10px;
+    height: 10px;
+    background-color: #60a5fa;
+    border-radius: 50%;
+    border: 1px solid #1e40af;
   }
 
   .cover-badge {
     position: absolute;
-    bottom: 8px;
-    left: 8px;
+    top: 12px;
+    left: 12px;
     background: rgba(0, 0, 0, 0.7);
     color: #60a5fa;
     border: 1px solid #60a5fa;
-    padding: 0.15rem 0.4rem;
-    font-size: 0.65rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
     font-weight: bold;
-    border-radius: 4px;
+    border-radius: 6px;
     z-index: 10;
   }
 
   .provider-badge {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 20px !important;
-    height: 20px !important;
-    border-radius: 5px;
+    top: 12px;
+    right: 12px;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px;
     filter: brightness(1.2);
     z-index: 10;
   }
 
   .photo-actions {
-    padding: 0.75rem;
+    padding: 1rem 1.5rem;
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    font-size: 0.85rem;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.95rem;
     color: #cbd5e1;
+    background: #1e293b;
   }
 
   .map-toggle {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.5rem;
     cursor: pointer;
+    font-weight: 500;
+  }
+
+  .photo-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
   }
 
   .btn-text {
@@ -594,14 +874,17 @@
     border: none;
     color: #94a3b8;
     text-align: left;
-    padding: 0;
+    padding: 0.25rem 0.5rem;
     cursor: pointer;
-    font-size: 0.8rem;
-    text-decoration: underline;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 4px;
+    transition: background-color 0.2s, color 0.2s;
   }
 
   .btn-text:hover {
     color: white;
+    background-color: rgba(255, 255, 255, 0.05);
   }
 
   /* Modal */
@@ -629,5 +912,79 @@
   .actions-group {
     display: flex;
     gap: 0.5rem;
+  }
+
+  .toggle-hidden-container {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-right: 1rem;
+  }
+
+  /* Metadata Modal specifics */
+  .meta-modal {
+    max-width: 400px;
+    padding: 0;
+  }
+
+  .meta-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .meta-label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .meta-val {
+    font-size: 0.95rem;
+    color: #f1f5f9;
+  }
+
+  @media (max-width: 768px) {
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .header-content h1 {
+      font-size: 1.8rem;
+    }
+
+    .actions {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .btn {
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+    }
+
+    .photo-actions {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .photo-buttons {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
   }
 </style>

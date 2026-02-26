@@ -1,17 +1,17 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from "svelte"
-  import { Search, ChevronDown } from "lucide-svelte"
+  import { createEventDispatcher, onMount } from "svelte";
+  import { Search, ChevronDown } from "lucide-svelte";
 
-  export let value = ""
-  export let placeholder = "Selecciona un país..."
-  export let id = ""
-  export let disabled = false
+  export let value = "";
+  export let placeholder = "Selecciona un país...";
+  export let id = "";
+  export let disabled = false;
 
-  const dispatch = createEventDispatcher()
+  const dispatch = createEventDispatcher();
 
-  let isOpen = false
-  let searchQuery = ""
-  let dropdownRef: HTMLDivElement
+  let isOpen = false;
+  let searchQuery = "";
+  let dropdownRef: HTMLDivElement;
 
   // Lista de países en español con sus banderas (emojis)
   const countries = [
@@ -209,45 +209,45 @@
     { name: "Yibuti", flag: "🇩🇯" },
     { name: "Zambia", flag: "🇿🇲" },
     { name: "Zimbabue", flag: "🇿🇼" },
-  ]
+  ];
 
   $: filteredCountries = countries.filter((c) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-  $: selectedCountryObj = countries.find((c) => c.name === value)
+  );
+  $: selectedCountryObj = countries.find((c) => c.name === value);
 
   function toggleDropdown() {
-    if (disabled) return
-    isOpen = !isOpen
+    if (disabled) return;
+    isOpen = !isOpen;
     if (isOpen) {
-      searchQuery = ""
+      searchQuery = "";
       // Focus the input in the next tick
       setTimeout(() => {
-        const input = dropdownRef?.querySelector("input")
-        if (input) input.focus()
-      }, 0)
+        const input = dropdownRef?.querySelector("input");
+        if (input) input.focus();
+      }, 0);
     }
   }
 
   function selectCountry(countryName: string) {
-    value = countryName
-    isOpen = false
-    searchQuery = ""
-    dispatch("change", { value })
+    value = countryName;
+    isOpen = false;
+    searchQuery = "";
+    dispatch("change", { value });
   }
 
   // Cerrar al hacer click fuera
   onMount(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef && !dropdownRef.contains(event.target as Node)) {
-        isOpen = false
+        isOpen = false;
       }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
+    };
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  })
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  });
 </script>
 
 <div
