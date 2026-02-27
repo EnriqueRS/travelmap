@@ -1,34 +1,34 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte"
+  import { createEventDispatcher } from "svelte";
 
-  export let albums: any[] = []
-  export let isLinkingInfo = false
+  export let albums: any[] = [];
+  export let isLinkingInfo = false;
 
-  export let title = "Vincular Álbum de Immich"
+  export let title = "Vincular Álbum de Immich";
   export let description =
-    "Selecciona un álbum de tu cuenta de Immich para importar sus fotos a este viaje. Solo se enlazarán las imágenes y se extraerán sus metadatos (ubicación y fecha)."
-  export let actionText = "Vincular Álbum"
-  export let loadingText = "Vinculando..."
-  export let actionClass = "btn-primary"
+    "Selecciona un álbum de tu cuenta de Immich para importar sus fotos a este viaje. Solo se enlazarán las imágenes y se extraerán sus metadatos (ubicación y fecha).";
+  export let actionText = "Vincular Álbum";
+  export let loadingText = "Vinculando...";
+  export let actionClass = "btn-primary";
 
-  const dispatch = createEventDispatcher()
-  let selectedAlbumId = ""
+  const dispatch = createEventDispatcher();
+  let selectedAlbumId = "";
 
   // Auto-select the first linked album if none is selected
   $: if (albums && albums.length > 0 && !selectedAlbumId) {
-    const firstLinked = albums.find((a) => a.isLinked)
+    const firstLinked = albums.find((a) => a.isLinked);
     if (firstLinked) {
-      selectedAlbumId = firstLinked.id
+      selectedAlbumId = firstLinked.id;
     }
   }
 
   function close() {
-    dispatch("close")
+    dispatch("close");
   }
 
   function link() {
     if (selectedAlbumId) {
-      dispatch("link", { albumId: selectedAlbumId })
+      dispatch("link", { albumId: selectedAlbumId });
     }
   }
 </script>

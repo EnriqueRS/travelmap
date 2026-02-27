@@ -1,20 +1,21 @@
 <script lang="ts">
-  import { Compass, Map, Plus, Calendar } from "lucide-svelte";
-  import { trips, getStatusColor } from "$lib/stores/data";
-  import { formatDate } from "$lib/utils/formatters";
-  import { API_URL } from "$lib/services/auth";
-  import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte";
+  import { Compass, Map, Plus, Calendar } from "lucide-svelte"
+  import { trips, getStatusColor } from "$lib/stores/data"
+  import { formatDate } from "$lib/utils/formatters"
+  import { getCountryFlag } from "$lib/utils/countries"
+  import { API_URL } from "$lib/services/auth"
+  import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
 
   function getStatusIcon(status: string) {
     switch (status) {
       case "Completado":
-        return "✅";
+        return "✅"
       case "En curso":
-        return "🚗";
+        return "🚗"
       case "Planificado":
-        return "📅";
+        return "📅"
       default:
-        return "❓";
+        return "❓"
     }
   }
 
@@ -26,7 +27,7 @@
     planned: $trips.filter((t) => t.status === "Planificado").length,
     locations: $trips.reduce((acc, t) => acc + t.locations.length, 0),
     countries: new Set($trips.flatMap((t) => t.countries)).size,
-  };
+  }
 </script>
 
 <svelte:head>
@@ -102,7 +103,9 @@
             <div class="trip-countries">
               <div class="country-list">
                 {#each trip.countries as country}
-                  <span class="country-tag">{country}</span>
+                  <span class="country-tag"
+                    >{getCountryFlag(country)} {country}</span
+                  >
                 {/each}
               </div>
             </div>

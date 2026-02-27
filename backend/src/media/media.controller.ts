@@ -8,6 +8,12 @@ import { Response } from 'express';
 export class MediaController {
   constructor (private readonly mediaService: MediaService) { }
 
+  @Get('map')
+  @UseGuards(JwtAuthGuard)
+  async getMapPhotos(@Request() req) {
+    return this.mediaService.getMapPhotos(req.user.userId);
+  }
+
   @Get('trips/:tripId/photos')
   @UseGuards(JwtAuthGuard)
   async getTripPhotos(@Request() req, @Param('tripId') tripId: string) {
@@ -39,7 +45,7 @@ export class MediaController {
   async updatePhoto(
     @Request() req,
     @Param('id') id: string,
-    @Body() data: { showOnMap?: boolean; isCover?: boolean; isHidden?: boolean }
+    @Body() data: { showOnMap?: boolean; isCover?: boolean; isHidden?: boolean; metadata?: any }
   ) {
     return this.mediaService.updatePhoto(id, req.user.userId, data);
   }

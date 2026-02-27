@@ -1,9 +1,14 @@
 <script lang="ts">
-  import { onMount, createEventDispatcher } from "svelte";
-  import MapContainer from "$lib/components/map/MapContainer.svelte";
-  import CountryPicker from "$lib/components/ui/CountryPicker.svelte";
-  import { locations, trips } from "$lib/stores/data";
-  import type { Location, Trip } from "$lib/stores/data";
+  import { onMount, onDestroy } from "svelte"
+  import MapContainer from "$lib/components/map/MapContainer.svelte"
+  import CountryPicker from "$lib/components/ui/CountryPicker.svelte"
+  import { toast } from "$lib/stores/ui"
+  import { locations, trips, userProfile } from "$lib/stores/data"
+  import type { Location, Trip } from "$lib/stores/data"
+  import { mediaService } from "$lib/services/media"
+  import type { AppPhoto } from "$lib/services/media"
+  import LocationPicker from "$lib/components/map/LocationPicker.svelte"
+  import { reverseGeocode } from "$lib/utils/geocode"
   import {
     Search,
     Plus,
@@ -13,18 +18,27 @@
     Eye,
     Calendar,
     MapPin,
-  } from "lucide-svelte";
+  } from "lucide-svelte"
 
   // Bind to map component
-  let mapComponent: any;
-  let currentLayer: "default" | "satellite" = "default";
+  let mapComponent: any
+  let currentLayer: "default" | "satellite" = "default"
+  let mapPhotos: AppPhoto[] = []
+
+  onMount(async () => {
+    try {
+      mapPhotos = await mediaService.getMapPhotos()
+    } catch (e) {
+      console.error("Failed to load map photos:", e)
+    }
+  })
 
   // Modal State
-  let showAddLocationModal = false;
-  let newLocationLat = 0;
-  let newLocationLng = 0;
-  let newLocationName = "";
-  let newLocationCountry = "";
+  let showAddLocationModal = false
+  let newLocationLat = 0
+  let newLocationLng = 0
+  let newLocationName = ""
+  let newLocationCountry = ""
   let newLocationCategory:
     | "Naturaleza"
     | "Ciudad"
@@ -32,35 +46,69 @@
     | "Playa"
     | "Montaña"
     | "Cultura"
-    | "Otro" = "Naturaleza";
-  let newLocationTripId = "";
-  let newTripName = "";
+    | "Otro" = "Naturaleza"
+  let newLocationTripId = ""
+  let newTripName = ""
 
-  function handleMapClick(e: CustomEvent<{ lat: number; lng: number }>) {
-    newLocationLat = e.detail.lat;
-    newLocationLng = e.detail.lng;
-    newLocationName = "";
-    newLocationCountry = "";
-    newLocationCategory = "Naturaleza";
-    newLocationTripId = "";
-    newTripName = "";
-    showAddLocationModal = true;
+  let newLocationPhotoFiles: FileList | null = null
+  let isSavingLocation = false
+
+  let addingMode = false
+
+  function toggleAddingMode() {
+    addingMode = !addingMode
+    if (addingMode && mapComponent) {
+      toast.success(
+        "Haz clic en cualquier lugar del mapa para añadir la ubicación"
+      )
+    }
   }
 
-  function saveNewLocation() {
+  async function handleMapClick(e: CustomEvent<{ lat: number; lng: number }>) {
+    if (!addingMode) return
+    newLocationLat = e.detail.lat
+    newLocationLng = e.detail.lng
+    newLocationName = ""
+    newLocationCountry = ""
+    newLocationCategory = "Naturaleza"
+    newLocationTripId = "new"
+    newTripName = ""
+    newLocationPhotoFiles = null
+    showAddLocationModal = true
+
+    const country = await reverseGeocode(e.detail.lat, e.detail.lng)
+    if (country) {
+      newLocationCountry = country
+    }
+  }
+
+  async function handleLocationModalSelect(
+    e: CustomEvent<{ lat: number; lng: number }>
+  ) {
+    newLocationLat = e.detail.lat
+    newLocationLng = e.detail.lng
+    const country = await reverseGeocode(e.detail.lat, e.detail.lng)
+    if (country) {
+      newLocationCountry = country
+    }
+  }
+
+  async function saveNewLocation() {
     if (!newLocationName) {
-      alert("Introduce un nombre");
-      return;
+      toast.error("Introduce un nombre")
+      return
     }
 
-    let finalTripId = newLocationTripId;
+    isSavingLocation = true
+    let finalTripId = newLocationTripId
 
     if (newLocationTripId === "new") {
       if (!newTripName) {
-        alert("Introduce un nombre para el nuevo viaje");
-        return;
+        toast.error("Introduce un nombre para el nuevo viaje")
+        isSavingLocation = false
+        return
       }
-      finalTripId = crypto.randomUUID();
+      finalTripId = crypto.randomUUID()
       const newTrip: Trip = {
         id: finalTripId,
         name: newTripName,
@@ -71,11 +119,11 @@
         status: "Planificado",
         coverImage: "default-cover",
         locations: [],
-      };
-      trips.update((t) => [...t, newTrip]);
+      }
+      trips.update((t) => [...t, newTrip])
     }
 
-    const newLocId = crypto.randomUUID();
+    const newLocId = crypto.randomUUID()
 
     const newLoc: Location = {
       id: newLocId,
@@ -88,37 +136,137 @@
       visitedDate: new Date().toISOString().split("T")[0],
       images: [],
       tripId: finalTripId || undefined,
-    };
+    }
 
-    locations.update((locs) => [...locs, newLoc]);
+    // Photo Upload Logic
+    if (
+      newLocationPhotoFiles &&
+      newLocationPhotoFiles.length > 0 &&
+      finalTripId &&
+      newLocationTripId !== "new"
+    ) {
+      try {
+        toast.info("Subiendo imagen para la ubicación...")
+        const newPhotoPayload = await mediaService.uploadLocalPhoto(
+          finalTripId,
+          newLocationPhotoFiles[0]
+        )
+        // Guardar metadata con latitud / longitud de este picker
+        await mediaService.updatePhoto(newPhotoPayload.id, {
+          showOnMap: true,
+          metadata: {
+            exif: { latitude: newLocationLat, longitude: newLocationLng },
+          },
+        })
+        toast.success("Foto asociada al nuevo lugar exitosamente.")
+        newLoc.images = [newPhotoPayload.id]
+        mapPhotos = await mediaService.getMapPhotos() // Refrescar fotos del mapa global
+      } catch (e) {
+        console.error("No se pudo subir la foto con el viaje", e)
+        toast.error(
+          "Error subiendo foto. Asegúrate de asociar a un viaje existente."
+        )
+      }
+    }
+
+    locations.update((locs) => [...locs, newLoc])
 
     if (finalTripId && finalTripId !== "") {
       trips.update((t) =>
         t.map((trip) => {
           if (trip.id === finalTripId) {
-            return { ...trip, locations: [...trip.locations, newLocId] };
+            const updatedCountries = new Set(trip.countries)
+            if (newLocationCountry) {
+              updatedCountries.add(newLocationCountry)
+            }
+            return {
+              ...trip,
+              locations: [...trip.locations, newLocId],
+              countries: Array.from(updatedCountries),
+            }
           }
-          return trip;
+          return trip
         })
-      );
+      )
     }
 
-    showAddLocationModal = false;
+    showAddLocationModal = false
+    addingMode = false
+    isSavingLocation = false
   }
 
   // Filters
-  let showVisited = true;
-  let showPlanned = true;
-  let showHome = true;
-  let searchQuery = "";
+  let showCompleted = true
+  let showPlanned = true
+  let showOngoing = true
+  let showHome = true
+  let hiddenTrips: string[] = []
+  let searchQuery = ""
+
+  const tripColors = [
+    "#ef4444",
+    "#f97316",
+    "#f59e0b",
+    "#84cc16",
+    "#22c55e",
+    "#10b981",
+    "#14b8a6",
+    "#06b6d4",
+    "#0ea5e9",
+    "#3b82f6",
+    "#6366f1",
+    "#8b5cf6",
+    "#a855f7",
+    "#d946ef",
+    "#ec4899",
+    "#f43f5e",
+  ]
+
+  $: tripColorMap = $trips.reduce((acc, trip, index) => {
+    acc[trip.id] = tripColors[index % tripColors.length]
+    return acc
+  }, {} as Record<string, string>)
 
   // Stats derivation
-  $: totalLocations = $locations.length;
-  $: visitedCount = $locations.length; // Approximation, typically derived from trips/dates
-  $: plannedCount = $trips.filter((t) => t.status === "Planificado").length * 5; // Fake multiplier
-  $: regions = new Set($locations.map((l) => l.country)).size;
+  $: totalLocations = $locations.length
+  $: totalTrips = $trips.length
+  $: visitedCount = $trips.filter(
+    (t) => t.status === "Completado" || t.status === "En curso"
+  ).length
+  $: plannedCount = $trips.filter((t) => t.status === "Planificado").length
+  $: onGoingCount = $trips.filter((t) => t.status === "En curso").length
+  $: uniqueCountries = Array.from(
+    new Set(
+      $trips
+        .filter((t) => t.status === "Completado" || t.status === "En curso")
+        .flatMap((t) => t.countries || [])
+    )
+  ).length
+  $: regions = uniqueCountries // We use regions for styling compatibility, but it acts as unique countries
 
   // Filter Logic
+  $: filteredTrips = $trips.filter((trip) => {
+    if (hiddenTrips.includes(String(trip.id))) return false
+    if (trip.status === "Planificado" && !showPlanned) return false
+    if (trip.status === "Completado" && !showCompleted) return false
+    if (trip.status === "En curso" && !showOngoing) return false
+    return true
+  })
+
+  $: filteredPhotos = mapPhotos.filter((photo) => {
+    const pTripId = photo.tripId || (photo as any).trip_id
+    if (!pTripId) return true // Show un-tripped photos always unless user decides otherwise
+
+    const trip = $trips.find((t) => t.id === pTripId)
+    if (!trip) return true // If it has a tripId that doesn't exist anymore, still show it
+
+    if (hiddenTrips.includes(String(trip.id))) return false
+    if (trip.status === "Planificado" && !showPlanned) return false
+    if (trip.status === "Completado" && !showCompleted) return false
+    if (trip.status === "En curso" && !showOngoing) return false
+    return true
+  })
+
   $: filteredLocations = $locations.filter((loc) => {
     // Search filter
     if (
@@ -126,39 +274,54 @@
       !loc.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
       !loc.country.toLowerCase().includes(searchQuery.toLowerCase())
     ) {
-      return false;
+      return false
     }
 
     // Status filter
-    let isPlanned = false;
-    let isVisited = false;
+    let isPlanned = false
+    let isCompleted = false
+    let isOngoing = false
 
-    if (loc.tripId) {
-      const trip = $trips.find((t) => t.id === loc.tripId);
-      if (trip && trip.status === "Planificado") {
-        isPlanned = true;
-      } else {
-        isVisited = true; // Completed or In Progress assumed visited
+    const locTripId = loc.tripId || (loc as any).trip_id
+
+    if (locTripId) {
+      const trip = $trips.find((t) => t.id === locTripId)
+      if (trip) {
+        if (hiddenTrips.includes(String(trip.id))) return false
+        if (trip.status === "Planificado") {
+          isPlanned = true
+        } else if (trip.status === "Completado") {
+          isCompleted = true
+        } else if (trip.status === "En curso") {
+          isOngoing = true
+        }
       }
     } else {
-      // If no trip, assume visited (standalone location or just saved)
-      // For this demo, let's treat it as visited
-      isVisited = true;
+      isCompleted = true // Untripped location treated as completed
     }
 
-    if (showVisited && isVisited) return true;
-    if (showPlanned && isPlanned) return true;
+    if (showCompleted && isCompleted) return true
+    if (showOngoing && isOngoing) return true
+    if (showPlanned && isPlanned) return true
 
-    return false;
-  });
+    return false
+  })
 
-  // Fake progress for visual flair
-  let completion = 13;
+  $: completion = Math.round((regions / 195) * 100)
+
+  function toggleTripSelection(tripId: string | number) {
+    const idStr = String(tripId)
+    if (hiddenTrips.includes(idStr)) {
+      hiddenTrips = hiddenTrips.filter((id) => id !== idStr)
+    } else {
+      hiddenTrips = [...hiddenTrips, idStr]
+    }
+  }
 
   function toggleLayer() {
-    currentLayer = currentLayer === "default" ? "satellite" : "default";
+    currentLayer = currentLayer === "default" ? "satellite" : "default"
     if (mapComponent) {
-      mapComponent.setMapLayer(currentLayer);
+      mapComponent.setMapLayer(currentLayer)
     }
   }
 </script>
@@ -178,13 +341,20 @@
 
     <div class="stats-container">
       <div class="stat-main">
-        <span class="stat-label">Aventuras totales</span>
-        <span class="stat-value big">{totalLocations + plannedCount}</span>
+        <span class="stat-label">Viajes totales</span>
+        <span class="stat-value big">{totalTrips}</span>
       </div>
 
       <div class="stats-row">
         <div class="stat-item">
-          <span class="stat-label">Visitado</span>
+          <span class="stat-label">Locaciones</span>
+          <span class="stat-value text-blue">{totalLocations}</span>
+        </div>
+      </div>
+
+      <div class="stats-row mt-4">
+        <div class="stat-item">
+          <span class="stat-label">Completado</span>
           <span class="stat-value text-green">{visitedCount}</span>
         </div>
         <div class="stat-item">
@@ -194,14 +364,14 @@
       </div>
 
       <div class="stat-item mt-4">
-        <span class="stat-label">Regiones</span>
-        <span class="stat-value text-teal">{regions}</span>
+        <span class="stat-label">En curso</span>
+        <span class="stat-value text-teal">{onGoingCount}</span>
       </div>
 
       <div class="progress-section mt-4">
         <div class="progress-labels">
-          <span>Terminación</span>
-          <span>{completion}%</span>
+          <span>Progreso</span>
+          <span>{regions} / 195 países</span>
         </div>
         <div class="progress-bar">
           <div class="progress-fill" style="width: {completion}%" />
@@ -214,43 +384,90 @@
 
       <div class="options-list">
         <label class="option-item">
-          <input type="checkbox" bind:checked={showVisited} />
-          <span class="checkmark checked-green" />
-          <span class="option-text">Visitado ({visitedCount})</span>
-        </label>
-
-        <label class="option-item">
           <input type="checkbox" bind:checked={showHome} />
           <span class="checkmark checked-red" />
           <span class="option-text">Casa</span>
         </label>
 
         <label class="option-item">
+          <input type="checkbox" bind:checked={showCompleted} />
+          <span class="checkmark checked-green" />
+          <span class="option-text">Completados ({visitedCount})</span>
+        </label>
+
+        <label class="option-item">
           <input type="checkbox" bind:checked={showPlanned} />
           <span class="checkmark checked-blue" />
-          <span class="option-text">Planificado ({plannedCount})</span>
+          <span class="option-text">Planificados ({plannedCount})</span>
         </label>
 
         <label class="option-item">
-          <input type="checkbox" />
+          <input type="checkbox" bind:checked={showOngoing} />
           <span class="checkmark checked-teal" />
-          <span class="option-text">Regiones visitadas ({regions})</span>
-        </label>
-
-        <label class="option-item">
-          <input type="checkbox" />
-          <span class="checkmark checked-yellow" />
-          <span class="option-text">Ciudades visitadas</span>
+          <span class="option-text">En curso ({onGoingCount})</span>
         </label>
       </div>
     </div>
 
+    <!-- Filtros de Viajes Específicos -->
+    <div class="sidebar-section mt-6">
+      <h2 class="section-title"><MapIcon size={18} /> Filtrar por Viaje</h2>
+      <div
+        class="options-list mt-2"
+        style="max-height: 200px; overflow-y: auto;"
+      >
+        {#each $trips as trip}
+          <label
+            class="option-item"
+            style:opacity={hiddenTrips.includes(String(trip.id)) ? "0.5" : "1"}
+          >
+            <input
+              type="checkbox"
+              checked={!hiddenTrips.includes(String(trip.id))}
+              on:change={() => toggleTripSelection(trip.id)}
+            />
+            <span
+              class="checkmark"
+              style="border-color: {tripColorMap[trip.id] ||
+                '#64748b'}; {!hiddenTrips.includes(String(trip.id))
+                ? `background: ${tripColorMap[trip.id] || '#64748b'};`
+                : ''}"
+            />
+            <span class="option-text"
+              >{trip.name}
+              {trip.userId !== $userProfile.id ? "(De otro usuario)" : ""}</span
+            >
+          </label>
+        {/each}
+      </div>
+      {#if hiddenTrips.length > 0}
+        <button
+          class="text-xs text-blue-400 hover:text-blue-300 mt-2 block"
+          on:click={() => (hiddenTrips = [])}
+        >
+          Mostrar todos los viajes
+        </button>
+      {/if}
+    </div>
+
     <div class="sidebar-footer">
       <h2 class="section-title"><Plus size={18} /> Nueva ubicación</h2>
-      <p class="help-text">Haga clic en el mapa para colocar un marcador.</p>
-      <button class="btn-sidebar-action">
-        <Plus size={16} /> Agregar nueva ubicación
+      <button
+        class="btn-sidebar-action"
+        class:btn-active={addingMode}
+        on:click={toggleAddingMode}
+      >
+        {#if addingMode}
+          <span>Cancelar adición</span>
+        {:else}
+          <Plus size={16} /> Agregar al mapa
+        {/if}
       </button>
+      {#if addingMode}
+        <p class="help-text mt-2 text-center text-blue-400">
+          Haz clic en el mapa para ubicar un punto
+        </p>
+      {/if}
     </div>
   </aside>
 
@@ -277,8 +494,15 @@
             bind:value={searchQuery}
           />
         </div>
-        <button class="btn-top-action">
-          <Plus size={16} /> Agregar nueva ubicación
+        <button
+          class="btn-top-action {addingMode ? 'btn-active' : ''}"
+          on:click={toggleAddingMode}
+        >
+          {#if addingMode}
+            Cancelar
+          {:else}
+            <Plus size={16} /> Agregar ubicación
+          {/if}
         </button>
       </div>
 
@@ -299,6 +523,10 @@
       <MapContainer
         bind:this={mapComponent}
         locations={filteredLocations}
+        mapPhotos={filteredPhotos}
+        trips={filteredTrips}
+        {hiddenTrips}
+        {tripColorMap}
         {showHome}
         height="100%"
         on:mapclick={handleMapClick}
@@ -323,11 +551,20 @@
       >
         Añadir nueva ubicación
       </h3>
-      <p
-        style="color: #94a3b8; font-size: 0.85rem; margin-top: 0; margin-bottom: 1.5rem;"
-      >
-        Lat: {newLocationLat.toFixed(4)}, Lng: {newLocationLng.toFixed(4)}
-      </p>
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <LocationPicker
+          height="200px"
+          initialLocation={newLocationLat && newLocationLng
+            ? { lat: newLocationLat, lng: newLocationLng }
+            : null}
+          on:locationSelect={handleLocationModalSelect}
+        />
+        {#if newLocationCountry}
+          <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">
+            País detectado: <strong>{newLocationCountry}</strong>
+          </div>
+        {/if}
+      </div>
 
       <div class="form-group">
         <label>
@@ -338,11 +575,6 @@
             placeholder="Ej: Playa Escondida"
           />
         </label>
-      </div>
-
-      <div class="form-group">
-        <label for="country-picker"> País (opcional) </label>
-        <CountryPicker id="country-picker" bind:value={newLocationCountry} />
       </div>
 
       <div class="form-group">
@@ -386,6 +618,24 @@
         </div>
       {/if}
 
+      <div class="form-group">
+        <label>
+          Añadir foto (opcional)
+          <input
+            type="file"
+            accept="image/*"
+            bind:files={newLocationPhotoFiles}
+            disabled={newLocationTripId === "new" || newLocationTripId === ""}
+            class="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 bg-slate-800 border-slate-700 text-slate-300 w-full"
+          />
+        </label>
+        {#if newLocationTripId === "new" || newLocationTripId === ""}
+          <span style="font-size: 0.75rem; color: #f59e0b; margin-top: 0.25rem;"
+            >Debes seleccionar un viaje existente para subir fotos.</span
+          >
+        {/if}
+      </div>
+
       <div class="modal-actions">
         <button
           class="btn-cancel"
@@ -402,10 +652,6 @@
 {/if}
 
 <style>
-  :global(body) {
-    overflow: hidden; /* Prevent body scroll for dashboard feel */
-  }
-
   .dashboard-page {
     display: grid;
     grid-template-columns: 300px 1fr;
@@ -467,9 +713,6 @@
   }
   .text-teal {
     color: #14b8a6;
-  }
-  .text-yellow {
-    color: #eab308;
   }
 
   .progress-section {
@@ -550,20 +793,6 @@
     background: #3b82f6;
   }
 
-  .checkmark.checked-teal {
-    border-color: #14b8a6;
-  }
-  .option-item input:checked + .checkmark.checked-teal {
-    background: #14b8a6;
-  }
-
-  .checkmark.checked-yellow {
-    border-color: #eab308;
-  }
-  .option-item input:checked + .checkmark.checked-yellow {
-    background: #eab308;
-  }
-
   .checkmark.checked-red {
     border-color: #ef4444;
   }
@@ -596,11 +825,29 @@
     justify-content: center;
     gap: 0.5rem;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
   }
 
   .btn-sidebar-action:hover {
     background: #4f46e5;
+  }
+
+  .btn-sidebar-action.btn-active,
+  .btn-top-action.btn-active {
+    background: #ef4444 !important;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
   }
 
   /* Main Content Styles */
@@ -649,13 +896,6 @@
     display: flex;
     align-items: center;
     gap: 0.3rem;
-  }
-
-  .search-icon {
-    position: absolute;
-    left: 10px;
-    color: #64748b;
-    z-index: 10;
   }
 
   .search-bar input {

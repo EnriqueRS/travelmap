@@ -9,6 +9,7 @@ export interface AppPhoto {
   isCover: boolean;
   isHidden: boolean;
   externalId?: string;
+  tripId?: string;
   metadata?: {
     size?: number;
     format?: string;
@@ -23,6 +24,15 @@ export const mediaService = {
     const token = getToken();
     if (!token) throw new Error("No token");
     const res = await axios.get(`${API_URL}/media/trips/${tripId}/photos`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  },
+
+  getMapPhotos: async (): Promise<AppPhoto[]> => {
+    const token = getToken();
+    if (!token) throw new Error("No token");
+    const res = await axios.get(`${API_URL}/media/map`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;
@@ -70,7 +80,7 @@ export const mediaService = {
 
   updatePhoto: async (
     photoId: string,
-    data: { showOnMap?: boolean; isCover?: boolean; isHidden?: boolean }
+    data: { showOnMap?: boolean; isCover?: boolean; isHidden?: boolean; metadata?: any }
   ): Promise<AppPhoto> => {
     const token = getToken();
     const res = await axios.patch(`${API_URL}/media/photos/${photoId}`, data, {

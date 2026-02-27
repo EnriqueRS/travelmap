@@ -8,13 +8,13 @@ export interface Location {
   description: string;
   country: string;
   category:
-    | "Naturaleza"
-    | "Ciudad"
-    | "Ciudad de escala"
-    | "Playa"
-    | "Montaña"
-    | "Cultura"
-    | "Otro";
+  | "Naturaleza"
+  | "Ciudad"
+  | "Ciudad de escala"
+  | "Playa"
+  | "Montaña"
+  | "Cultura"
+  | "Otro";
   coordinates: [number, number]; // [lat, lng]
   rating: number;
   visitedDate: string;
@@ -24,6 +24,7 @@ export interface Location {
 
 export interface Trip {
   id: string;
+  userId?: string;
   name: string;
   description: string;
   startDate: string;
@@ -35,6 +36,7 @@ export interface Trip {
 }
 
 export interface UserProfile {
+  id: string;
   name: string;
   bio: string;
   avatar: string;
@@ -55,6 +57,7 @@ export interface UserProfile {
 const initialTrips: Trip[] = [
   {
     id: "1",
+    userId: "demo_user",
     name: "Eurotrip 2024",
     description: "Viaje de verano por las principales capitales europeas.",
     startDate: "2024-06-01",
@@ -66,6 +69,7 @@ const initialTrips: Trip[] = [
   },
   {
     id: "2",
+    userId: "demo_user",
     name: "Aventura en Japón",
     description: "Explorando la cultura y gastronomía nipona.",
     startDate: "2025-04-10",
@@ -73,7 +77,31 @@ const initialTrips: Trip[] = [
     countries: ["Japón"],
     status: "Planificado",
     coverImage: "japan-cover", // Placeholder key
-    locations: [],
+    locations: ["5", "6"],
+  },
+  {
+    id: "3",
+    userId: "other_user",
+    name: "Ruta 66",
+    description: "Viaje en moto por la mítica Ruta 66.",
+    startDate: "2023-09-01",
+    endDate: "2023-09-20",
+    countries: ["Estados Unidos"],
+    status: "Completado",
+    coverImage: "usa-cover", // Placeholder key
+    locations: ["3", "4"],
+  },
+  {
+    id: "4",
+    userId: "other_user",
+    name: "Expedición a la Patagonia",
+    description: "Recorriendo glaciares y montañas increíbles en el fin del mundo.",
+    startDate: "2024-11-05",
+    endDate: "2024-11-25",
+    countries: ["Argentina", "Chile"],
+    status: "Completado",
+    coverImage: "patagonia-cover",
+    locations: ["7"],
   },
 ];
 
@@ -81,8 +109,7 @@ const initialLocations: Location[] = [
   {
     id: "1",
     name: "Torre Eiffel",
-    description:
-      "El icono de París y una de las estructuras más famosas del mundo.",
+    description: "El icono de París y una de las estructuras más famosas del mundo.",
     country: "Francia",
     category: "Ciudad",
     coordinates: [48.8584, 2.2945],
@@ -94,8 +121,7 @@ const initialLocations: Location[] = [
   {
     id: "2",
     name: "Coliseo Romano",
-    description:
-      "El anfiteatro más grande construido durante el Imperio Romano.",
+    description: "El anfiteatro más grande construido durante el Imperio Romano.",
     country: "Italia",
     category: "Cultura",
     coordinates: [41.8902, 12.4922],
@@ -104,9 +130,70 @@ const initialLocations: Location[] = [
     images: ["colosseum-1"],
     tripId: "1",
   },
+  {
+    id: "3",
+    name: "Gran Cañón",
+    description: "Una de las maravillas naturales del mundo.",
+    country: "Estados Unidos",
+    category: "Naturaleza",
+    coordinates: [36.1069, -112.1129],
+    rating: 5,
+    visitedDate: "2023-09-10",
+    images: [],
+    tripId: "3",
+  },
+  {
+    id: "4",
+    name: "Santa Monica Pier",
+    description: "El final de la Ruta 66 en California.",
+    country: "Estados Unidos",
+    category: "Playa",
+    coordinates: [34.0092, -118.4976],
+    rating: 4,
+    visitedDate: "2023-09-20",
+    images: [],
+    tripId: "3",
+  },
+  {
+    id: "5",
+    name: "Monte Fuji",
+    description: "El pico más alto y sagrado de Japón.",
+    country: "Japón",
+    category: "Montaña",
+    coordinates: [35.3606, 138.7274],
+    rating: 5,
+    visitedDate: "2025-04-15",
+    images: [],
+    tripId: "2",
+  },
+  {
+    id: "6",
+    name: "Cruce de Shibuya",
+    description: "El cruce peatonal más concurrido del mundo.",
+    country: "Japón",
+    category: "Ciudad",
+    coordinates: [35.6595, 139.7005],
+    rating: 4,
+    visitedDate: "2025-04-12",
+    images: [],
+    tripId: "2",
+  },
+  {
+    id: "7",
+    name: "Glaciar Perito Moreno",
+    description: "Impresionante glaciar en avance en la Patagonia argentina.",
+    country: "Argentina",
+    category: "Naturaleza",
+    coordinates: [-50.4730, -73.0369],
+    rating: 5,
+    visitedDate: "2024-11-10",
+    images: [],
+    tripId: "4",
+  },
 ];
 
 const initialProfile: UserProfile = {
+  id: "demo_user",
   name: "Alex Viajero",
   bio: "Apasionado por descubrir nuevos lugares y culturas. Fotógrafo aficionado.",
   avatar: "avatar-1",
@@ -198,6 +285,7 @@ export const updateStores = (userData: any) => {
 
       return {
         id: t.id,
+        userId: userData.id, // Ensure we map the user ID to the trip
         name: t.name || t.title,
         description: t.description,
         startDate: t.startDate,
@@ -230,15 +318,16 @@ export const updateStores = (userData: any) => {
   // Update profile basic info
   userProfile.update((profile) => ({
     ...profile,
+    id: userData.id || profile.id, // Store real logged-in user id
     name: userData.username, // or firstName + lastName
     avatar: userData.avatarUrl || profile.avatar,
     bio: userData.bio || profile.bio,
     homeLocation:
       userData.homeLocationLat && userData.homeLocationLng
         ? {
-            name: "Home", // We might need to geocode this or store the name
-            coordinates: [userData.homeLocationLat, userData.homeLocationLng],
-          }
+          name: "Home", // We might need to geocode this or store the name
+          coordinates: [userData.homeLocationLat, userData.homeLocationLng],
+        }
         : profile.homeLocation,
   }));
 };

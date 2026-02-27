@@ -1,42 +1,73 @@
 <script lang="ts">
-  import { onMount, onDestroy, createEventDispatcher } from "svelte";
-  import { browser } from "$app/environment";
-  import { userProfile } from "$lib/stores/data";
-  import type { Location } from "$lib/stores/data";
-  import "leaflet/dist/leaflet.css";
-  import "leaflet.markercluster/dist/MarkerCluster.css";
-  import "leaflet.markercluster/dist/MarkerCluster.Default.css";
-  import markerIconUrl from "leaflet/dist/images/marker-icon.png";
-  import markerIconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
-  import markerShadowUrl from "leaflet/dist/images/marker-shadow.png";
-  import { geocode } from "$lib/utils/geocode";
-  import { Search } from "lucide-svelte";
+  import { onMount, onDestroy, createEventDispatcher } from "svelte"
+  import { browser } from "$app/environment"
+  import { userProfile } from "$lib/stores/data"
+  import type { Location } from "$lib/stores/data"
+  import "leaflet/dist/leaflet.css"
+  import "leaflet.markercluster/dist/MarkerCluster.css"
+  import "leaflet.markercluster/dist/MarkerCluster.Default.css"
+  import markerIconUrl from "leaflet/dist/images/marker-icon.png"
+  import markerIconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png"
+  import markerShadowUrl from "leaflet/dist/images/marker-shadow.png"
+  import { geocode } from "$lib/utils/geocode"
+  import { Search } from "lucide-svelte"
+  import type { AppPhoto } from "$lib/services/media"
+  import type { Trip } from "$lib/stores/data"
+  import { API_URL } from "$lib/services/auth"
 
-  export let height = "100%";
-  export let locations: Location[] = [];
-  export let showHome = true;
+  export let height = "100%"
+  export let locations: Location[] = []
+  export let mapPhotos: AppPhoto[] = []
+  export let trips: Trip[] = []
+  export let hiddenTrips: string[] = []
+  export let tripColorMap: Record<string, string> = {}
+  export let showHome = true
 
-  let mapContainer: HTMLDivElement;
-  let map: any;
-  let markerClusterGroup: any;
-  let L: any;
-  let currentTileLayer: any;
-  let searchQuery = "";
-  let searchLoading = false;
-  let searchError = "";
+  let mapContainer: HTMLDivElement
+  let map: any
+  let markerClusterGroup: any
+  let L: any
+  let currentTileLayer: any
+  let searchQuery = ""
+  let searchLoading = false
+  let searchError = ""
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher()
+  let tripLinesGroup: any
+  let photoMarkersGroup: any
 
   // Reactive update when locations prop changes
-  $: if (map && browser && L && markerClusterGroup && locations) {
-    updateMarkers();
+  $: if (
+    map &&
+    browser &&
+    L &&
+    markerClusterGroup &&
+    locations &&
+    mapPhotos &&
+    trips &&
+    hiddenTrips &&
+    tripColorMap
+  ) {
+    updateMarkers()
   }
 
   async function updateMarkers() {
-    if (!map || !markerClusterGroup) return;
+    if (!map || !markerClusterGroup) return
 
     // Clear existing layer
-    markerClusterGroup.clearLayers();
+    markerClusterGroup.clearLayers()
+    if (tripLinesGroup) {
+      tripLinesGroup.clearLayers()
+    } else {
+      tripLinesGroup = L.layerGroup().addTo(map)
+    }
+    if (photoMarkersGroup) {
+      photoMarkersGroup.clearLayers()
+    } else {
+      photoMarkersGroup = L.layerGroup().addTo(map)
+    }
+
+    const bounds = L.latLngBounds()
 
     // Add new markers
     locations.forEach((loc) => {
@@ -63,7 +94,7 @@
             loc.category
           } • ⭐ ${loc.rating}</p>
         </div>
-      `;
+      `
 
       // Custom Icon logic
       const customIcon = L.divIcon({
@@ -76,37 +107,145 @@
         iconSize: [40, 40],
         iconAnchor: [20, 40],
         popupAnchor: [0, -40],
-      });
+      })
 
       const marker = L.marker([loc.coordinates[0], loc.coordinates[1]], {
         icon: customIcon,
-      }).bindPopup(popupContent);
+      }).bindPopup(popupContent)
 
-      markerClusterGroup.addLayer(marker);
-    });
+      markerClusterGroup.addLayer(marker)
+      bounds.extend([loc.coordinates[0], loc.coordinates[1]])
+    })
+
+    // Add Trip Polylines
+    const validTrips = trips.filter(
+      (t) =>
+        t.status === "Planificado" ||
+        t.status === "En curso" ||
+        t.status === "Completado"
+    )
+
+    validTrips.forEach((trip) => {
+      // Get the locations for this trip
+      const tripLocations = locations.filter((l) => {
+        const locTripId = l.tripId || (l as any).trip_id
+        return locTripId === trip.id
+      })
+      // Sort them sequentially by visitDate if needed (assuming visitedDate or simply order added)
+      tripLocations.sort(
+        (a, b) =>
+          new Date(a.visitedDate).getTime() - new Date(b.visitedDate).getTime()
+      )
+
+      if (tripLocations.length > 1) {
+        const latlngs = tripLocations.map((l) => [
+          l.coordinates[0],
+          l.coordinates[1],
+        ])
+        const color = tripColorMap[trip.id] || "#3b82f6"
+        const polyline = L.polyline(latlngs, {
+          color: color,
+          weight: 3,
+          dashArray: trip.status === "Planificado" ? "5, 10" : "", // Dashed line for planned
+          opacity: 0.8,
+        }).bindPopup(`<strong>Viaje:</strong> ${trip.name}`)
+
+        tripLinesGroup.addLayer(polyline)
+        bounds.extend(polyline.getBounds())
+      }
+    })
+
+    // Add Photos Markers
+    mapPhotos.forEach((photo) => {
+      if (photo.metadata?.exif?.latitude && photo.metadata?.exif?.longitude) {
+        const url =
+          photo.provider === "local"
+            ? `${API_URL}${photo.url}`
+            : `${API_URL}/media/photos/${photo.id}/image`
+        const photoTripId = photo.tripId || (photo as any).trip_id
+        const photoTrip = photoTripId
+          ? trips.find((t) => t.id === photoTripId)
+          : null
+
+        const borderColor = photoTrip
+          ? tripColorMap[photoTrip.id] || "#3b82f6"
+          : "#f59e0b"
+        const photoIcon = L.divIcon({
+          className: "custom-photo-marker",
+          html: `
+            <div class="marker-photo-wrapper" style="border-color: ${borderColor}">
+              <img src="${url}" alt="Foto de mapa" class="marker-photo-img" />
+            </div>
+          `,
+          iconSize: [48, 48],
+          iconAnchor: [24, 48],
+          popupAnchor: [0, -48],
+        })
+
+        const popupContent = `
+          <div style="text-align: center; width: 220px; padding: 0.5rem;">
+            <img src="${url}" style="width: 100%; border-radius: 8px; margin-bottom: 12px; object-fit: cover; max-height: 150px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);" />
+            ${
+              photoTrip
+                ? `<div style="margin-bottom: 8px;"><span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">Viaje: ${photoTrip.name}</span></div>`
+                : ""
+            }
+            <p style="margin: 0; font-size: 12px; color: #94a3b8;">Tomada el: ${
+              photo.metadata?.exif?.dateTimeOriginal
+                ? new Date(
+                    photo.metadata.exif.dateTimeOriginal
+                  ).toLocaleDateString()
+                : "Desconocido"
+            }</p>
+          </div>
+        `
+
+        const marker = L.marker(
+          [photo.metadata.exif.latitude, photo.metadata.exif.longitude],
+          {
+            icon: photoIcon,
+          }
+        ).bindPopup(popupContent, {
+          className: "dark-popup",
+        })
+
+        photoMarkersGroup.addLayer(marker)
+        bounds.extend([
+          photo.metadata.exif.latitude,
+          photo.metadata.exif.longitude,
+        ])
+      }
+    })
 
     // Ensure the layer is added to map
     if (!map.hasLayer(markerClusterGroup)) {
-      map.addLayer(markerClusterGroup);
+      map.addLayer(markerClusterGroup)
     }
 
-    updateHomeMarker();
+    const homeBounds = updateHomeMarker()
+    if (homeBounds) {
+      bounds.extend(homeBounds)
+    }
+
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 })
+    }
   }
 
   // Separate Home Marker Logic
-  let homeMarker: any;
+  let homeMarker: any
 
   function updateHomeMarker() {
-    if (!map || !L) return;
+    if (!map || !L) return
 
     // Remove existing
     if (homeMarker) {
-      map.removeLayer(homeMarker);
-      homeMarker = null;
+      map.removeLayer(homeMarker)
+      homeMarker = null
     }
 
     if (showHome && $userProfile.homeLocation) {
-      const home = $userProfile.homeLocation;
+      const home = $userProfile.homeLocation
       const customIcon = L.divIcon({
         className: "custom-map-marker",
         html: `<div class="marker-home" style="background-color: #ef4444;">
@@ -115,7 +254,7 @@
         iconSize: [40, 40],
         iconAnchor: [20, 40],
         popupAnchor: [0, -40],
-      });
+      })
 
       homeMarker = L.marker([home.coordinates[0], home.coordinates[1]], {
         icon: customIcon,
@@ -125,13 +264,16 @@
             <h3 style="margin: 0;">🏠 Casa</h3>
             <p>${home.name}</p>
           </div>
-        `);
+        `)
+
+      return [home.coordinates[0], home.coordinates[1]]
     }
+    return null
   }
 
   // React to showHome change
   $: if (map && (showHome || !showHome)) {
-    updateHomeMarker();
+    updateHomeMarker()
   }
 
   function getCategoryEmoji(category: string) {
@@ -143,15 +285,15 @@
       Montaña: "🏔️",
       Cultura: "🏛️",
       Otro: "📍",
-    };
-    return map[category] || "📍";
+    }
+    return map[category] || "📍"
   }
 
   export function setMapLayer(type: "default" | "satellite") {
-    if (!map || !L) return;
+    if (!map || !L) return
 
     if (currentTileLayer) {
-      map.removeLayer(currentTileLayer);
+      map.removeLayer(currentTileLayer)
     }
 
     if (type === "satellite") {
@@ -162,7 +304,7 @@
             "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
           maxZoom: 19,
         }
-      );
+      )
     } else {
       currentTileLayer = L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
@@ -172,41 +314,41 @@
           subdomains: "abcd",
           maxZoom: 20,
         }
-      );
+      )
     }
 
-    currentTileLayer.addTo(map);
+    currentTileLayer.addTo(map)
   }
 
   onMount(async () => {
-    if (!browser) return;
+    if (!browser) return
 
     try {
       // Dynamic imports with robust loading
-      const leafletModule = await import("leaflet");
-      L = leafletModule.default;
+      const leafletModule = await import("leaflet")
+      L = leafletModule.default
 
-      console.log("Leaflet loaded:", L.version);
+      console.log("Leaflet loaded:", L.version)
 
       // Use Leaflet marker images from package (Vite resolves URLs)
       // @ts-ignore
-      delete L.Icon.Default.prototype._getIconUrl;
+      delete L.Icon.Default.prototype._getIconUrl
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: markerIconRetinaUrl,
         iconUrl: markerIconUrl,
         shadowUrl: markerShadowUrl,
-      });
+      })
 
       // Expose L to window for plugins that rely on global L
       // @ts-ignore
-      window.L = L;
+      window.L = L
 
       // Import plugin explicitly
       // We use the file path found in verification to ensure it resolves
       // @ts-ignore
-      await import("leaflet.markercluster/dist/leaflet.markercluster.js");
+      await import("leaflet.markercluster/dist/leaflet.markercluster.js")
 
-      console.log("MarkerCluster plugin loaded:", !!L.markerClusterGroup);
+      console.log("MarkerCluster plugin loaded:", !!L.markerClusterGroup)
 
       // Initialize map
       map = L.map(mapContainer, {
@@ -215,17 +357,17 @@
         zoomControl: false,
         minZoom: 2,
         maxZoom: 18,
-      });
+      })
 
       // Default Dark Mode
-      setMapLayer("default");
+      setMapLayer("default")
 
       // Zoom control top-left as in design
-      L.control.zoom({ position: "topleft" }).addTo(map);
+      L.control.zoom({ position: "topleft" }).addTo(map)
 
       map.on("click", (e: any) => {
-        dispatch("mapclick", { lat: e.latlng.lat, lng: e.latlng.lng });
-      });
+        dispatch("mapclick", { lat: e.latlng.lat, lng: e.latlng.lng })
+      })
 
       if (L.markerClusterGroup) {
         // Initialize Cluster Group with custom styles
@@ -235,59 +377,59 @@
           spiderfyOnMaxZoom: true,
           removeOutsideVisibleBounds: true,
           iconCreateFunction: function (cluster: any) {
-            const childCount = cluster.getChildCount();
-            let c = " marker-cluster-";
+            const childCount = cluster.getChildCount()
+            let c = " marker-cluster-"
             if (childCount < 10) {
-              c += "small";
+              c += "small"
             } else if (childCount < 100) {
-              c += "medium";
+              c += "medium"
             } else {
-              c += "large";
+              c += "large"
             }
 
             return L.divIcon({
               html: "<div><span>" + childCount + "</span></div>",
               className: "marker-cluster" + c,
               iconSize: [40, 40],
-            });
+            })
           },
-        });
+        })
 
-        map.addLayer(markerClusterGroup);
+        map.addLayer(markerClusterGroup)
       } else {
-        console.error("Leaflet MarkerClusterGroup not found!");
+        console.error("Leaflet MarkerClusterGroup not found!")
       }
 
       // Initial marker update
-      updateMarkers();
+      updateMarkers()
     } catch (e) {
-      console.error("Error initializing map:", e);
+      console.error("Error initializing map:", e)
     }
-  });
+  })
 
   async function handleSearch() {
-    if (!searchQuery.trim() || !map) return;
-    searchError = "";
-    searchLoading = true;
+    if (!searchQuery.trim() || !map) return
+    searchError = ""
+    searchLoading = true
     try {
-      const result = await geocode(searchQuery);
+      const result = await geocode(searchQuery)
       if (result) {
-        map.setView([result.lat, result.lng], 12);
+        map.setView([result.lat, result.lng], 12)
       } else {
-        searchError = "No se encontró la ubicación.";
+        searchError = "No se encontró la ubicación."
       }
     } catch (e) {
-      searchError = "Error al buscar.";
+      searchError = "Error al buscar."
     } finally {
-      searchLoading = false;
+      searchLoading = false
     }
   }
 
   onDestroy(() => {
     if (map) {
-      map.remove();
+      map.remove()
     }
-  });
+  })
 </script>
 
 <div class="map-outer">
@@ -424,6 +566,35 @@
     line-height: 1;
   }
 
+  :global(.custom-photo-marker) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+  }
+
+  :global(.marker-photo-wrapper) {
+    width: 48px;
+    height: 48px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 3px solid white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    background: #0f172a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :global(.marker-photo-img) {
+    width: 150%;
+    height: 150%;
+    object-fit: cover;
+    transform: rotate(45deg);
+  }
+
   :global(.marker-home) {
     width: 36px;
     height: 36px;
@@ -475,14 +646,23 @@
 
   /* Popup Dark Mode Overrides */
   :global(.leaflet-popup-content-wrapper) {
-    border-radius: 8px;
+    background: #1e293b !important;
+    color: #e2e8f0;
+    border-radius: 12px;
     padding: 0;
     overflow: hidden;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
   }
   :global(.leaflet-popup-content) {
-    margin: 12px;
+    margin: 4px;
   }
   :global(.leaflet-popup-tip) {
-    background: white;
+    background: #1e293b !important;
+  }
+  :global(.leaflet-popup-close-button) {
+    color: #94a3b8 !important;
+  }
+  :global(.leaflet-popup-close-button:hover) {
+    color: #f1f5f9 !important;
   }
 </style>

@@ -46,3 +46,31 @@ export async function geocode(query: string): Promise<GeocodeResult | null> {
     displayName: first.display_name ?? `${lat}, ${lon}`,
   };
 }
+
+export async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+  const params = new URLSearchParams({
+    lat: lat.toString(),
+    lon: lng.toString(),
+    format: "json",
+    "accept-language": "es",
+  });
+
+  try {
+    const res = await fetch(`${NOMINATIM_URL}/reverse?${params}`, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": USER_AGENT,
+      },
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    if (data && data.address && data.address.country) {
+      return data.address.country;
+    }
+  } catch (error) {
+    console.warn("Error reverse geocoding:", error);
+  }
+  return null;
+}

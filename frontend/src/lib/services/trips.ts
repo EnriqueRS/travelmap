@@ -13,5 +13,14 @@ export const tripsService = {
     return response.data;
   },
 
-  // Aquí se podrían añadir getTrips, updateTrip, deleteTrip en el futuro si son necesarios
+  async updateTrip(id: string, tripData: any) {
+    const token = getToken();
+    if (!token) throw new Error("No authentication token found");
+
+    const response = await axios.patch(`${API_URL}/trips/${id}`, tripData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  }
 };

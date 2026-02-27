@@ -445,3 +445,23 @@ npm run format      # Prettier format
 - **Logs**: `docker-compose logs` para troubleshooting
 
 ¡Listo! Ahora tienes TravelMap corriendo en tu máquina local.
+
+## 📝 Changelog / Historial de Cambios
+
+### Recent Updates / Actualizaciones Recientes
+
+**🇬🇧 English:**
+- Replaced native browser alerts with modern, visually appealing toast notifications on the map page.
+- Added the ability to filter locations and photos on the map by selecting one or more individual trips from a new list in the sidebar.
+- Carousel photos in the trip detail view are now sorted prioritizing the cover photo first, followed by photos visible on the map, and finally the rest.
+- Added a visual map indicator to the thumbnails in the photo carousel for photos that are shown on the map.
+- Added "My Trips" (Mis viajes) filter on the map view to display only the authenticated user's trips.
+- Enhanced initial demo data to provide a richer experience for unlogged users, including more trips and locations.
+
+**🇪🇸 Español:**
+- Se reemplazaron las alertas nativas del navegador por notificaciones tipo toast modernas y visualmente atractivas en la página del mapa.
+- Se añadió la capacidad de filtrar localizaciones y fotos en el mapa seleccionando uno o más viajes individuales desde una nueva lista en la barra lateral.
+- Las fotos del carrusel en el detalle del viaje ahora se ordenan priorizando la foto de portada, seguida por las fotos visibles en el mapa, y finalmente el resto.
+- Se ha añadido un indicador de mapa visual a las miniaturas del carrusel de fotos para aquellas que se muestran en el mapa.
+- Se añadió el filtro "Mis viajes" en la vista del mapa para mostrar únicamente los viajes del usuario autenticado.
+- Se mejoraron los datos iniciales de demostración para ofrecer una experiencia más rica a los usuarios no logueados, incluyendo más viajes y localizaciones.

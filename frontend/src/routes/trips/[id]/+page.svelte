@@ -8,19 +8,99 @@
   } from "$lib/stores/data"
   import { goto } from "$app/navigation"
   import { formatDate } from "$lib/utils/formatters"
+  import { getCountryFlag } from "$lib/utils/countries"
   import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
   import AlbumModal from "$lib/components/ui/AlbumModal.svelte"
+  import CountryPicker from "$lib/components/ui/CountryPicker.svelte"
+  import LocationPicker from "$lib/components/map/LocationPicker.svelte"
+  import { MapPin, MapPinOff } from "lucide-svelte"
   import { onMount } from "svelte"
   import { mediaService, type AppPhoto } from "$lib/services/media"
   import { integrationsService } from "$lib/services/integrations"
   import { API_URL } from "$lib/services/auth"
   import { toast } from "$lib/stores/ui"
 
+  import { tripsService } from "$lib/services/trips"
+
   $: tripId = $page.params.id
   $: trip = $trips.find((t) => t.id === tripId)
   $: tripLocations = $locations.filter(
     (l) => trip?.locations.includes(l.id) || l.tripId === tripId
   )
+
+  let isEditingTrip = false
+  let editTripData = {
+    name: "",
+    description: "",
+    status: "Planificado" as "Planificado" | "En curso" | "Completado",
+    startDate: "",
+    endDate: "",
+    countries: [] as string[],
+  }
+
+  function startEditTrip() {
+    if (!trip) return
+    editTripData = {
+      name: trip.name,
+      description: trip.description,
+      status: trip.status || "Planificado",
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      countries: [...trip.countries],
+    }
+    isEditingTrip = true
+  }
+
+  async function saveTripEdit() {
+    if (!editTripData.name.trim()) {
+      toast.error("El nombre es requerido")
+      return
+    }
+    if (!editTripData.startDate) {
+      toast.error("Fecha de inicio requerida")
+      return
+    }
+
+    try {
+      toast.info("Guardando...")
+      await tripsService.updateTrip(tripId, editTripData)
+
+      trips.update((allTrips) =>
+        allTrips.map((t) => {
+          if (t.id === tripId) {
+            return {
+              ...t,
+              ...editTripData,
+            }
+          }
+          return t
+        })
+      )
+      isEditingTrip = false
+      toast.success("Viaje actualizado correctamente")
+    } catch (error) {
+      console.error("Error al actualizar el viaje:", error)
+      toast.error("Hubo un error al guardar los cambios en la nube.")
+    }
+  }
+
+  // Country logic internally
+  let countryInputValue = ""
+  function addCountryToEdit() {
+    if (
+      countryInputValue &&
+      !editTripData.countries.includes(countryInputValue)
+    ) {
+      editTripData.countries = [...editTripData.countries, countryInputValue]
+    }
+    countryInputValue = ""
+  }
+
+  function removeCountryFromEdit(c: string) {
+    editTripData.countries = editTripData.countries.filter(
+      (country) => country !== c
+    )
+  }
 
   function handleDelete() {
     if (confirm("¿Estás seguro de que quieres eliminar este viaje?")) {
@@ -45,8 +125,14 @@
   $: displayedPhotos = [
     ...(showHiddenPhotos ? photos : photos.filter((p) => !p.isHidden)),
   ].sort((a, b) => {
-    if (a.isCover === b.isCover) return 0
-    return a.isCover ? -1 : 1
+    // Portada al principio siempre
+    if (a.isCover && !b.isCover) return -1
+    if (!a.isCover && b.isCover) return 1
+    // Luego las que se muestran en el mapa
+    if (a.showOnMap && !b.showOnMap) return -1
+    if (!a.showOnMap && b.showOnMap) return 1
+
+    return 0 // Orden original de resto (fecha de subida o id)
   })
 
   $: computedCoverImage = photos.find((p) => p.isCover)
@@ -295,6 +381,48 @@
 
   // --- Photo Metadata Modal ---
   let selectedMetadataPhoto: AppPhoto | null = null
+  let editingMetadataLocation = false
+  let newMetadataLat: number | null = null
+  let newMetadataLng: number | null = null
+
+  async function saveMetadataLocation() {
+    if (!selectedMetadataPhoto || !newMetadataLat || !newMetadataLng) return
+    try {
+      toast.info("Guardando ubicación...")
+      const updatedExif = {
+        ...selectedMetadataPhoto.metadata?.exif,
+        latitude: newMetadataLat,
+        longitude: newMetadataLng,
+      }
+
+      const updatedPhoto = await mediaService.updatePhoto(
+        selectedMetadataPhoto.id,
+        {
+          metadata: {
+            ...selectedMetadataPhoto.metadata,
+            exif: updatedExif,
+          },
+        }
+      )
+
+      // Update local state arrays
+      photos = photos.map((p) => (p.id === updatedPhoto.id ? updatedPhoto : p))
+      selectedMetadataPhoto = updatedPhoto
+
+      editingMetadataLocation = false
+      toast.success("Ubicación guardada")
+    } catch (err) {
+      console.error(err)
+      toast.error("Error al guardar la ubicación")
+    }
+  }
+
+  function handleMetadataLocationSelect(
+    e: CustomEvent<{ lat: number; lng: number }>
+  ) {
+    newMetadataLat = e.detail.lat
+    newMetadataLng = e.detail.lng
+  }
 
   function showMetadata(photo: AppPhoto | null) {
     if (!photo) return
@@ -303,6 +431,9 @@
 
   function closeMetadata() {
     selectedMetadataPhoto = null
+    editingMetadataLocation = false
+    newMetadataLat = null
+    newMetadataLng = null
   }
 </script>
 
@@ -328,9 +459,15 @@
         </p>
         <div class="countries">
           {#each trip.countries as country}
-            <span class="country-tag">🌍 {country}</span>
+            <span class="country-tag">{getCountryFlag(country)} {country}</span>
           {/each}
         </div>
+        <button
+          class="btn btn-sm btn-secondary mx-auto mt-4 block"
+          on:click={startEditTrip}
+        >
+          Editar Info
+        </button>
       </div>
     </header>
 
@@ -448,23 +585,63 @@
               <div
                 class="thumbnails-wrapper bg-slate-900 p-2 border-b border-slate-700"
               >
-                <Thumbnails
-                  images={carouselImages}
-                  bind:index={activeIndex}
-                  class="flex-nowrap justify-start overflow-x-auto gap-2 p-1 snap-x scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent bg-transparent"
-                  imgClass="h-16 w-16 min-w-[64px] object-cover rounded-md opacity-60 hover:opacity-100 transition-opacity snap-center cursor-pointer"
-                />
+                <!-- Custom Thumbnails with map indicators -->
+                <div
+                  class="flex flex-nowrap justify-start overflow-x-auto gap-2 p-1 snap-x scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent"
+                >
+                  {#each carouselImages as img, i}
+                    <button
+                      class="relative h-16 w-16 min-w-[64px] snap-center cursor-pointer transition-opacity"
+                      class:opacity-100={activeIndex === i}
+                      class:opacity-60={activeIndex !== i}
+                      class:hover:opacity-100={activeIndex !== i}
+                      on:click={() => (activeIndex = i)}
+                    >
+                      <img
+                        src={img.src}
+                        alt={img.alt}
+                        class="h-full w-full object-cover rounded-md"
+                      />
+                      {#if displayedPhotos[i].showOnMap}
+                        <div
+                          class="absolute bottom-1 right-1 bg-blue-500 rounded-full p-0.5 shadow-md flex items-center justify-center"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-3 w-3 text-white"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fill-rule="evenodd"
+                              d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                              clip-rule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                      {/if}
+                    </button>
+                  {/each}
+                </div>
               </div>
 
-              <div class="photo-actions">
-                <label class="map-toggle">
-                  <input
-                    type="checkbox"
-                    checked={selectedPhoto.showOnMap}
-                    on:change={() => toggleMapVisibility(selectedPhoto)}
-                  />
-                  Mostrar en Mapa
-                </label>
+              <div
+                class="photo-actions flex-wrap gap-2 text-center items-center justify-center"
+              >
+                <button
+                  class="btn btn-sm text-white border flex flex-row flex-nowrap items-center justify-center gap-2 {selectedPhoto.showOnMap
+                    ? 'bg-blue-600 border-blue-600 hover:bg-blue-700'
+                    : 'bg-slate-700 border-slate-600 hover:bg-slate-600'} transition-all duration-200"
+                  on:click={() => toggleMapVisibility(selectedPhoto)}
+                >
+                  {#if selectedPhoto.showOnMap}
+                    <MapPin size={16} class="shrink-0" />
+                    <span class="whitespace-nowrap">Ocultar de Mapa</span>
+                  {:else}
+                    <MapPinOff size={16} class="text-slate-400 shrink-0" />
+                    <span class="whitespace-nowrap">Ver en Mapa</span>
+                  {/if}
+                </button>
 
                 <div class="photo-buttons">
                   {#if !selectedPhoto.isCover}
@@ -527,53 +704,239 @@
   />
 {/if}
 
+{#if isEditingTrip}
+  <div
+    class="modal-backdrop pointer-events-auto flex items-center justify-center p-4"
+  >
+    <div
+      class="modal card meta-modal w-full max-w-lg bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl overflow-y-auto max-h-[90vh] text-left"
+    >
+      <header class="modal-header flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold text-white m-0">Editar Viaje</h3>
+        <button
+          class="text-slate-400 hover:text-white"
+          on:click={() => (isEditingTrip = false)}>&times;</button
+        >
+      </header>
+
+      <div class="flex flex-col gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1"
+            >Nombre</label
+          >
+          <input
+            type="text"
+            bind:value={editTripData.name}
+            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1"
+            >Estado</label
+          >
+          <select
+            bind:value={editTripData.status}
+            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
+          >
+            <option value="Planificado">Planificado</option>
+            <option value="En curso">En curso</option>
+            <option value="Completado">Completado</option>
+          </select>
+        </div>
+
+        <div class="flex gap-4">
+          <div class="flex-1">
+            <label class="block text-sm font-medium text-slate-300 mb-1"
+              >Inicio</label
+            >
+            <input
+              type="date"
+              bind:value={editTripData.startDate}
+              class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
+            />
+          </div>
+          <div class="flex-1">
+            <label class="block text-sm font-medium text-slate-300 mb-1"
+              >Fin</label
+            >
+            <input
+              type="date"
+              bind:value={editTripData.endDate}
+              class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1"
+            >Descripción</label
+          >
+          <textarea
+            bind:value={editTripData.description}
+            rows="3"
+            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1"
+            >Países</label
+          >
+          <div class="flex gap-2 mb-2">
+            <CountryPicker id="edit-country" bind:value={countryInputValue} />
+            <button class="btn btn-sm" on:click={addCountryToEdit}
+              >+ Añadir</button
+            >
+          </div>
+          <div class="flex flex-wrap gap-2">
+            {#each editTripData.countries as country}
+              <span
+                class="inline-flex items-center gap-1 bg-slate-700 text-sm px-2 py-1 rounded-md text-white border border-slate-600"
+              >
+                {country}
+                <button
+                  class="text-red-400 hover:text-red-300 text-xs ml-1"
+                  on:click={() => removeCountryFromEdit(country)}
+                  >&times;</button
+                >
+              </span>
+            {/each}
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-700">
+        <button
+          class="btn btn-secondary"
+          on:click={() => (isEditingTrip = false)}>Cancelar</button
+        >
+        <button class="btn btn-primary" on:click={saveTripEdit}
+          >Guardar Cambios</button
+        >
+      </div>
+    </div>
+  </div>
+{/if}
+
 {#if selectedMetadataPhoto}
   <div class="modal-backdrop" on:click|self={closeMetadata}>
     <div class="modal card meta-modal">
-      <header class="modal-header">
-        <h3>Información Fotográfica</h3>
-        <button class="close-btn" on:click={closeMetadata}>&times;</button>
+      <header
+        class="modal-header flex flex-row justify-between items-start border-b border-slate-700 pb-3 mb-4"
+      >
+        <h3 class="text-xl font-semibold flex items-center gap-2">
+          <MapPin size={20} class="text-blue-400" /> Info. Fotográfica
+        </h3>
+        <button
+          class="close-btn text-slate-400 hover:text-white text-2xl leading-none"
+          on:click={closeMetadata}>&times;</button
+        >
       </header>
-      <div class="modal-body meta-body">
+      <div class="modal-body meta-body flex flex-col gap-4">
         {#if selectedMetadataPhoto.metadata?.exif}
-          <div class="meta-item">
-            <span class="meta-label">Dispositivo</span>
-            <span class="meta-val"
+          <div
+            class="meta-item flex flex-col bg-slate-800/50 p-3 rounded-lg border border-slate-700"
+          >
+            <span
+              class="meta-label text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1"
+              >Dispositivo</span
+            >
+            <span class="meta-val font-medium text-slate-200"
               >{selectedMetadataPhoto.metadata.exif.make || "Desconocido"}
               {selectedMetadataPhoto.metadata.exif.model || ""}</span
             >
           </div>
-          <div class="meta-item">
-            <span class="meta-label">Fecha de captura</span>
-            <span class="meta-val"
+          <div
+            class="meta-item flex flex-col bg-slate-800/50 p-3 rounded-lg border border-slate-700"
+          >
+            <span
+              class="meta-label text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1"
+              >Fecha de captura</span
+            >
+            <span class="meta-val font-medium text-slate-200"
               >{selectedMetadataPhoto.metadata.exif.dateTimeOriginal
-                ? new Date(
+                ? formatDate(
                     selectedMetadataPhoto.metadata.exif.dateTimeOriginal
-                  ).toLocaleString()
+                  )
                 : "Desconocida"}</span
             >
           </div>
-          <div class="meta-item">
-            <span class="meta-label">Ubicación (Lat/Lng)</span>
-            <span class="meta-val">
-              {#if selectedMetadataPhoto.metadata.exif.latitude !== null && selectedMetadataPhoto.metadata.exif.longitude !== null}
+          <div
+            class="meta-item flex flex-col bg-slate-800/50 p-3 rounded-lg border border-slate-700"
+          >
+            <div class="flex justify-between items-center mb-1">
+              <span
+                class="meta-label text-xs text-slate-400 uppercase tracking-wider font-semibold"
+                >Ubicación (Lat/Lng)</span
+              >
+              <button
+                class="text-xs text-blue-400 hover:text-blue-300 font-medium"
+                on:click={() =>
+                  (editingMetadataLocation = !editingMetadataLocation)}
+              >
+                {editingMetadataLocation
+                  ? "Cancelar Edición"
+                  : "Editar Ubicación"}
+              </button>
+            </div>
+            <span class="meta-val font-medium text-slate-200">
+              {#if editingMetadataLocation}
+                <div class="mt-2 mb-3">
+                  <LocationPicker
+                    height="200px"
+                    initialLocation={newMetadataLat && newMetadataLng
+                      ? { lat: newMetadataLat, lng: newMetadataLng }
+                      : selectedMetadataPhoto.metadata.exif.latitude
+                      ? {
+                          lat: selectedMetadataPhoto.metadata.exif.latitude,
+                          lng: selectedMetadataPhoto.metadata.exif.longitude,
+                        }
+                      : null}
+                    on:locationSelect={handleMetadataLocationSelect}
+                  />
+                </div>
+                {#if newMetadataLat && newMetadataLng}
+                  <button
+                    class="btn btn-primary w-full py-2 flex justify-center items-center gap-2"
+                    on:click={saveMetadataLocation}
+                  >
+                    <MapPin size={16} /> Guardar Ubicación
+                  </button>
+                {/if}
+              {:else if selectedMetadataPhoto.metadata.exif.latitude !== null && selectedMetadataPhoto.metadata.exif.longitude !== null}
                 {selectedMetadataPhoto.metadata.exif.latitude.toFixed(6)}, {selectedMetadataPhoto.metadata.exif.longitude.toFixed(
                   6
                 )}
+                {#if newMetadataLat && newMetadataLng && !editingMetadataLocation}
+                  <div class="text-xs text-green-400 mt-1">
+                    Ubicación Actualizada en este dispositivo.
+                  </div>
+                {/if}
               {:else}
                 No disponible en EXIF
               {/if}
             </span>
           </div>
-          <div class="meta-item">
-            <span class="meta-label">Lente</span>
-            <span class="meta-val"
+          <div
+            class="meta-item flex flex-col bg-slate-800/50 p-3 rounded-lg border border-slate-700"
+          >
+            <span
+              class="meta-label text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1"
+              >Lente</span
+            >
+            <span class="meta-val font-medium text-slate-200"
               >{selectedMetadataPhoto.metadata.exif.lensModel ||
                 "Desconocido"}</span
             >
           </div>
         {:else}
-          <p>No hay metadatos EXIF disponibles para esta foto.</p>
+          <div
+            class="flex flex-col items-center justify-center p-6 text-center text-slate-400"
+          >
+            <MapPinOff size={48} class="mb-4 opacity-50" />
+            <p>No hay metadatos EXIF disponibles para esta foto.</p>
+          </div>
         {/if}
       </div>
     </div>
