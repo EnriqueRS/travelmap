@@ -46,6 +46,7 @@
     "flatpickr": "^4.6.13",
     "flowbite": "^4.0.1",
     "flowbite-svelte": "^0.46.23",
+    "i18n-iso-countries": "^7.14.0",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "lucide-svelte": "^0.563.0",

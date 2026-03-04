@@ -35,6 +35,7 @@
 
   // Modal State
   let showAddLocationModal = false
+  let showCountryHighlights = false
   let newLocationLat = 0
   let newLocationLng = 0
   let newLocationName = ""
@@ -528,15 +529,25 @@
         {hiddenTrips}
         {tripColorMap}
         {showHome}
+        {showCountryHighlights}
         height="100%"
         on:mapclick={handleMapClick}
       />
 
       <!-- Floating Map Controls -->
-      <div class="map-controls-floating">
+      <div class="map-controls-floating flex flex-col gap-2">
         <button class="control-btn" on:click={toggleLayer}>
           <Layers size={16} />
           {currentLayer === "default" ? "Satélite" : "Default"}
+        </button>
+        <button
+          class="control-btn {showCountryHighlights
+            ? 'bg-blue-600 text-white border-blue-600'
+            : ''}"
+          on:click={() => (showCountryHighlights = !showCountryHighlights)}
+        >
+          <MapIcon size={16} />
+          {showCountryHighlights ? "Ocultar Países" : "Mostrar Países"}
         </button>
       </div>
     </div>
@@ -581,6 +592,7 @@
         <label>
           Categoría
           <select bind:value={newLocationCategory}>
+            <option value="Monumento">Monumento 🏛️</option>
             <option value="Naturaleza">Naturaleza 🌲</option>
             <option value="Ciudad">Ciudad 🏙️</option>
             <option value="Ciudad de escala">Ciudad de escala ✈️</option>

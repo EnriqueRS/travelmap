@@ -22,6 +22,12 @@
   export let hiddenTrips: string[] = []
   export let tripColorMap: Record<string, string> = {}
   export let showHome = true
+  export let showCountryHighlights = false
+
+  import countriesInfo from "i18n-iso-countries"
+  import esLocale from "i18n-iso-countries/langs/es.json"
+  import { formatDate } from "$lib/utils/formatters"
+  countriesInfo.registerLocale(esLocale)
 
   let mapContainer: HTMLDivElement
   let map: any
@@ -35,6 +41,8 @@
   const dispatch = createEventDispatcher()
   let tripLinesGroup: any
   let photoMarkersGroup: any
+  let countryHighlightsGroup: any
+  let geoJsonData: any = null
 
   // Reactive update when locations prop changes
   $: if (
@@ -46,7 +54,8 @@
     mapPhotos &&
     trips &&
     hiddenTrips &&
-    tripColorMap
+    tripColorMap &&
+    showCountryHighlights !== undefined
   ) {
     updateMarkers()
   }
@@ -65,6 +74,12 @@
       photoMarkersGroup.clearLayers()
     } else {
       photoMarkersGroup = L.layerGroup().addTo(map)
+    }
+
+    if (countryHighlightsGroup) {
+      countryHighlightsGroup.clearLayers()
+    } else {
+      countryHighlightsGroup = L.layerGroup().addTo(map)
     }
 
     const bounds = L.latLngBounds()
@@ -190,11 +205,9 @@
                 ? `<div style="margin-bottom: 8px;"><span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">Viaje: ${photoTrip.name}</span></div>`
                 : ""
             }
-            <p style="margin: 0; font-size: 12px; color: #94a3b8;">Tomada el: ${
+            <p style="margin: 0; font-size: 12px; color: #94a3b8;">${
               photo.metadata?.exif?.dateTimeOriginal
-                ? new Date(
-                    photo.metadata.exif.dateTimeOriginal
-                  ).toLocaleDateString()
+                ? formatDate(photo.metadata.exif.dateTimeOriginal)
                 : "Desconocido"
             }</p>
           </div>
@@ -220,6 +233,63 @@
     // Ensure the layer is added to map
     if (!map.hasLayer(markerClusterGroup)) {
       map.addLayer(markerClusterGroup)
+    }
+
+    // --- Country Highlights Logic ---
+    if (showCountryHighlights && typeof window !== "undefined") {
+      try {
+        if (!geoJsonData) {
+          const res = await fetch("/countries.geo.json")
+          geoJsonData = await res.json()
+        }
+
+        // Gather isos
+        const visitedIsos = new Set<string>()
+        const plannedIsos = new Set<string>()
+
+        trips.forEach((t) => {
+          if (t.countries && Array.isArray(t.countries)) {
+            t.countries.forEach((c) => {
+              // The frontend is in Spanish, so we extract the ISO Alpha-3 from "es" name
+              const alpha3 = countriesInfo.getAlpha3Code(c, "es")
+              if (alpha3) {
+                if (t.status === "Completado" || t.status === "En curso") {
+                  visitedIsos.add(alpha3)
+                } else if (t.status === "Planificado") {
+                  plannedIsos.add(alpha3)
+                }
+              }
+            })
+          }
+        })
+
+        const geoLayer = L.geoJSON(geoJsonData, {
+          style: function (feature: any) {
+            const iso = feature.id // ISO Alpha-3 is exactly the generic geojson ID
+            if (visitedIsos.has(iso)) {
+              return {
+                fillColor: "#10b981",
+                color: "#047857",
+                weight: 1,
+                fillOpacity: 0.35,
+              } // Esmerald / Green for visited
+            } else if (plannedIsos.has(iso)) {
+              return {
+                fillColor: "#3b82f6",
+                color: "#1d4ed8",
+                weight: 1,
+                fillOpacity: 0.25,
+              } // Blue for planned
+            } else {
+              return { weight: 0, fillOpacity: 0 } // Invisible context
+            }
+          },
+        })
+
+        countryHighlightsGroup.addLayer(geoLayer)
+      } catch (err) {
+        console.error("Error loading GeoJSON data", err)
+      }
     }
 
     const homeBounds = updateHomeMarker()
@@ -278,6 +348,7 @@
 
   function getCategoryEmoji(category: string) {
     const map: Record<string, string> = {
+      Monumento: "🏛️",
       Naturaleza: "🌲",
       Ciudad: "🏙️",
       "Ciudad de escala": "✈️",

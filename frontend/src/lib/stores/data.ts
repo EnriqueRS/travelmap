@@ -8,6 +8,7 @@ export interface Location {
   description: string;
   country: string;
   category:
+  | "Monumento"
   | "Naturaleza"
   | "Ciudad"
   | "Ciudad de escala"

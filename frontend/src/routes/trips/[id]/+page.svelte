@@ -13,7 +13,8 @@
   import AlbumModal from "$lib/components/ui/AlbumModal.svelte"
   import CountryPicker from "$lib/components/ui/CountryPicker.svelte"
   import LocationPicker from "$lib/components/map/LocationPicker.svelte"
-  import { MapPin, MapPinOff } from "lucide-svelte"
+  import MiniStaticMap from "$lib/components/map/MiniStaticMap.svelte"
+  import { MapPin, MapPinOff, Plus } from "lucide-svelte"
   import { onMount } from "svelte"
   import { mediaService, type AppPhoto } from "$lib/services/media"
   import { integrationsService } from "$lib/services/integrations"
@@ -44,14 +45,16 @@
       name: trip.name,
       description: trip.description,
       status: trip.status || "Planificado",
-      startDate: trip.startDate,
-      endDate: trip.endDate,
+      startDate: trip.startDate ? trip.startDate.split("T")[0] : "",
+      endDate: trip.endDate ? trip.endDate.split("T")[0] : "",
       countries: [...trip.countries],
     }
     isEditingTrip = true
   }
 
   async function saveTripEdit() {
+    addCountryToEdit()
+
     if (!editTripData.name.trim()) {
       toast.error("El nombre es requerido")
       return
@@ -629,14 +632,14 @@
                 class="photo-actions flex-wrap gap-2 text-center items-center justify-center"
               >
                 <button
-                  class="btn btn-sm text-white border flex flex-row flex-nowrap items-center justify-center gap-2 {selectedPhoto.showOnMap
+                  class="btn btn-sm text-white border {selectedPhoto.showOnMap
                     ? 'bg-blue-600 border-blue-600 hover:bg-blue-700'
                     : 'bg-slate-700 border-slate-600 hover:bg-slate-600'} transition-all duration-200"
                   on:click={() => toggleMapVisibility(selectedPhoto)}
                 >
                   {#if selectedPhoto.showOnMap}
                     <MapPin size={16} class="shrink-0" />
-                    <span class="whitespace-nowrap">Ocultar de Mapa</span>
+                    <span class="whitespace-nowrap">Ocultar del Mapa</span>
                   {:else}
                     <MapPinOff size={16} class="text-slate-400 shrink-0" />
                     <span class="whitespace-nowrap">Ver en Mapa</span>
@@ -653,7 +656,7 @@
                   {/if}
                   {#if selectedPhoto.metadata?.exif}
                     <button
-                      class="btn-text"
+                      class="btn btn-secondary"
                       on:click={() => showMetadata(selectedPhoto)}>Info</button
                     >
                   {/if}
@@ -763,6 +766,13 @@
             <input
               type="date"
               bind:value={editTripData.endDate}
+              on:focus={() => {
+                if (!editTripData.endDate) {
+                  editTripData.endDate =
+                    editTripData.startDate ||
+                    new Date().toISOString().split("T")[0]
+                }
+              }}
               class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
             />
           </div>
@@ -785,9 +795,13 @@
           >
           <div class="flex gap-2 mb-2">
             <CountryPicker id="edit-country" bind:value={countryInputValue} />
-            <button class="btn btn-sm" on:click={addCountryToEdit}
-              >+ Añadir</button
+            <button
+              class="btn btn-sm flex items-center justify-start gap-1"
+              on:click={addCountryToEdit}
             >
+              <Plus size={16} />
+              Añadir
+            </button>
           </div>
           <div class="flex flex-wrap gap-2">
             {#each editTripData.countries as country}
@@ -811,7 +825,7 @@
           class="btn btn-secondary"
           on:click={() => (isEditingTrip = false)}>Cancelar</button
         >
-        <button class="btn btn-primary" on:click={saveTripEdit}
+        <button class="btn btn-sm" on:click={saveTripEdit}
           >Guardar Cambios</button
         >
       </div>
@@ -898,7 +912,7 @@
                 </div>
                 {#if newMetadataLat && newMetadataLng}
                   <button
-                    class="btn btn-primary w-full py-2 flex justify-center items-center gap-2"
+                    class="btn btn-sm w-full py-2"
                     on:click={saveMetadataLocation}
                   >
                     <MapPin size={16} /> Guardar Ubicación
@@ -911,6 +925,15 @@
                 {#if newMetadataLat && newMetadataLng && !editingMetadataLocation}
                   <div class="text-xs text-green-400 mt-1">
                     Ubicación Actualizada en este dispositivo.
+                  </div>
+                {/if}
+                {#if !editingMetadataLocation}
+                  <div class="mt-3">
+                    <MiniStaticMap
+                      lat={selectedMetadataPhoto.metadata.exif.latitude}
+                      lng={selectedMetadataPhoto.metadata.exif.longitude}
+                      height="120px"
+                    />
                   </div>
                 {/if}
               {:else}
@@ -1091,18 +1114,32 @@
   }
 
   .btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
     text-decoration: none;
-    border: none;
-    display: inline-block;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid #475569;
+    background: #1e293b;
+    color: #cbd5e1;
+    font-size: 0.9rem;
   }
 
   .btn-secondary {
-    background: #334155;
-    color: white;
+    background: transparent;
+    color: #60a5fa;
+    border-color: #60a5fa;
+    border: 1px solid #60a5fa;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(96, 165, 250, 0.1);
+    color: #60a5fa;
   }
 
   .btn-danger {
@@ -1332,12 +1369,6 @@
     .actions {
       flex-direction: column;
       gap: 1rem;
-    }
-
-    .btn {
-      width: 100%;
-      text-align: center;
-      justify-content: center;
     }
 
     .photo-actions {
