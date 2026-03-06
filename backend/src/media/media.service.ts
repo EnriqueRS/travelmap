@@ -107,6 +107,35 @@ export class MediaService {
     return photo.$query().patchAndFetch(data);
   }
 
+  /**
+   * Actualiza propiedades (ej. ubicación GPS en metadatos) para múltiples fotos a la vez
+   */
+  async batchUpdatePhotos(userId: number, photoIds: string[], data: any): Promise<Photo[]> {
+    if (!photoIds || !photoIds.length) return [];
+    
+    const photos = await Photo.query().whereIn('id', photoIds).andWhere('userId', userId);
+    const updatedPhotos = [];
+    
+    for (const photo of photos) {
+      const patchData = { ...data };
+      // Si estamos actualizando metadata, unimos con la metadata existente
+      if (data.metadata) {
+        patchData.metadata = {
+          ...(photo.metadata || {}),
+          ...data.metadata,
+          exif: {
+            ...((photo.metadata || {}).exif || {}),
+            ...(data.metadata.exif || {})
+          }
+        };
+      }
+      const updated = await photo.$query().patchAndFetch(patchData);
+      updatedPhotos.push(updated);
+    }
+    
+    return updatedPhotos;
+  }
+
   async deletePhoto(id: string, userId: number): Promise<boolean> {
     const photo = await Photo.query().findOne({ id, userId });
     if (!photo) throw new NotFoundException('Foto no encontrada');

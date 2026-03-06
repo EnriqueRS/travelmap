@@ -4,7 +4,7 @@
  * - Max 1 request per second; use a descriptive User-Agent.
  */
 
-const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+const NOMINATIM_BASE_URL = "https://nominatim.openstreetmap.org";
 const USER_AGENT =
   "TravelMap/1.0 (https://github.com/travelmap; contact@example.com)";
 
@@ -23,7 +23,7 @@ export async function geocode(query: string): Promise<GeocodeResult | null> {
     limit: "1",
   });
 
-  const res = await fetch(`${NOMINATIM_URL}?${params}`, {
+  const res = await fetch(`${NOMINATIM_BASE_URL}/search?${params}`, {
     headers: {
       Accept: "application/json",
       "User-Agent": USER_AGENT,
@@ -56,7 +56,7 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
   });
 
   try {
-    const res = await fetch(`${NOMINATIM_URL}/reverse?${params}`, {
+    const res = await fetch(`${NOMINATIM_BASE_URL}/reverse?${params}`, {
       headers: {
         Accept: "application/json",
         "User-Agent": USER_AGENT,

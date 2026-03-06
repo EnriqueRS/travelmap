@@ -87,28 +87,41 @@
 
     // Add new markers
     locations.forEach((loc) => {
+      const locPhotoId =
+        loc.images && loc.images.length > 0 ? loc.images[0] : null
+      const locPhoto = locPhotoId
+        ? mapPhotos.find((p) => p.id === locPhotoId)
+        : null
+
+      let headerHtml = ""
+      if (locPhoto) {
+        const url =
+          locPhoto.provider === "local"
+            ? `${API_URL}${locPhoto.url}`
+            : `${API_URL}/media/photos/${locPhoto.id}/image`
+        headerHtml = `<img src="${url}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />`
+      } else {
+        headerHtml = `<div style="
+          height: 100px; 
+          background: linear-gradient(135deg, #3b82f6, #8b5cf6); 
+          border-radius: 8px; 
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 24px;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        ">
+          ${getCategoryEmoji(loc.category)}
+        </div>`
+      }
+
       const popupContent = `
         <div style="text-align: center; width: 160px;">
-          <div style="
-            height: 100px; 
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6); 
-            border-radius: 8px; 
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-          ">
-            ${getCategoryEmoji(loc.category)}
-          </div>
-          <h3 style="margin: 0; color: #1e293b; font-size: 16px; font-weight: 600;">${
-            loc.name
-          }</h3>
-          <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">${
-            loc.category
-          } • ⭐ ${loc.rating}</p>
+          ${headerHtml}
+          <h3 style="margin: 0; color: #1e293b; font-size: 16px; font-weight: 600;">${loc.name}</h3>
+          <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">${loc.category} • ⭐ ${loc.rating}</p>
         </div>
       `
 

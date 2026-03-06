@@ -211,10 +211,10 @@ export class Trip extends Model implements TripProperties {
           ST_SetSRID(ST_MakePoint(?, ?), 4326)
         ) as distance
       `, [
-        locations[i - 1].coordinates.coordinates[0],
-        locations[i - 1].coordinates.coordinates[1],
-        locations[i].coordinates.coordinates[0],
-        locations[i].coordinates.coordinates[1]
+        locations[i - 1].longitude,
+        locations[i - 1].latitude,
+        locations[i].longitude,
+        locations[i].latitude
       ]);
 
       totalDistance += parseFloat(result.rows[0].distance);

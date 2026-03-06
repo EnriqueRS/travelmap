@@ -1,49 +1,57 @@
 <script lang="ts">
-  export let text: string = "";
-  export let alt: string = "";
-  export let type: "trip" | "location" | "profile" = "location";
-  export let className: string = "";
+  export let text: string = ""
+  export let alt: string = ""
+  export let type: "trip" | "location" | "profile" = "location"
+  export let className: string = ""
 
-  // color generator based on the text for consistency
-  function stringToColor(str: string): string {
-    let hash = 0;
+  // Helper to generate consistent, premium dark gradients based on text
+  function getPremiumGradient(str: string): string {
+    let hash = 0
     for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      hash = str.charCodeAt(i) + ((hash << 5) - hash)
     }
 
-    const h = Math.abs(hash % 360);
-    return `hsl(${h}, 70%, 50%)`;
-  }
+    // Curated dark, deep colors for a premium feel
+    const palettes = [
+      ["#0f172a", "#1e1b4b", "#312e81"], // Deep slate to indigo
+      ["#052e16", "#064e3b", "#0f172a"], // Deep emerald to slate
+      ["#4c0519", "#881337", "#171717"], // Deep rose to neutral dark
+      ["#2e1065", "#4c1d95", "#0f172a"], // Deep purple to slate
+      ["#172554", "#1e3a8a", "#0f172a"], // Deep blue to slate
+    ]
 
-  // gradient generator based on the text for consistency
-  function getGradient(str: string): string {
-    const c1 = stringToColor(str);
-    const c2 = stringToColor(str.split("").reverse().join(""));
-    return `linear-gradient(135deg, ${c1}, ${c2})`;
+    const paletteIndex = Math.abs(hash) % palettes.length
+    const [c1, c2, c3] = palettes[paletteIndex]
+
+    return `radial-gradient(circle at top left, ${c1}, transparent 80%), radial-gradient(circle at bottom right, ${c2}, transparent 80%), radial-gradient(circle at center, ${c3}, transparent 100%)`
   }
 
   function getIcon(t: string): string {
     switch (t) {
       case "trip":
-        return "✈️";
+        return "✈️"
       case "location":
-        return "📍";
+        return "📍"
       case "profile":
-        return "👤";
+        return "👤"
       default:
-        return "📷";
+        return "📷"
     }
   }
 
-  $: background = getGradient(text || alt || "placeholder");
-  $: icon = getIcon(type);
+  $: background = getPremiumGradient(text || alt || "placeholder")
+  $: icon = getIcon(type)
 </script>
 
-<div class="image-placeholder {className}" style="background: {background}">
+<div
+  class="image-placeholder {className}"
+  style="background-image: {background}; background-color: #0f172a;"
+>
+  <div class="animated-mesh" />
   <div class="placeholder-content">
     <span class="icon">{icon}</span>
     {#if text}
-      <span class="text">{text}</span>
+      <span class="text" class:large={type === "trip"}>{text}</span>
     {/if}
   </div>
 </div>
@@ -57,19 +65,47 @@
     justify-content: center;
     color: white;
     font-weight: bold;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     position: relative;
     overflow: hidden;
+    /* Soft border inside */
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+
+  .animated-mesh {
+    position: absolute;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.03) 0%,
+      transparent 50%
+    );
+    animation: rotateMesh 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes rotateMesh {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   .image-placeholder::before {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.1);
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.1),
+      rgba(0, 0, 0, 0.5)
+    );
+    z-index: 0;
   }
 
   .placeholder-content {
@@ -80,19 +116,27 @@
     align-items: center;
     gap: 0.5rem;
     text-align: center;
-    padding: 1rem;
+    padding: 1.5rem;
   }
 
   .icon {
-    font-size: 2rem;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    font-size: 2.5rem;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+    margin-bottom: 0.5rem;
   }
 
   .text {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+  }
+
+  .text.large {
+    font-size: 1.5rem;
+    font-weight: 700;
   }
 </style>

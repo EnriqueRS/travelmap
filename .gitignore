@@ -43,3 +43,36 @@ coverage/
 
 # Docker
 docker-compose.override.yml
+.devtool/features/mejorar-cabeceras-2026-02-27.md
+.devtool/features/mejorar-completadoplanificado-2026-02-27.md
+.devtool/features/picker-map-2026-03-06.md
+.devtool/features/progreso-paises-2026-02-27.md
+.devtool/features/progreso-por-continentes-2026-02-27.md
+.devtool/features/quitar-pais-2026-03-06.md
+.devtool/features/revisar-estadisticas-2026-02-27.md
+.devtool/features/revisar-import-unused-2026-02-27.md
+.devtool/features/revisar-readme-2026-02-27.md
+.devtool/features/unificar-css-2026-02-27.md
+.devtool/features/done/aadir-ubicacin-2026-02-27.md
+.devtool/features/done/array-paises-2026-02-27.md
+.devtool/features/done/fecha-fin-seteada-como-fecha-inicio-2026-02-27.md
+.devtool/features/done/guardar-cambios-botn-2026-02-27.md
+.devtool/features/done/icono-aadir-en-edit-trip-2026-02-27.md
+.devtool/features/done/improve-image-card-2026-02-27.md
+.devtool/features/done/mini-mapa-en-info-imagen-2026-02-27.md
+.devtool/features/done/minimizar-lateral-2026-02-27.md
+.devtool/features/done/no-deseleccionar-imagen-2026-02-27.md
+.gitignore
+.agents/rules/comments.md
+.agents/rules/logs.md
+.agents/rules/mobilefirst.md
+.agents/rules/updatereadme.md
+.devtool/features/aadir-buscador-cuando-se-vincula-un-lbum-2026-03-06.md
+.devtool/features/aadir-ubicacin-por-lotes-2026-03-06.md
+.devtool/features/evitar-emojis-2026-03-06.md
+.devtool/features/provincias-espaa-2026-03-06.md
+.devtool/features/warning-no-ubicacin-2026-03-06.md
+.devtool/features/done/mejorar-cabeceras-2026-02-27.md
+.devtool/features/done/picker-map-2026-03-06.md
+.devtool/features/done/progreso-paises-2026-02-27.md
+.devtool/features/done/quitar-pais-2026-03-06.md

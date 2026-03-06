@@ -1,34 +1,41 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher } from "svelte"
 
-  export let albums: any[] = [];
-  export let isLinkingInfo = false;
+  export let albums: any[] = []
+  export let isLinkingInfo = false
 
-  export let title = "Vincular Álbum de Immich";
+  export let title = "Vincular Álbum de Immich"
   export let description =
-    "Selecciona un álbum de tu cuenta de Immich para importar sus fotos a este viaje. Solo se enlazarán las imágenes y se extraerán sus metadatos (ubicación y fecha).";
-  export let actionText = "Vincular Álbum";
-  export let loadingText = "Vinculando...";
-  export let actionClass = "btn-primary";
+    "Selecciona un álbum de tu cuenta de Immich para importar sus fotos a este viaje. Solo se enlazarán las imágenes y se extraerán sus metadatos (ubicación y fecha)."
+  export let actionText = "Vincular Álbum"
+  export let loadingText = "Vinculando..."
+  export let actionClass = "btn-primary"
 
-  const dispatch = createEventDispatcher();
-  let selectedAlbumId = "";
+  const dispatch = createEventDispatcher()
+  let selectedAlbumId = ""
+  let searchQuery = ""
+
+  $: filteredAlbums = albums
+    ? albums.filter((a) =>
+        a.albumName.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
+    : []
 
   // Auto-select the first linked album if none is selected
   $: if (albums && albums.length > 0 && !selectedAlbumId) {
-    const firstLinked = albums.find((a) => a.isLinked);
+    const firstLinked = albums.find((a) => a.isLinked)
     if (firstLinked) {
-      selectedAlbumId = firstLinked.id;
+      selectedAlbumId = firstLinked.id
     }
   }
 
   function close() {
-    dispatch("close");
+    dispatch("close")
   }
 
   function link() {
     if (selectedAlbumId) {
-      dispatch("link", { albumId: selectedAlbumId });
+      dispatch("link", { albumId: selectedAlbumId })
     }
   }
 </script>
@@ -45,13 +52,27 @@
         {description}
       </p>
 
-      {#if albums.length === 0}
+      <div class="search-container" style="margin-bottom: 1rem;">
+        <input
+          type="text"
+          bind:value={searchQuery}
+          placeholder="Filtrar álbumes..."
+          class="search-input"
+          style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; outline: none;"
+        />
+      </div>
+
+      {#if filteredAlbums.length === 0}
         <div class="loading-state">
-          <p>Cargando álbumes o no hay ninguno disponible...</p>
+          <p>
+            {albums.length === 0
+              ? "Cargando álbumes o no hay ninguno disponible..."
+              : "Ningún álbum coincide con la búsqueda"}
+          </p>
         </div>
       {:else}
         <div class="albums-list">
-          {#each albums as alb}
+          {#each filteredAlbums as alb}
             <label
               class="album-item"
               class:selected={selectedAlbumId === alb.id}

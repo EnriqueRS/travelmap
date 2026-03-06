@@ -1,10 +1,12 @@
 <script lang="ts">
   import { page } from "$app/stores"
+  import { Compass, Map, Calendar, CheckCircle2, Circle } from "lucide-svelte"
   import {
     trips,
     locations,
     getCategoryEmoji,
     getStatusColor,
+    type Location,
   } from "$lib/stores/data"
   import { goto } from "$app/navigation"
   import { formatDate } from "$lib/utils/formatters"
@@ -14,7 +16,21 @@
   import CountryPicker from "$lib/components/ui/CountryPicker.svelte"
   import LocationPicker from "$lib/components/map/LocationPicker.svelte"
   import MiniStaticMap from "$lib/components/map/MiniStaticMap.svelte"
-  import { MapPin, MapPinOff, Plus } from "lucide-svelte"
+  import {
+    MapPin,
+    MapPinOff,
+    Plus,
+    Eye,
+    EyeOff,
+    Upload,
+    Link as LinkIcon,
+    RefreshCcw,
+    CheckSquare,
+    Trash2,
+    Info,
+    AlertTriangle,
+    Star,
+  } from "lucide-svelte"
   import { onMount, tick } from "svelte"
   import { mediaService, type AppPhoto } from "$lib/services/media"
   import { integrationsService } from "$lib/services/integrations"
@@ -23,6 +39,7 @@
   import { reverseGeocode } from "$lib/utils/geocode"
 
   import { tripsService } from "$lib/services/trips"
+  import { locationsService } from "$lib/services/locations"
 
   $: tripId = $page.params.id
   $: trip = $trips.find((t) => t.id === tripId)
@@ -30,70 +47,302 @@
     (l) => trip?.locations.includes(l.id) || l.tripId === tripId,
   )
 
-  let showAddLocationModal = false
-  let newLocationLat = 0
-  let newLocationLng = 0
-  let newLocationName = ""
-  let newLocationCountry = ""
-  let newLocationCategory = "Naturaleza"
+  let showLocationModal = false
+  let editingLocation: any = null
+  let modalLocationName = ""
+  let modalLocationCountry = ""
+  let modalLocationCategory = "Naturaleza"
+  let modalLocationLat = 0
+  let modalLocationLng = 0
+  let modalLocationDescription = ""
+  let modalLocationRating = 5
+  let selectedPhotoForLocation: AppPhoto | null = null
+
+  function openAddLocation() {
+    editingLocation = null
+    modalLocationName = ""
+    modalLocationCountry = ""
+    modalLocationCategory = "Naturaleza"
+    modalLocationLat = 0
+    modalLocationLng = 0
+    modalLocationDescription = ""
+    modalLocationRating = 5
+    selectedPhotoForLocation = null
+    showLocationModal = true
+  }
+
+  function openEditLocation(loc: any) {
+    editingLocation = loc
+    modalLocationName = loc.name
+    modalLocationCountry = loc.country || ""
+    modalLocationCategory = loc.category
+    modalLocationLat = loc.coordinates?.[0] || 0
+    modalLocationLng = loc.coordinates?.[1] || 0
+    modalLocationRating = loc.rating || 5
+    modalLocationDescription = loc.description || ""
+    selectedPhotoForLocation = null // If they want to link a new photo, they can
+    showLocationModal = true
+  }
 
   async function handleLocationModalSelect(
     e: CustomEvent<{ lat: number; lng: number }>,
   ) {
-    newLocationLat = e.detail.lat
-    newLocationLng = e.detail.lng
+    modalLocationLat = e.detail.lat
+    modalLocationLng = e.detail.lng
     const country = await reverseGeocode(e.detail.lat, e.detail.lng)
     if (country) {
-      newLocationCountry = country
+      modalLocationCountry = country
+    }
+    selectedPhotoForLocation = null // Clear selection if user manually clicks map
+  }
+
+  async function handleLinkPhotoToLocation(photo: AppPhoto) {
+    selectedPhotoForLocation = photo
+
+    if (photo.metadata?.exif?.latitude && photo.metadata?.exif?.longitude) {
+      const lat = photo.metadata.exif.latitude
+      const lng = photo.metadata.exif.longitude
+      modalLocationLat = lat
+      modalLocationLng = lng
+      const country = await reverseGeocode(lat, lng)
+      if (country) {
+        modalLocationCountry = country
+      }
+      toast.success("Foto vinculada y coordenadas extraídas del GPS")
+    } else {
+      toast.success("Foto vinculada al lugar (sin ubicación GPS)")
     }
   }
 
-  function saveNewLocation() {
-    if (!newLocationName || !newLocationCountry) {
+  async function saveLocation() {
+    if (!modalLocationName || !modalLocationCountry) {
       toast.error("Nombre y País son obligatorios")
       return
     }
 
-    const newLocId = crypto.randomUUID()
-    const newLoc: any = {
-      id: newLocId,
-      name: newLocationName,
-      description: "",
-      country: newLocationCountry,
-      category: newLocationCategory,
-      coordinates: [newLocationLat, newLocationLng],
-      rating: 5,
-      visitedDate: new Date().toISOString().split("T")[0],
-      images: [],
-      tripId: tripId,
+    if (editingLocation) {
+      // --- EDIT MODE ---
+      const updated = {
+        name: modalLocationName,
+        category: modalLocationCategory as Location["category"],
+        coordinates: [modalLocationLat, modalLocationLng] as [number, number],
+        rating: modalLocationRating,
+        description: modalLocationDescription,
+        country: modalLocationCountry, // Frontend field
+      }
+
+      // Update local store
+      locations.update((locs) =>
+        locs.map((l) => {
+          if (l.id === editingLocation.id) {
+            return { ...l, ...updated }
+          }
+          return l
+        }),
+      )
+
+      // Persist to backend
+      try {
+        await locationsService.updateLocation(editingLocation.id, {
+          ...updated,
+          visitDate: editingLocation.visitedDate,
+          images: selectedPhotoForLocation
+            ? [selectedPhotoForLocation.id]
+            : undefined,
+        })
+        console.log("[saveLocation] Location updated:", editingLocation.id)
+      } catch (err) {
+        console.error("[saveLocation] Failed to persist update:", err)
+      }
+
+      toast.success("Lugar actualizado correctamente")
+    } else {
+      // --- ADD MODE ---
+      const newLocId = crypto.randomUUID()
+      const newLoc: any = {
+        id: newLocId,
+        name: modalLocationName,
+        description: modalLocationDescription,
+        country: modalLocationCountry,
+        category: modalLocationCategory,
+        coordinates: [modalLocationLat, modalLocationLng],
+        rating: modalLocationRating,
+        visitedDate: new Date().toISOString().split("T")[0],
+        images: selectedPhotoForLocation ? [selectedPhotoForLocation.id] : [],
+        tripId: tripId,
+      }
+
+      // Persist to backend database
+      try {
+        await locationsService.createLocation(newLoc)
+        console.log("[saveLocation] Location persisted to database:", newLocId)
+      } catch (err) {
+        console.error(
+          "[saveLocation] Failed to persist location to database:",
+          err,
+        )
+      }
+
+      locations.update((locs) => [...locs, newLoc])
+
+      trips.update((allTrips) =>
+        allTrips.map((t) => {
+          if (t.id === tripId) {
+            const updatedCountries = new Set(t.countries || [])
+            if (modalLocationCountry) {
+              updatedCountries.add(modalLocationCountry)
+            }
+            return {
+              ...t,
+              locations: [...(t.locations || []), newLocId],
+              countries: Array.from(updatedCountries),
+            }
+          }
+          return t
+        }),
+      )
+
+      // Also update the trip countries on the backend
+      try {
+        const currentTrip = $trips.find((t) => t.id === tripId)
+        if (currentTrip) {
+          const updatedCountries = new Set(currentTrip.countries || [])
+          if (modalLocationCountry) updatedCountries.add(modalLocationCountry)
+          await tripsService.updateTrip(tripId, {
+            countries: Array.from(updatedCountries),
+          })
+        }
+      } catch (err) {
+        console.error("[saveLocation] Failed to update trip countries:", err)
+      }
+
+      toast.success("Lugar añadido correctamente")
     }
 
-    locations.update((locs) => [...locs, newLoc])
+    showLocationModal = false
+    editingLocation = null
+  }
 
-    trips.update((allTrips) =>
-      allTrips.map((t) => {
-        if (t.id === tripId) {
-          const updatedCountries = new Set(t.countries || [])
-          if (newLocationCountry) {
-            updatedCountries.add(newLocationCountry)
+  let showDeleteConfirm = false
+
+  function requestDeleteLocation() {
+    showDeleteConfirm = true
+  }
+
+  async function confirmDeleteLocation() {
+    if (!editingLocation) return
+    showDeleteConfirm = false
+
+    try {
+      await locationsService.deleteLocation(editingLocation.id)
+
+      // Remove local
+      locations.update((locs) =>
+        locs.filter((l) => l.id !== editingLocation.id),
+      )
+      trips.update((allTrips) =>
+        allTrips.map((t) => {
+          if (t.id === tripId) {
+            return {
+              ...t,
+              locations:
+                t.locations?.filter((locId) => locId !== editingLocation.id) ||
+                [],
+            }
           }
+          return t
+        }),
+      )
+
+      toast.success("Lugar eliminado correctamente")
+      showLocationModal = false
+      editingLocation = null
+    } catch (err) {
+      console.error("[deleteLocation] Failed to delete location:", err)
+      toast.error("Error al eliminar el lugar")
+    }
+  }
+
+  // --- BATCH GPS UPDATE ---
+  let isSelectionMode = false
+  let selectedPhotosIds: string[] = []
+  let showBatchLocationModal = false
+
+  function toggleSelectionMode() {
+    isSelectionMode = !isSelectionMode
+    selectedPhotosIds = []
+  }
+
+  function togglePhotoSelection(id: string) {
+    if (selectedPhotosIds.includes(id)) {
+      selectedPhotosIds = selectedPhotosIds.filter((pid) => pid !== id)
+    } else {
+      selectedPhotosIds = [...selectedPhotosIds, id]
+    }
+  }
+
+  let batchSelectedCoords: { lat: number; lng: number } | null = null
+
+  function openBatchLocationPicker() {
+    showBatchLocationModal = true
+    batchSelectedCoords = null
+  }
+
+  function handleBatchLocationSelect(
+    e: CustomEvent<{ lat: number; lng: number }>,
+  ) {
+    batchSelectedCoords = e.detail
+  }
+
+  async function saveBatchLocation() {
+    if (!batchSelectedCoords) {
+      toast.error("Por favor, selecciona una ubicación en el mapa primero.")
+      return
+    }
+
+    const lat = batchSelectedCoords.lat
+    const lng = batchSelectedCoords.lng
+
+    const updatedData = {
+      showOnMap: true,
+      metadata: {
+        exif: {
+          latitude: lat,
+          longitude: lng,
+        },
+      },
+    }
+
+    try {
+      await mediaService.batchUpdatePhotos(selectedPhotosIds, updatedData)
+      toast.success(`Ubicación añadida a ${selectedPhotosIds.length} fotos`)
+
+      photos = photos.map((p) => {
+        if (selectedPhotosIds.includes(p.id)) {
           return {
-            ...t,
-            locations: [...(t.locations || []), newLocId],
-            countries: Array.from(updatedCountries),
+            ...p,
+            showOnMap: true,
+            metadata: {
+              ...p.metadata,
+              exif: {
+                ...(p.metadata?.exif || {}),
+                latitude: lat,
+                longitude: lng,
+              },
+            },
           }
         }
-        return t
-      }),
-    )
+        return p
+      })
 
-    showAddLocationModal = false
-    newLocationName = ""
-    newLocationCountry = ""
-    newLocationLat = 0
-    newLocationLng = 0
-    newLocationCategory = "Naturaleza"
-    toast.success("Lugar añadido correctamente")
+      showBatchLocationModal = false
+      isSelectionMode = false
+      selectedPhotosIds = []
+      batchSelectedCoords = null
+    } catch (err) {
+      console.error("[saveBatchLocation] Error:", err)
+      toast.error("Error al actualizar la ubicación en lote")
+    }
   }
 
   let isEditingTrip = false
@@ -225,14 +474,19 @@
   import { Carousel, Thumbnails } from "flowbite-svelte"
 
   onMount(async () => {
+    await refreshPhotos()
+  })
+
+  async function refreshPhotos() {
     if (tripId) {
       try {
         photos = await mediaService.getTripPhotos(tripId)
       } catch (e) {
         console.error("Error cargando fotos", e)
+        toast.error("Error al actualizar galería")
       }
     }
-  })
+  }
 
   async function handleFileUpload(e: Event) {
     const input = e.target as HTMLInputElement
@@ -255,6 +509,17 @@
 
   async function toggleMapVisibility(photo: AppPhoto | null) {
     if (!photo) return
+
+    // Auto-prompt GPS if missing
+    if (!photo.showOnMap && !photo.metadata?.exif?.latitude) {
+      toast.error("Por favor, añade una ubicación GPS a esta foto primero")
+      selectedPhotosIds = [photo.id]
+      isSelectionMode = true
+      showBatchLocationModal = true
+      batchSelectedCoords = null
+      return
+    }
+
     try {
       const photoId = photo.id
       const updated = await mediaService.updatePhoto(photoId, {
@@ -404,9 +669,7 @@
         allAlbums.forEach((a: any) => (a.isLinked = false))
       }
 
-      immichAlbums = allAlbums.sort(
-        (a: any, b: any) => (b.isLinked ? 1 : 0) - (a.isLinked ? 1 : 0),
-      )
+      immichAlbums = allAlbums.filter((a: any) => a.isLinked)
       showUnlinkModal = true
     } catch (e) {
       toast.error("Error cargando álbumes de Immich.")
@@ -561,27 +824,59 @@
     <section class="locations-section">
       <div class="section-header">
         <h2>Lugares Visitados</h2>
-        <button
-          on:click={() => (showAddLocationModal = true)}
-          class="btn btn-sm">Añadir Lugar</button
+        <button on:click={openAddLocation} class="btn btn-sm"
+          >Añadir Lugar</button
         >
       </div>
 
       {#if tripLocations.length > 0}
         <div class="locations-grid">
           {#each tripLocations as location}
-            <div class="location-card">
+            {@const locPhoto = (function (loc, pts) {
+              const id =
+                loc.images && loc.images.length > 0 ? loc.images[0] : null
+              return id ? pts.find((p) => p.id === id) : null
+            })(location, photos)}
+            <button
+              class="location-card"
+              on:click={() => openEditLocation(location)}
+            >
               <div class="location-image">
-                <ImagePlaceholder text={location.name} type="location" />
+                {#if locPhoto}
+                  <img
+                    src={getImageUrl(locPhoto)}
+                    alt={location.name}
+                    class="w-full h-full object-cover"
+                  />
+                {:else}
+                  <ImagePlaceholder text={location.name} type="location" />
+                {/if}
+                <div class="edit-overlay">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    ><path
+                      d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"
+                    /></svg
+                  >
+                </div>
               </div>
               <div class="location-info">
                 <h3>{getCategoryEmoji(location.category)} {location.name}</h3>
-                <p class="location-country">{location.country}</p>
-                <div class="rating">
-                  {"⭐".repeat(location.rating)}
-                </div>
+                <p class="location-country">
+                  {#if location.country}
+                    {getCountryFlag(location.country)} {location.country}
+                  {/if}
+                </p>
               </div>
-            </div>
+            </button>
           {/each}
         </div>
       {:else}
@@ -591,16 +886,36 @@
       {/if}
     </section>
 
-    <section class="gallery-section">
-      <div class="section-header">
-        <h2>📷 Galería Fotográfica</h2>
-        <div
-          class="actions-group flex flex-col sm:flex-row gap-2 items-start sm:items-center mt-4 sm:mt-0"
+    <section
+      class="gallery-section mt-12 bg-slate-900/40 rounded-2xl p-6 border border-slate-800/60 shadow-lg"
+    >
+      <div
+        class="section-header flex flex-col items-start border-b border-slate-700/50 pb-5 mb-6"
+      >
+        <h2
+          class="flex items-center text-2xl font-bold text-white mb-3 gap-3 w-full"
         >
-          <label class="toggle-hidden-container">
-            <input type="checkbox" bind:checked={showHiddenPhotos} />
-            <span class="toggle-label">Ocultas</span>
-          </label>
+          <div class="bg-blue-500/20 p-2 rounded-full">
+            <Eye class="text-blue-400" size={24} />
+          </div>
+          Galería Fotográfica
+        </h2>
+
+        <div class="actions-group flex flex-wrap gap-3 items-center w-full">
+          <button
+            class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors border {showHiddenPhotos
+              ? 'bg-slate-700/50 border-slate-600 text-slate-200 hover:bg-slate-700'
+              : 'bg-transparent border-slate-700/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}"
+            on:click={() => (showHiddenPhotos = !showHiddenPhotos)}
+          >
+            {#if showHiddenPhotos}
+              <Eye size={16} /> Mostrar Ocultas
+            {:else}
+              <EyeOff size={16} /> Ocultar de Galería
+            {/if}
+          </button>
+
+          <div class="h-6 w-px bg-slate-700/50 mx-1 hidden sm:block" />
 
           <input
             type="file"
@@ -610,29 +925,63 @@
             style="display:none;"
           />
 
-          <div class="flex flex-wrap gap-2">
-            <button class="btn btn-sm" on:click={() => fileInput.click()}>
-              Subir Foto
-            </button>
+          <button
+            class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors shadow-sm shadow-blue-500/20"
+            on:click={() => fileInput.click()}
+          >
+            <Upload size={16} /> Subir Foto
+          </button>
+
+          <div
+            class="flex items-center border border-slate-700/50 rounded-lg overflow-hidden bg-transparent"
+          >
             <button
-              class="btn btn-sm btn-secondary"
+              class="flex items-center justify-center p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-colors"
               on:click={openImmichModal}
               disabled={isLinkingInfo || isUnlinkingAlbum}
+              title="Vincular Álbum"
             >
-              {isLinkingInfo ? "Vinculando..." : "Vincular Álbum"}
+              <LinkIcon size={16} />
             </button>
-
-            {#if hasImmichPhotos}
-              <button
-                class="btn btn-sm"
-                style="background-color: #ef4444; border-color: #ef4444; color: white;"
-                on:click={handleUnlinkAlbum}
-                disabled={isLinkingInfo || isUnlinkingAlbum}
-              >
-                {isUnlinkingAlbum ? "Desvinculando..." : "Desvincular Álbum"}
-              </button>
-            {/if}
+            <div class="w-px h-full bg-slate-700/50" />
+            <button
+              class="flex items-center justify-center p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-colors"
+              on:click={refreshPhotos}
+              title="Refrescar"
+            >
+              <RefreshCcw size={16} />
+            </button>
           </div>
+
+          <button
+            class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-slate-700/50 bg-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-colors {isSelectionMode
+              ? 'bg-slate-800 text-white border-slate-600'
+              : ''}"
+            on:click={toggleSelectionMode}
+          >
+            <CheckSquare size={16} />
+            {isSelectionMode ? "Cancelar Selección" : "Seleccionar"}
+          </button>
+
+          {#if isSelectionMode && selectedPhotosIds.length > 0}
+            <button
+              class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-green-600/20 text-green-400 border border-green-600/30 hover:bg-green-600/30 transition-colors ml-auto"
+              on:click={openBatchLocationPicker}
+            >
+              <MapPin size={16} /> Añadir GPS ({selectedPhotosIds.length})
+            </button>
+          {/if}
+
+          {#if hasImmichPhotos}
+            <button
+              class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-colors ml-auto"
+              on:click={handleUnlinkAlbum}
+              disabled={isLinkingInfo || isUnlinkingAlbum}
+            >
+              <Trash2 size={16} />
+              {isUnlinkingAlbum ? "Desvinculando..." : "Desvincular Álbum"}
+            </button>
+          {/if}
         </div>
       </div>
 
@@ -645,20 +994,24 @@
               class:is-hidden={selectedPhoto.isHidden}
             >
               <div class="main-img-wrapper">
-                <Carousel
-                  images={carouselImages}
-                  bind:index={activeIndex}
-                  slideDuration={0}
-                  let:Controls
-                  let:Indicators
-                  class="h-full w-full"
-                  imgClass="object-contain h-full w-full"
-                >
-                  <Controls />
-                  {#if carouselImages.length <= 8}
-                    <Indicators />
-                  {/if}
-                </Carousel>
+                {#key activeIndex}
+                  <div class="gallery-fade">
+                    <Carousel
+                      images={carouselImages}
+                      bind:index={activeIndex}
+                      slideDuration={0}
+                      let:Controls
+                      let:Indicators
+                      class="h-full w-full"
+                      imgClass="object-contain h-full w-full"
+                    >
+                      <Controls />
+                      {#if carouselImages.length <= 8}
+                        <Indicators />
+                      {/if}
+                    </Carousel>
+                  </div>
+                {/key}
                 {#if selectedPhoto.isCover}
                   <span class="cover-badge">PORTADA</span>
                 {/if}
@@ -667,42 +1020,66 @@
                 {/if}
               </div>
 
-              <div
-                class="thumbnails-wrapper bg-slate-900 p-2 border-b border-slate-700"
-              >
-                <!-- Custom Thumbnails with map indicators -->
+              <div class="thumbnails-wrapper bg-slate-900 pb-6 pt-4 px-2">
                 <div
-                  class="flex flex-nowrap justify-start overflow-x-auto gap-2 p-1 snap-x scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent"
+                  class="flex flex-nowrap justify-start overflow-x-auto gap-3 p-1 snap-x gallery-thumbs-scroll"
                 >
                   {#each carouselImages as img, i}
                     <button
-                      class="relative h-16 w-16 min-w-[64px] snap-center cursor-pointer transition-opacity"
-                      class:opacity-100={activeIndex === i}
-                      class:opacity-60={activeIndex !== i}
-                      class:hover:opacity-100={activeIndex !== i}
-                      on:click={() => (activeIndex = i)}
+                      class="relative h-20 w-24 min-w-[96px] snap-center cursor-pointer transition-all rounded-xl overflow-hidden {activeIndex ===
+                      i
+                        ? 'ring-2 ring-blue-500 shadow-lg scale-105'
+                        : 'opacity-70 hover:opacity-100 hover:scale-100'}"
+                      on:click={(e) => {
+                        if (isSelectionMode) {
+                          e.preventDefault()
+                          togglePhotoSelection(displayedPhotos[i].id)
+                        } else {
+                          activeIndex = i
+                        }
+                      }}
                     >
                       <img
                         src={img.src}
                         alt={img.alt}
-                        class="h-full w-full object-cover rounded-md"
+                        class="h-full w-full object-cover"
                       />
-                      {#if displayedPhotos[i].showOnMap}
+
+                      <!-- Overlay gradient for better icon visibility -->
+                      <div
+                        class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"
+                      />
+
+                      {#if isSelectionMode}
                         <div
-                          class="absolute bottom-1 right-1 bg-blue-500 rounded-full p-0.5 shadow-md flex items-center justify-center"
+                          class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-3 w-3 text-white"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fill-rule="evenodd"
-                              d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                              clip-rule="evenodd"
+                          {#if selectedPhotosIds.includes(displayedPhotos[i].id)}
+                            <CheckCircle2
+                              size={32}
+                              class="text-blue-500 fill-white drop-shadow-md"
                             />
-                          </svg>
+                          {:else}
+                            <Circle
+                              size={32}
+                              class="text-white drop-shadow-md opacity-70"
+                            />
+                          {/if}
+                        </div>
+                      {/if}
+                      {#if !displayedPhotos[i].metadata?.exif?.latitude}
+                        <div
+                          class="absolute top-1.5 right-1.5 bg-yellow-500/90 rounded-full p-1 shadow flex items-center justify-center"
+                          title="Sin ubicación GPS"
+                        >
+                          <AlertTriangle size={12} class="text-slate-900" />
+                        </div>
+                      {/if}
+                      {#if displayedPhotos[i].showOnMap && displayedPhotos[i].metadata?.exif?.latitude}
+                        <div
+                          class="absolute bottom-1.5 right-1.5 bg-blue-500/90 rounded-full p-1 shadow flex items-center justify-center"
+                        >
+                          <MapPin size={12} class="text-white" />
                         </div>
                       {/if}
                     </button>
@@ -710,43 +1087,49 @@
                 </div>
               </div>
 
+              <!-- Footer Toolbar -->
               <div
-                class="photo-actions flex-wrap gap-2 text-center items-center justify-center"
+                class="flex justify-between items-center w-full mt-2 p-4 bg-slate-900 rounded-b-2xl border-t border-slate-800"
               >
                 <button
-                  class="btn btn-sm text-white border {selectedPhoto.showOnMap
-                    ? 'bg-blue-600 border-blue-600 hover:bg-blue-700'
-                    : 'bg-slate-700 border-slate-600 hover:bg-slate-600'} transition-all duration-200"
+                  class="flex items-center gap-2 px-4 py-2 font-medium text-sm rounded-lg transition-colors border {selectedPhoto.showOnMap
+                    ? 'bg-blue-600/10 text-blue-400 border-blue-500/30 hover:bg-blue-600/20'
+                    : 'bg-transparent text-slate-400 border-slate-700/50 hover:bg-slate-800/50 hover:text-slate-200'}"
                   on:click={() => toggleMapVisibility(selectedPhoto)}
                 >
                   {#if selectedPhoto.showOnMap}
-                    <MapPin size={16} class="shrink-0" />
-                    <span class="whitespace-nowrap">Ocultar del Mapa</span>
+                    <MapPin size={16} /> Ocultar del Mapa
                   {:else}
-                    <MapPinOff size={16} class="text-slate-400 shrink-0" />
-                    <span class="whitespace-nowrap">Ver en Mapa</span>
+                    <MapPinOff size={16} /> Mostrar en Mapa
                   {/if}
                 </button>
 
-                <div class="photo-buttons">
+                <div class="flex items-center gap-2">
                   {#if !selectedPhoto.isCover}
                     <button
-                      class="btn btn-sm btn-secondary"
+                      class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-amber-400 border border-amber-500/40 hover:bg-amber-500/10 transition-colors"
                       on:click={() => setCover(selectedPhoto)}
-                      >Hacer Portada</button
                     >
+                      <Star size={16} /> Hacer Portada
+                    </button>
                   {/if}
+
                   {#if selectedPhoto.metadata?.exif}
                     <button
-                      class="btn btn-secondary"
-                      on:click={() => showMetadata(selectedPhoto)}>Info</button
+                      class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-transparent text-slate-300 border border-slate-700/50 hover:bg-slate-800/50 transition-colors"
+                      on:click={() => showMetadata(selectedPhoto)}
                     >
+                      <Info size={16} /> Info
+                    </button>
                   {/if}
+
+                  <div class="w-px h-6 bg-slate-800 mx-2" />
+
                   <button
-                    class="btn-text"
-                    style="color:#ef4444;"
+                    class="flex items-center gap-2 px-4 py-2 font-medium text-sm rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
                     on:click={() => toggleHiddenVisibility(selectedPhoto)}
                   >
+                    <Trash2 size={16} />
                     {selectedPhoto.isHidden
                       ? "Mostrar en Galería"
                       : "Ocultar de Galería"}
@@ -915,7 +1298,7 @@
   </div>
 {/if}
 
-{#if showAddLocationModal}
+{#if showLocationModal}
   <div
     class="modal-backdrop pointer-events-auto flex items-center justify-center p-4"
   >
@@ -923,10 +1306,12 @@
       class="modal card meta-modal w-full max-w-lg bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl overflow-y-auto max-h-[90vh] text-left"
     >
       <header class="modal-header flex justify-between items-center mb-6">
-        <h3 class="text-xl font-bold text-white m-0">Añadir Lugar</h3>
+        <h3 class="text-xl font-bold text-white m-0">
+          {editingLocation ? "Editar Lugar" : "Añadir Lugar"}
+        </h3>
         <button
           class="text-slate-400 hover:text-white"
-          on:click={() => (showAddLocationModal = false)}>&times;</button
+          on:click={() => (showLocationModal = false)}>&times;</button
         >
       </header>
 
@@ -937,17 +1322,34 @@
           >
           <input
             type="text"
-            bind:value={newLocationName}
+            bind:value={modalLocationName}
             placeholder="Ej: Torre Eiffel"
-            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
+            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white placeholder-slate-500"
           />
         </div>
 
         <div>
           <label class="block text-sm font-medium text-slate-300 mb-1"
-            >País</label
+            >Descripción</label
           >
-          <CountryPicker id="new-loc-country" bind:value={newLocationCountry} />
+          <textarea
+            bind:value={modalLocationDescription}
+            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white placeholder-slate-500"
+            rows="2"
+            placeholder="Descripción opcional"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1"
+            >{editingLocation ? "País" : "País detectado"}</label
+          >
+          <div
+            class="w-full bg-slate-900/50 border border-slate-700 rounded-md p-2 text-slate-400 min-h-[42px] content-center"
+          >
+            {modalLocationCountry ||
+              "Selecciona un punto en el mapa para detectar"}
+          </div>
         </div>
 
         <div>
@@ -955,7 +1357,7 @@
             >Categoría</label
           >
           <select
-            bind:value={newLocationCategory}
+            bind:value={modalLocationCategory}
             class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
           >
             <option value="Monumento">Monumento</option>
@@ -970,14 +1372,54 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-1"
-            >Ubicación</label
+          <label class="block text-sm font-medium text-slate-300 mb-2"
+            >Vincular con Foto (Opcional)</label
           >
+          {#if displayedPhotos.length > 0}
+            <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+              {#each displayedPhotos as photo}
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <div
+                  class="flex-shrink-0 relative rounded-md overflow-hidden border-2 cursor-pointer transition-all hover:scale-105 {selectedPhotoForLocation?.id ===
+                  photo.id
+                    ? 'border-blue-500 opacity-100'
+                    : 'border-transparent opacity-60 hover:opacity-100'}"
+                  style="width: 60px; height: 60px;"
+                  on:click={() => handleLinkPhotoToLocation(photo)}
+                >
+                  <img
+                    src={getImageUrl(photo)}
+                    alt="Miniatura"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+              {/each}
+            </div>
+          {:else}
+            <p class="text-xs text-slate-400">
+              No hay fotos en este viaje aún.
+            </p>
+          {/if}
+        </div>
+
+        <div>
+          <label
+            class="flex justify-between items-center text-sm font-medium text-slate-300 mb-1"
+          >
+            <span>Ubicación</span>
+            {#if modalLocationLat && modalLocationLng}
+              <span
+                class="text-xs font-normal text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700"
+              >
+                {modalLocationLat.toFixed(5)}, {modalLocationLng.toFixed(5)}
+              </span>
+            {/if}
+          </label>
           <div class="mt-1 border border-slate-700 rounded-md overflow-hidden">
             <LocationPicker
               height="200px"
-              initialLocation={newLocationLat !== 0
-                ? { lat: newLocationLat, lng: newLocationLng }
+              initialLocation={modalLocationLat !== 0
+                ? { lat: modalLocationLat, lng: modalLocationLng }
                 : null}
               on:locationSelect={handleLocationModalSelect}
             />
@@ -986,11 +1428,17 @@
       </div>
 
       <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-700">
+        {#if editingLocation}
+          <button
+            class="btn btn-danger text-red-500 hover:text-red-400 border-red-500/30 hover:bg-red-500/10 mr-auto"
+            on:click={requestDeleteLocation}>Eliminar</button
+          >
+        {/if}
         <button
           class="btn btn-secondary"
-          on:click={() => (showAddLocationModal = false)}>Cancelar</button
+          on:click={() => (showLocationModal = false)}>Cancelar</button
         >
-        <button class="btn btn-sm" on:click={saveNewLocation}>Guardar</button>
+        <button class="btn btn-sm" on:click={saveLocation}>Guardar</button>
       </div>
     </div>
   </div>
@@ -1152,6 +1600,75 @@
   />
 {/if}
 
+{#if showBatchLocationModal}
+  <div
+    class="modal-backdrop pointer-events-auto flex items-center justify-center p-4"
+  >
+    <div
+      class="modal card w-full max-w-lg bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl overflow-y-auto max-h-[90vh] text-left"
+    >
+      <header class="modal-header flex justify-between items-center mb-6">
+        <h3 class="text-lg font-bold text-white m-0 tracking-tight">
+          Añadir GPS a {selectedPhotosIds.length} fotos
+        </h3>
+        <button
+          class="text-slate-400 hover:text-white transition-colors"
+          on:click={() => (showBatchLocationModal = false)}>&times;</button
+        >
+      </header>
+
+      <div class="mb-4 text-sm text-slate-300">
+        Haz clic en el mapa para establecer una ubicación GPS para todas las
+        fotos seleccionadas.
+      </div>
+
+      <div class="mb-6 rounded-lg overflow-hidden border border-slate-700/50">
+        <LocationPicker on:locationSelect={handleBatchLocationSelect} />
+      </div>
+
+      <div class="flex justify-end gap-3 pt-4 border-t border-slate-700">
+        <button
+          class="btn btn-secondary flex-1"
+          on:click={() => (showBatchLocationModal = false)}>Cancelar</button
+        >
+        <button
+          class="btn btn-primary flex-1"
+          disabled={!batchSelectedCoords}
+          on:click={saveBatchLocation}>Guardar Ubicación</button
+        >
+      </div>
+    </div>
+  </div>
+{/if}
+
+{#if showDeleteConfirm}
+  <div
+    class="modal-backdrop pointer-events-auto flex items-center justify-center p-4"
+    style="z-index: 9999;"
+  >
+    <div
+      class="modal card w-full max-w-sm bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl text-center"
+    >
+      <h3 class="text-lg font-bold text-white mb-2">Eliminar Lugar</h3>
+      <p class="text-slate-300 text-sm mb-6">
+        ¿Estás seguro de que quieres eliminar este lugar de forma permanente?
+        Esta acción no se puede deshacer.
+      </p>
+
+      <div class="flex gap-3 justify-center">
+        <button
+          class="btn btn-secondary flex-1"
+          on:click={() => (showDeleteConfirm = false)}>Cancelar</button
+        >
+        <button
+          class="btn btn-danger flex-1 bg-red-500 hover:bg-red-600 border-none text-white"
+          on:click={confirmDeleteLocation}>Eliminar</button
+        >
+      </div>
+    </div>
+  </div>
+{/if}
+
 <style>
   .page-container {
     max-width: 1000px;
@@ -1249,10 +1766,41 @@
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid #334155;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+    text-align: left;
+    width: 100%;
+    font: inherit;
+    color: inherit;
+    padding: 0;
+  }
+  .location-card:hover {
+    transform: translateY(-2px);
+    border-color: #6366f1;
+  }
+  .location-card:hover .edit-overlay {
+    opacity: 1;
   }
 
   .location-image {
     height: 150px;
+    position: relative;
+  }
+
+  .edit-overlay {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.2s;
   }
 
   .location-info {
@@ -1369,6 +1917,42 @@
     /* scrollbar styling */
     scrollbar-width: thin;
     scrollbar-color: #475569 #1e293b;
+  }
+
+  /* Fade transition for gallery image switching */
+  .gallery-fade {
+    animation: galleryFadeIn 300ms ease-out;
+    width: 100%;
+    height: 100%;
+  }
+  @keyframes galleryFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Gallery thumbnails scrollbar */
+  .gallery-thumbs-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+  }
+  .gallery-thumbs-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+  .gallery-thumbs-scroll::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 999px;
+  }
+  .gallery-thumbs-scroll::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.35);
+    border-radius: 999px;
+    transition: background 0.2s;
+  }
+  .gallery-thumbs-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.5);
   }
   .cover-dot {
     position: absolute;

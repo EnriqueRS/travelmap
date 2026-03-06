@@ -1,0 +1,113 @@
+import { Injectable } from '@nestjs/common';
+import { Location } from './entities/location.entity';
+import { Photo } from '../media/entities/photo.entity';
+import { v4 as uuidv4 } from 'uuid';
+
+@Injectable()
+export class LocationsService {
+  async createLocation(userId: number, createData: any): Promise<Location> {
+    let latitude = 0;
+    let longitude = 0;
+
+    if (createData.coordinates && createData.coordinates.length === 2) {
+      latitude = createData.coordinates[0];
+      longitude = createData.coordinates[1];
+    }
+
+    const backendPayload: any = {
+      id: createData.id || uuidv4(),
+      userId,
+      name: createData.name,
+      description: createData.description || '',
+      category: createData.category?.toLowerCase() || 'city',
+      rating: createData.rating || 5,
+      visitDate: createData.visitedDate,
+      tripId: createData.tripId || null,
+      latitude,
+      longitude,
+    };
+
+    const location = await Location.query().insert(backendPayload);
+
+    // Link photos if provided
+    if (createData.images && createData.images.length > 0) {
+      const { Photo } = await import('../media/entities/photo.entity');
+      await Photo.query()
+        .patch({ locationId: location.id, showOnMap: true } as any)
+        .whereIn('id', createData.images)
+        .where('userId', userId);
+    }
+
+    console.log('[LocationsService] Location created:', location.id);
+    return location;
+  }
+
+  async updateLocation(userId: number, id: string, updateData: any): Promise<Location> {
+    const location = await Location.query().findOne({ id, userId });
+    if (!location) {
+      throw new Error('Location not found or unauthorized');
+    }
+
+    const patchData: any = {};
+    if (updateData.name !== undefined) patchData.name = updateData.name;
+    if (updateData.description !== undefined) patchData.description = updateData.description;
+    if (updateData.category !== undefined) patchData.category = updateData.category;
+    if (updateData.rating !== undefined) patchData.rating = updateData.rating;
+    if (updateData.visitDate !== undefined) patchData.visitDate = updateData.visitDate;
+    if (updateData.tripId !== undefined) patchData.tripId = updateData.tripId;
+    if (updateData.latitude !== undefined) patchData.latitude = updateData.latitude;
+    if (updateData.longitude !== undefined) patchData.longitude = updateData.longitude;
+
+    const updated = await Location.query().patchAndFetchById(id, patchData);
+
+    // Link photos if provided
+    if (updateData.images && Array.isArray(updateData.images)) {
+      const { Photo } = await import('../media/entities/photo.entity');
+      
+      // Optionally unlink old ones if you want, or just link new ones.
+      // Usually it's better to explicitly set the ones we want.
+      // For now, let's just link the new ones (and maybe unlink all previous for this location then re-link)
+      await Photo.query()
+        .patch({ locationId: null } as any)
+        .where('locationId', id)
+        .where('userId', userId);
+
+      if (updateData.images.length > 0) {
+        await Photo.query()
+          .patch({ locationId: id, showOnMap: true } as any)
+          .whereIn('id', updateData.images)
+          .where('userId', userId);
+      }
+    }
+
+    console.log('[LocationsService] Location updated:', id);
+    return updated;
+  }
+
+  async deleteLocation(userId: number, id: string): Promise<{ success: boolean }> {
+    const location = await Location.query().findOne({ id, userId });
+    if (!location) {
+      // Could throw NotFoundException but let's just throw Error or return false
+      throw new Error('Location not found or unauthorized');
+    }
+
+    // Unlink photos
+    await Photo.query()
+      .patch({ locationId: null } as any)
+      .where('locationId', id)
+      .where('userId', userId);
+
+    // Delete the location
+    await Location.query().deleteById(id);
+    console.log('[LocationsService] Location deleted:', id);
+
+    return { success: true };
+  }
+
+  async getUserLocations(userId: number): Promise<Location[]> {
+    return Location.query()
+      .where('userId', userId)
+      .withGraphFetched('photos')
+      .orderBy('visitDate', 'desc');
+  }
+}

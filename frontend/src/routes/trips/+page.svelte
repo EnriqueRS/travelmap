@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Compass, Map, Plus, Calendar } from "lucide-svelte"
-  import { trips, getStatusColor } from "$lib/stores/data"
+  import { trips, locations, getStatusColor } from "$lib/stores/data"
+  import { goto } from "$app/navigation"
   import { formatDate } from "$lib/utils/formatters"
   import { getCountryFlag } from "$lib/utils/countries"
   import { API_URL } from "$lib/services/auth"
@@ -55,7 +56,13 @@
   <section class="trips-content">
     <div class="trips-grid">
       {#each $trips as trip (trip.id)}
-        <div class="trip-card">
+        <div
+          class="trip-card cursor-pointer"
+          on:click={() => goto(`/trips/${trip.id}`)}
+          on:keydown={(e) => e.key === "Enter" && goto(`/trips/${trip.id}`)}
+          tabindex="0"
+          role="button"
+        >
           <div class="trip-image">
             {#if trip.coverImage && trip.coverImage.length > 5 && trip.coverImage !== trip.name}
               <img
@@ -92,7 +99,13 @@
             <div class="trip-stats">
               <div class="stat">
                 <span class="stat-icon">📍</span>
-                <span>{trip.locations.length} lugares</span>
+                <span
+                  >{$locations.filter(
+                    (l) =>
+                      l.tripId === trip.id ||
+                      (trip.locations && trip.locations.includes(l.id)),
+                  ).length} lugares</span
+                >
               </div>
               <div class="stat">
                 <span class="stat-icon">🗺️</span>

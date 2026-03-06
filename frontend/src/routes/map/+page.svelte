@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte"
   import MapContainer from "$lib/components/map/MapContainer.svelte"
-  import CountryPicker from "$lib/components/ui/CountryPicker.svelte"
+
   import { toast } from "$lib/stores/ui"
   import { locations, trips, userProfile } from "$lib/stores/data"
   import type { Location, Trip } from "$lib/stores/data"
@@ -15,12 +15,16 @@
     Map as MapIcon,
     Layers,
     BarChart3,
-    Eye,
-    Calendar,
     MapPin,
     ChevronLeft,
     ChevronRight,
+    X,
+    Eye,
   } from "lucide-svelte"
+  import { COUNTRIES } from "$lib/utils/countries"
+  import { normalizeString } from "$lib/utils/string"
+  import { locationsService } from "$lib/services/locations"
+  import { tripsService } from "$lib/services/trips"
 
   // Bind to map component
   let mapComponent: any
@@ -37,7 +41,7 @@
 
   // Modal State
   let showAddLocationModal = false
-  let showCountryHighlights = false
+  let showCountryHighlights = true
   let newLocationLat = 0
   let newLocationLng = 0
   let newLocationName = ""
@@ -182,6 +186,17 @@
 
     locations.update((locs) => [...locs, newLoc])
 
+    // Persist to backend database
+    try {
+      await locationsService.createLocation(newLoc)
+      console.log("[saveNewLocation] Location persisted to database:", newLocId)
+    } catch (err) {
+      console.error(
+        "[saveNewLocation] Failed to persist location to database, saving locally only:",
+        err,
+      )
+    }
+
     if (finalTripId && finalTripId !== "") {
       trips.update((t) =>
         t.map((trip) => {
@@ -246,14 +261,17 @@
   ).length
   $: plannedCount = $trips.filter((t) => t.status === "Planificado").length
   $: onGoingCount = $trips.filter((t) => t.status === "En curso").length
-  $: uniqueCountries = Array.from(
+  $: visitedCountryNames = Array.from(
     new Set(
       $trips
         .filter((t) => t.status === "Completado" || t.status === "En curso")
         .flatMap((t) => t.countries || []),
     ),
-  ).length
-  $: regions = uniqueCountries // We use regions for styling compatibility, but it acts as unique countries
+  )
+  $: uniqueCountries = visitedCountryNames.length
+  $: regions = uniqueCountries // We use regions for styling compatibility
+
+  let showProgressModal = false
 
   // Filter Logic
   $: filteredTrips = $trips.filter((trip) => {
@@ -282,8 +300,8 @@
     // Search filter
     if (
       searchQuery &&
-      !loc.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !loc.country.toLowerCase().includes(searchQuery.toLowerCase())
+      !normalizeString(loc.name).includes(normalizeString(searchQuery)) &&
+      !normalizeString(loc.country).includes(normalizeString(searchQuery))
     ) {
       return false
     }
@@ -391,7 +409,14 @@
         <span class="stat-value text-teal">{onGoingCount}</span>
       </div>
 
-      <div class="progress-section mt-4">
+      <div
+        class="progress-section mt-4 cursor-pointer hover:scale-[1.02] hover:bg-slate-800/50 p-2 -mx-2 rounded-lg transition-all border border-transparent hover:border-slate-700"
+        on:click={() => (showProgressModal = true)}
+        on:keydown={(e) => e.key === "Enter" && (showProgressModal = true)}
+        tabindex="0"
+        role="button"
+        title="Ver todos los países"
+      >
         <div class="progress-labels">
           <span>Progreso</span>
           <span>{regions} / 195 países</span>
@@ -680,6 +705,56 @@
           style="width: auto; padding: 0.5rem 1.5rem;"
           on:click={saveNewLocation}>Guardar</button
         >
+      </div>
+    </div>
+  </div>
+{/if}
+
+{#if showProgressModal}
+  <div class="modal-overlay" on:click|self={() => (showProgressModal = false)}>
+    <div
+      class="modal-content"
+      style="max-width: 800px; width: 90%; max-height: 85vh; display: flex; flex-direction: column;"
+    >
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h3
+            style="margin: 0; color: #f8fafc; font-size: 1.5rem; display: flex; items-center; gap: 0.5rem;"
+          >
+            🌎 Países del Mundo
+          </h3>
+          <p class="text-slate-400 text-sm mt-1 mb-0">
+            Has visitado {regions} de 195 países ({completion}%)
+          </p>
+        </div>
+        <button
+          class="bg-slate-800 hover:bg-slate-700 p-2 rounded-full text-slate-300 transition-colors"
+          on:click={() => (showProgressModal = false)}
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+        <div
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"
+        >
+          {#each [...COUNTRIES].sort((a, b) => {
+            const aVisited = visitedCountryNames.includes(a.name) ? -1 : 1
+            const bVisited = visitedCountryNames.includes(b.name) ? -1 : 1
+            return aVisited === bVisited ? a.name.localeCompare(b.name) : aVisited - bVisited
+          }) as country}
+            {@const isVisited = visitedCountryNames.includes(country.name)}
+            <div class="country-flag-card" class:visited={isVisited}>
+              <span class="text-3xl mb-2 filter-flag">{country.flag}</span>
+              <span
+                class="text-xs text-center leading-tight font-medium"
+                class:text-slate-300={isVisited}
+                class:text-slate-500={!isVisited}>{country.name}</span
+              >
+            </div>
+          {/each}
+        </div>
       </div>
     </div>
   </div>
@@ -1123,16 +1198,55 @@
 
   .btn-cancel {
     background: transparent;
-    border: 1px solid #475569;
-    color: #cbd5e1;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
+    border: none;
+    color: #94a3b8;
+    font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.2s;
   }
 
   .btn-cancel:hover {
-    background: #334155;
-    color: white;
+    color: #f1f5f9;
+  }
+
+  .country-flag-card {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(71, 85, 105, 0.4);
+    border-radius: 12px;
+    padding: 1rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .country-flag-card:not(.visited) {
+    opacity: 0.4;
+    filter: grayscale(100%);
+  }
+
+  .country-flag-card.visited {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(96, 165, 250, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .country-flag-card.visited .filter-flag {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(71, 85, 105, 0.8);
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 1);
   }
 </style>

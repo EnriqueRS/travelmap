@@ -301,7 +301,37 @@ export const updateStores = (userData: any) => {
   }
 
   if (userData.locations) {
-    locations.set(userData.locations);
+    const categoryToFrontend: Record<string, string> = {
+      landmark: "Monumento",
+      nature: "Naturaleza",
+      city: "Ciudad",
+      transport: "Ciudad de escala",
+      cultural: "Cultura",
+      activity: "Otro",
+      restaurant: "Otro",
+      accommodation: "Otro",
+      shopping: "Otro",
+      nightlife: "Otro",
+    };
+
+    const formattedLocations = userData.locations.map((loc: any) => ({
+      id: loc.id,
+      name: loc.name || "",
+      description: loc.description || "",
+      country: loc.country?.name || loc.country || "",
+      category: categoryToFrontend[loc.category] || loc.category || "Otro",
+      coordinates: [
+        loc.latitude ?? loc.coordinates?.[0] ?? 0,
+        loc.longitude ?? loc.coordinates?.[1] ?? 0,
+      ],
+      rating: loc.rating || 5,
+      visitedDate: loc.visitDate || loc.visitedDate || "",
+      images: loc.photos
+        ? loc.photos.map((p: any) => p.id)
+        : loc.images || [],
+      tripId: loc.tripId,
+    }));
+    locations.set(formattedLocations);
   }
 
   if (userData.statistics) {

@@ -3,6 +3,7 @@
   import { Search, ChevronDown } from "lucide-svelte"
 
   import { COUNTRIES } from "$lib/utils/countries"
+  import { normalizeString } from "$lib/utils/string"
 
   export let value = ""
   export let placeholder = "Selecciona un país..."
@@ -16,7 +17,7 @@
   let dropdownRef: HTMLDivElement
 
   $: filteredCountries = COUNTRIES.filter((c) =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+    normalizeString(c.name).includes(normalizeString(searchQuery)),
   )
   $: selectedCountryObj = COUNTRIES.find((c) => c.name === value)
 

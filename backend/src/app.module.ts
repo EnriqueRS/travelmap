@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { TripsModule } from './trips/trips.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { MediaModule } from './media/media.module';
+import { LocationsModule } from './locations/locations.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { MediaModule } from './media/media.module';
     TripsModule,
     IntegrationsModule,
     MediaModule,
+    LocationsModule,
   ],
   controllers: [],
   providers: [],

@@ -40,6 +40,15 @@ export class MediaController {
     throw new BadRequestException('Se requiere un archivo local o datos de un proveedor externo.');
   }
 
+  @Patch('batch/photos')
+  @UseGuards(JwtAuthGuard)
+  async batchUpdatePhotos(
+    @Request() req,
+    @Body() body: { photoIds: string[]; data: any }
+  ) {
+    return this.mediaService.batchUpdatePhotos(req.user.userId, body.photoIds, body.data);
+  }
+
   @Patch('photos/:id')
   @UseGuards(JwtAuthGuard)
   async updatePhoto(

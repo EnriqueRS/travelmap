@@ -95,4 +95,16 @@ export const mediaService = {
       headers: { Authorization: `Bearer ${token}` },
     });
   },
+
+  batchUpdatePhotos: async (photoIds: string[], data: any): Promise<AppPhoto[]> => {
+    const token = getToken();
+    const res = await axios.patch(
+      `${API_URL}/media/batch/photos`,
+      { photoIds, data },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return res.data;
+  },
 };

@@ -11,12 +11,13 @@ export interface LocationProperties {
   userId: number;
   name: string;
   description?: string;
-  coordinates: any; // PostGIS Point
+  latitude: number;
+  longitude: number;
   countryId?: number;
   visitDate?: Date;
   rating?: number; // 1-5
   category: string;
-  elevation?: number; // metros
+  elevation?: number; // meters
   timezone?: string;
   created_at: Date;
   updated_at: Date;
@@ -28,12 +29,13 @@ export class Location extends Model implements LocationProperties {
   userId!: number;
   name!: string;
   description?: string;
-  coordinates!: any; // PostGIS Point
+  latitude!: number;
+  longitude!: number;
   countryId?: number;
   visitDate?: Date;
   rating?: number; // 1-5
   category!: string;
-  elevation?: number; // metros
+  elevation?: number; // meters
   timezone?: string;
   created_at!: Date;
   updated_at!: Date;
@@ -49,24 +51,25 @@ export class Location extends Model implements LocationProperties {
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['id', 'userId', 'name', 'coordinates', 'category'],
+      required: ['id', 'userId', 'name', 'latitude', 'longitude', 'category'],
       properties: {
         id: { type: 'string', format: 'uuid' },
-        tripId: { type: 'string', format: 'uuid' },
+        tripId: { type: ['string', 'null'] },
         userId: { type: 'integer' },
         name: { type: 'string', minLength: 1, maxLength: 200 },
-        description: { type: 'string', maxLength: 1000 },
-        coordinates: { type: 'object' }, // PostGIS Point
-        countryId: { type: 'integer' },
-        visitDate: { type: 'string', format: 'date' },
-        rating: { type: 'integer', minimum: 1, maximum: 5 },
+        description: { type: ['string', 'null'], maxLength: 1000 },
+        latitude: { type: 'number' },
+        longitude: { type: 'number' },
+        countryId: { type: ['integer', 'null'] },
+        visitDate: { type: ['string', 'null'] },
+        rating: { type: ['integer', 'null'], minimum: 1, maximum: 5 },
         category: {
           type: 'string',
           enum: ['city', 'landmark', 'nature', 'restaurant', 'accommodation', 'transport', 'activity', 'shopping', 'nightlife', 'cultural'],
           default: 'city'
         },
-        elevation: { type: 'number' }, // metros sobre el nivel del mar
-        timezone: { type: 'string', maxLength: 50 }, // timezone database
+        elevation: { type: ['number', 'null'] },
+        timezone: { type: ['string', 'null'], maxLength: 50 },
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' }
       }
@@ -114,15 +117,13 @@ export class Location extends Model implements LocationProperties {
   async $beforeInsert() {
     await super.$beforeInsert({} as any);
     if (!this.id) {
-      // Generar UUID si no existe
+      // Generate UUID if not provided
       const { v4: uuidv4 } = require('uuid');
       this.id = uuidv4();
     }
 
-    // Determinar país automáticamente si no está establecido
-    if (this.coordinates && !this.countryId) {
-      await this.determineCountry();
-    }
+    // Country detection is handled by the frontend via Nominatim reverse geocoding.
+    // The ST_Contains query does not work with geography columns, so we skip it here.
 
     this.created_at = new Date();
     this.updated_at = new Date();
@@ -130,29 +131,8 @@ export class Location extends Model implements LocationProperties {
 
   async $beforeUpdate() {
     await super.$beforeUpdate({}, {} as any);
-    // Determinar país si las coordenadas cambiaron
-    if (this.coordinates && !this.countryId) {
-      await this.determineCountry();
-    }
+    // Country detection is handled by the frontend via Nominatim reverse geocoding.
     this.updated_at = new Date();
-  }
-
-  // Método para determinar el país basado en coordenadas
-  private async determineCountry(): Promise<void> {
-    const knex = (this.constructor as any).knex();
-    const result = await knex.raw(`
-      SELECT id 
-      FROM countries 
-      WHERE ST_Contains(geometry, ST_SetSRID(ST_MakePoint(?, ?), 4326))
-      LIMIT 1
-    `, [
-      this.coordinates.coordinates[0], // longitude
-      this.coordinates.coordinates[1]  // latitude
-    ]);
-
-    if (result.rows.length > 0) {
-      this.countryId = result.rows[0].id;
-    }
   }
 
   // Convertir a GeoJSON Feature
@@ -160,7 +140,10 @@ export class Location extends Model implements LocationProperties {
     return {
       type: 'Feature',
       id: this.id,
-      geometry: this.coordinates,
+      geometry: {
+        type: 'Point',
+        coordinates: [this.longitude, this.latitude],
+      },
       properties: {
         id: this.id,
         name: this.name,
@@ -174,37 +157,30 @@ export class Location extends Model implements LocationProperties {
     };
   }
 
-  // Método para obtener ubicaciones cercanas
+  // Get nearby locations using simple distance calculation (no PostGIS)
   async getNearbyLocations(radiusKm: number = 50): Promise<Location[]> {
     const knex = (this.constructor as any).knex();
+    const degreeRadius = radiusKm / 111.320;
     const result = await knex.raw(`
       SELECT *,
-      ST_Distance(
-        coordinates,
-        ST_SetSRID(ST_MakePoint(?, ?), 4326)
-      ) as distance
+        SQRT(POW(latitude - ?, 2) + POW(longitude - ?, 2)) as distance
       FROM locations
       WHERE id != ?
-      AND ST_DWithin(
-        coordinates,
-        ST_SetSRID(ST_MakePoint(?, ?), 4326),
-        ?
-      )
+      AND ABS(latitude - ?) < ?
+      AND ABS(longitude - ?) < ?
       ORDER BY distance
       LIMIT 10
     `, [
-      this.coordinates.coordinates[0],
-      this.coordinates.coordinates[1],
+      this.latitude, this.longitude,
       this.id,
-      this.coordinates.coordinates[0],
-      this.coordinates.coordinates[1],
-      radiusKm / 111.320 // Convertir km a grados (aproximado)
+      this.latitude, degreeRadius,
+      this.longitude, degreeRadius,
     ]);
 
     return result.rows;
   }
 
-  // Método para obtener estadísticas del usuario en esta ubicación
+  // Get user location statistics
   async getUserLocationStats(): Promise<any> {
     const [sameCategoryCount, sameCountryCount] = await Promise.all([
       Location.query()
@@ -227,27 +203,21 @@ export class Location extends Model implements LocationProperties {
     };
   }
 
-  // Método para obtener coordenadas como objeto
+  // Get coordinates as object
   getCoordinates(): { lng: number; lat: number } {
-    if (!this.coordinates || !this.coordinates.coordinates) {
-      return { lng: 0, lat: 0 };
-    }
-
     return {
-      lng: this.coordinates.coordinates[0],
-      lat: this.coordinates.coordinates[1]
+      lng: this.longitude || 0,
+      lat: this.latitude || 0,
     };
   }
 
-  // Método para establecer coordenadas desde objetos
+  // Set coordinates
   setCoordinates(lng: number, lat: number): void {
-    this.coordinates = {
-      type: 'Point',
-      coordinates: [lng, lat]
-    };
+    this.longitude = lng;
+    this.latitude = lat;
   }
 
-  // Método estático para buscar ubicaciones por bounds
+  // Find locations within bounds
   static async findByBounds(
     userId: number,
     bounds: {
@@ -255,26 +225,16 @@ export class Location extends Model implements LocationProperties {
       northeast: { lng: number; lat: number };
     }
   ): Promise<Location[]> {
-    const result = await this.knex().raw(`
-      SELECT * FROM locations
-      WHERE userId = ?
-      AND ST_Within(
-        coordinates,
-        ST_MakeEnvelope(?, ?, ?, ?, 4326)
-      )
-      ORDER BY visitDate DESC
-    `, [
-      userId,
-      bounds.southwest.lng,
-      bounds.southwest.lat,
-      bounds.northeast.lng,
-      bounds.northeast.lat
-    ]);
-
-    return result.rows;
+    return await Location.query()
+      .where('userId', userId)
+      .where('latitude', '>=', bounds.southwest.lat)
+      .where('latitude', '<=', bounds.northeast.lat)
+      .where('longitude', '>=', bounds.southwest.lng)
+      .where('longitude', '<=', bounds.northeast.lng)
+      .orderBy('visitDate', 'desc');
   }
 
-  // Método estático para búsqueda por texto y ubicación
+  // Search locations by text
   static async search(
     userId: number,
     query: string,

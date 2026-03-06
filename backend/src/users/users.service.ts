@@ -22,7 +22,10 @@ export class UsersService {
       .findById(id)
       .withGraphFetched({
         trips: true,
-        locations: true,
+        locations: {
+          photos: true,
+          country: true,
+        },
         countryStatuses: true
       });
   }
