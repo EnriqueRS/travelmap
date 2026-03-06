@@ -18,6 +18,8 @@
     Eye,
     Calendar,
     MapPin,
+    ChevronLeft,
+    ChevronRight,
   } from "lucide-svelte"
 
   // Bind to map component
@@ -55,12 +57,20 @@
   let isSavingLocation = false
 
   let addingMode = false
+  let isSidebarMinimized = false
+
+  function toggleSidebar() {
+    isSidebarMinimized = !isSidebarMinimized
+    setTimeout(() => {
+      window.dispatchEvent(new Event("resize"))
+    }, 300)
+  }
 
   function toggleAddingMode() {
     addingMode = !addingMode
     if (addingMode && mapComponent) {
       toast.success(
-        "Haz clic en cualquier lugar del mapa para añadir la ubicación"
+        "Haz clic en cualquier lugar del mapa para añadir la ubicación",
       )
     }
   }
@@ -84,7 +94,7 @@
   }
 
   async function handleLocationModalSelect(
-    e: CustomEvent<{ lat: number; lng: number }>
+    e: CustomEvent<{ lat: number; lng: number }>,
   ) {
     newLocationLat = e.detail.lat
     newLocationLng = e.detail.lng
@@ -150,7 +160,7 @@
         toast.info("Subiendo imagen para la ubicación...")
         const newPhotoPayload = await mediaService.uploadLocalPhoto(
           finalTripId,
-          newLocationPhotoFiles[0]
+          newLocationPhotoFiles[0],
         )
         // Guardar metadata con latitud / longitud de este picker
         await mediaService.updatePhoto(newPhotoPayload.id, {
@@ -165,7 +175,7 @@
       } catch (e) {
         console.error("No se pudo subir la foto con el viaje", e)
         toast.error(
-          "Error subiendo foto. Asegúrate de asociar a un viaje existente."
+          "Error subiendo foto. Asegúrate de asociar a un viaje existente.",
         )
       }
     }
@@ -187,7 +197,7 @@
             }
           }
           return trip
-        })
+        }),
       )
     }
 
@@ -232,7 +242,7 @@
   $: totalLocations = $locations.length
   $: totalTrips = $trips.length
   $: visitedCount = $trips.filter(
-    (t) => t.status === "Completado" || t.status === "En curso"
+    (t) => t.status === "Completado" || t.status === "En curso",
   ).length
   $: plannedCount = $trips.filter((t) => t.status === "Planificado").length
   $: onGoingCount = $trips.filter((t) => t.status === "En curso").length
@@ -240,8 +250,8 @@
     new Set(
       $trips
         .filter((t) => t.status === "Completado" || t.status === "En curso")
-        .flatMap((t) => t.countries || [])
-    )
+        .flatMap((t) => t.countries || []),
+    ),
   ).length
   $: regions = uniqueCountries // We use regions for styling compatibility, but it acts as unique countries
 
@@ -331,9 +341,21 @@
   <title>TravelMap - Dashboard</title>
 </svelte:head>
 
-<main class="dashboard-page">
+<main class="dashboard-page" class:sidebar-minimized={isSidebarMinimized}>
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" class:collapsed={isSidebarMinimized}>
+    <button
+      class="sidebar-toggle bg-slate-800 hover:bg-slate-700 p-1.5 rounded-full text-slate-300 border border-slate-600 absolute z-50 transition-all"
+      on:click={toggleSidebar}
+      title="Minimizar panel"
+    >
+      {#if isSidebarMinimized}
+        <ChevronRight size={18} />
+      {:else}
+        <ChevronLeft size={18} />
+      {/if}
+    </button>
+
     <div class="sidebar-header">
       <h2 class="section-title">
         <BarChart3 size={18} /> Estadísticas de aventura
@@ -671,6 +693,11 @@
     background: #0f172a;
     color: #e2e8f0;
     overflow: hidden;
+    transition: grid-template-columns 0.3s ease;
+  }
+
+  .dashboard-page.sidebar-minimized {
+    grid-template-columns: 60px 1fr;
   }
 
   /* Sidebar styles */
@@ -681,6 +708,27 @@
     flex-direction: column;
     border-right: 1px solid #1f2937;
     overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    transition: padding 0.3s ease;
+  }
+
+  .sidebar.collapsed {
+    padding: 1.5rem 0.5rem;
+  }
+
+  .sidebar.collapsed > :not(.sidebar-toggle) {
+    display: none !important;
+  }
+
+  .sidebar-toggle {
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .sidebar.collapsed .sidebar-toggle {
+    right: 50%;
+    transform: translateX(50%);
   }
 
   .section-title {

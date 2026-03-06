@@ -57,11 +57,6 @@
           <span>Viajes</span>
         </a>
 
-        <a href="/locations" class="nav-link">
-          <Map size={18} />
-          <span>Ubicaciones</span>
-        </a>
-
         <a href="/profile" class="nav-link">
           <User size={18} />
           <span>Perfil</span>
@@ -167,12 +162,6 @@
     background-color: #475569;
     color: #60a5fa;
     transform: translateY(-2px);
-  }
-
-  .nav-link.active {
-    background-color: #60a5fa;
-    color: #0f172a;
-    border-color: #60a5fa;
   }
 
   main {

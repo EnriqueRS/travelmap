@@ -27,6 +27,7 @@
   import countriesInfo from "i18n-iso-countries"
   import esLocale from "i18n-iso-countries/langs/es.json"
   import { formatDate } from "$lib/utils/formatters"
+  import { getCountryFlag } from "$lib/utils/countries"
   countriesInfo.registerLocale(esLocale)
 
   let mapContainer: HTMLDivElement
@@ -116,7 +117,7 @@
         className: "custom-map-marker",
         html: `<div class="marker-pin-custom" style="background-color: #3b82f6;">
                   <span class="marker-emoji">${getCategoryEmoji(
-                    loc.category
+                    loc.category,
                   )}</span>
                </div>`,
         iconSize: [40, 40],
@@ -137,7 +138,7 @@
       (t) =>
         t.status === "Planificado" ||
         t.status === "En curso" ||
-        t.status === "Completado"
+        t.status === "Completado",
     )
 
     validTrips.forEach((trip) => {
@@ -149,7 +150,7 @@
       // Sort them sequentially by visitDate if needed (assuming visitedDate or simply order added)
       tripLocations.sort(
         (a, b) =>
-          new Date(a.visitedDate).getTime() - new Date(b.visitedDate).getTime()
+          new Date(a.visitedDate).getTime() - new Date(b.visitedDate).getTime(),
       )
 
       if (tripLocations.length > 1) {
@@ -202,7 +203,23 @@
             <img src="${url}" style="width: 100%; border-radius: 8px; margin-bottom: 12px; object-fit: cover; max-height: 150px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);" />
             ${
               photoTrip
-                ? `<div style="margin-bottom: 8px;"><span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">Viaje: ${photoTrip.name}</span></div>`
+                ? `<div style="margin-bottom: 8px;">
+                     <span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">Viaje: ${
+                       photoTrip.name
+                     }</span>
+                     ${
+                       photoTrip.countries && photoTrip.countries.length > 0
+                         ? `<div style="margin-top: 8px; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">${photoTrip.countries
+                             .map(
+                               (c) =>
+                                 `<span style="background: rgba(255, 255, 255, 0.1); padding: 3px 8px; border-radius: 8px; font-size: 11px; white-space: nowrap;">${
+                                   getCountryFlag ? getCountryFlag(c) : ""
+                                 } ${c}</span>`,
+                             )
+                             .join("")}</div>`
+                         : ""
+                     }
+                   </div>`
                 : ""
             }
             <p style="margin: 0; font-size: 12px; color: #94a3b8;">${
@@ -217,7 +234,7 @@
           [photo.metadata.exif.latitude, photo.metadata.exif.longitude],
           {
             icon: photoIcon,
-          }
+          },
         ).bindPopup(popupContent, {
           className: "dark-popup",
         })
@@ -374,7 +391,7 @@
           attribution:
             "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
           maxZoom: 19,
-        }
+        },
       )
     } else {
       currentTileLayer = L.tileLayer(
@@ -384,7 +401,7 @@
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
           subdomains: "abcd",
           maxZoom: 20,
-        }
+        },
       )
     }
 

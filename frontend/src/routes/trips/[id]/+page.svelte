@@ -15,19 +15,86 @@
   import LocationPicker from "$lib/components/map/LocationPicker.svelte"
   import MiniStaticMap from "$lib/components/map/MiniStaticMap.svelte"
   import { MapPin, MapPinOff, Plus } from "lucide-svelte"
-  import { onMount } from "svelte"
+  import { onMount, tick } from "svelte"
   import { mediaService, type AppPhoto } from "$lib/services/media"
   import { integrationsService } from "$lib/services/integrations"
   import { API_URL } from "$lib/services/auth"
   import { toast } from "$lib/stores/ui"
+  import { reverseGeocode } from "$lib/utils/geocode"
 
   import { tripsService } from "$lib/services/trips"
 
   $: tripId = $page.params.id
   $: trip = $trips.find((t) => t.id === tripId)
   $: tripLocations = $locations.filter(
-    (l) => trip?.locations.includes(l.id) || l.tripId === tripId
+    (l) => trip?.locations.includes(l.id) || l.tripId === tripId,
   )
+
+  let showAddLocationModal = false
+  let newLocationLat = 0
+  let newLocationLng = 0
+  let newLocationName = ""
+  let newLocationCountry = ""
+  let newLocationCategory = "Naturaleza"
+
+  async function handleLocationModalSelect(
+    e: CustomEvent<{ lat: number; lng: number }>,
+  ) {
+    newLocationLat = e.detail.lat
+    newLocationLng = e.detail.lng
+    const country = await reverseGeocode(e.detail.lat, e.detail.lng)
+    if (country) {
+      newLocationCountry = country
+    }
+  }
+
+  function saveNewLocation() {
+    if (!newLocationName || !newLocationCountry) {
+      toast.error("Nombre y País son obligatorios")
+      return
+    }
+
+    const newLocId = crypto.randomUUID()
+    const newLoc: any = {
+      id: newLocId,
+      name: newLocationName,
+      description: "",
+      country: newLocationCountry,
+      category: newLocationCategory,
+      coordinates: [newLocationLat, newLocationLng],
+      rating: 5,
+      visitedDate: new Date().toISOString().split("T")[0],
+      images: [],
+      tripId: tripId,
+    }
+
+    locations.update((locs) => [...locs, newLoc])
+
+    trips.update((allTrips) =>
+      allTrips.map((t) => {
+        if (t.id === tripId) {
+          const updatedCountries = new Set(t.countries || [])
+          if (newLocationCountry) {
+            updatedCountries.add(newLocationCountry)
+          }
+          return {
+            ...t,
+            locations: [...(t.locations || []), newLocId],
+            countries: Array.from(updatedCountries),
+          }
+        }
+        return t
+      }),
+    )
+
+    showAddLocationModal = false
+    newLocationName = ""
+    newLocationCountry = ""
+    newLocationLat = 0
+    newLocationLng = 0
+    newLocationCategory = "Naturaleza"
+    toast.success("Lugar añadido correctamente")
+  }
 
   let isEditingTrip = false
   let editTripData = {
@@ -77,7 +144,7 @@
             }
           }
           return t
-        })
+        }),
       )
       isEditingTrip = false
       toast.success("Viaje actualizado correctamente")
@@ -101,7 +168,7 @@
 
   function removeCountryFromEdit(c: string) {
     editTripData.countries = editTripData.countries.filter(
-      (country) => country !== c
+      (country) => country !== c,
     )
   }
 
@@ -174,7 +241,7 @@
       try {
         const newPhoto = await mediaService.uploadLocalPhoto(
           tripId,
-          input.files[0]
+          input.files[0],
         )
         photos = [newPhoto, ...photos]
         input.value = "" // Reset
@@ -189,10 +256,16 @@
   async function toggleMapVisibility(photo: AppPhoto | null) {
     if (!photo) return
     try {
-      const updated = await mediaService.updatePhoto(photo.id, {
+      const photoId = photo.id
+      const updated = await mediaService.updatePhoto(photoId, {
         showOnMap: !photo.showOnMap,
       })
-      photos = photos.map((p) => (p.id === photo.id ? updated : p))
+      photos = photos.map((p) => (p.id === photoId ? updated : p))
+
+      await tick()
+      const newIndex = displayedPhotos.findIndex((p) => p.id === photoId)
+      if (newIndex !== -1) activeIndex = newIndex
+
       toast.success(updated.showOnMap ? "Añadida al mapa" : "Ocultada del mapa")
     } catch (err) {
       toast.error("Error al actualizar la foto")
@@ -202,12 +275,18 @@
   async function toggleHiddenVisibility(photo: AppPhoto | null) {
     if (!photo) return
     try {
-      const updated = await mediaService.updatePhoto(photo.id, {
+      const photoId = photo.id
+      const updated = await mediaService.updatePhoto(photoId, {
         isHidden: !photo.isHidden,
       })
-      photos = photos.map((p) => (p.id === photo.id ? updated : p))
+      photos = photos.map((p) => (p.id === photoId ? updated : p))
+
+      await tick()
+      const newIndex = displayedPhotos.findIndex((p) => p.id === photoId)
+      if (newIndex !== -1) activeIndex = newIndex
+
       toast.success(
-        updated.isHidden ? "Foto oculta de la galería" : "Foto restaurada"
+        updated.isHidden ? "Foto oculta de la galería" : "Foto restaurada",
       )
     } catch (err) {
       toast.error("Error al ocultar la foto")
@@ -233,7 +312,7 @@
               return { ...t, coverImage: updated.id }
             }
             return t
-          })
+          }),
         )
       }
       activeIndex = 0
@@ -263,7 +342,7 @@
     toast.info("Importando fotos de Immich...")
     try {
       const assets = await integrationsService.getImmichAlbumAssets(
-        selectedAlbumId
+        selectedAlbumId,
       )
       const status = await integrationsService.checkStatus()
 
@@ -279,7 +358,7 @@
           tripId,
           assetUrl,
           asset.id,
-          asset.exifInfo // Pass the exif info along
+          asset.exifInfo, // Pass the exif info along
         )
         photos = [newPhoto, ...photos]
         count++
@@ -303,7 +382,7 @@
       const localImmichExternalIds = new Set(
         photos
           .filter((p) => p.provider === "immich")
-          .map((p) => p.externalId || p.id)
+          .map((p) => p.externalId || p.id),
       )
 
       if (localImmichExternalIds.size > 0) {
@@ -311,22 +390,22 @@
           allAlbums.map(async (album: any) => {
             try {
               const assets = await integrationsService.getImmichAlbumAssets(
-                album.id
+                album.id,
               )
               album.isLinked = assets.some((a: any) =>
-                localImmichExternalIds.has(a.id)
+                localImmichExternalIds.has(a.id),
               )
             } catch (e) {
               album.isLinked = false
             }
-          })
+          }),
         )
       } else {
         allAlbums.forEach((a: any) => (a.isLinked = false))
       }
 
       immichAlbums = allAlbums.sort(
-        (a: any, b: any) => (b.isLinked ? 1 : 0) - (a.isLinked ? 1 : 0)
+        (a: any, b: any) => (b.isLinked ? 1 : 0) - (a.isLinked ? 1 : 0),
       )
       showUnlinkModal = true
     } catch (e) {
@@ -337,7 +416,7 @@
   }
 
   async function handleCommitUnlinkAlbum(
-    event: CustomEvent<{ albumId: string }>
+    event: CustomEvent<{ albumId: string }>,
   ) {
     const selectedAlbumId = event.detail.albumId
     if (!selectedAlbumId) return
@@ -348,7 +427,7 @@
     try {
       // 1. Get the assets for the selected album
       const assets = await integrationsService.getImmichAlbumAssets(
-        selectedAlbumId
+        selectedAlbumId,
       )
       const assetIds = new Set(assets.map((a: any) => a.id))
 
@@ -361,7 +440,7 @@
       // Our `linkExternalPhoto` stores `asset.id` as `externalId`.
 
       const photosToDelete = photos.filter(
-        (p) => p.provider === "immich" && assetIds.has(p.externalId || p.id)
+        (p) => p.provider === "immich" && assetIds.has(p.externalId || p.id),
       ) // Fallback to p.id if externalId isn't mapped properly in the frontend type, though it should be.
 
       let deletedCount = 0
@@ -405,7 +484,7 @@
             ...selectedMetadataPhoto.metadata,
             exif: updatedExif,
           },
-        }
+        },
       )
 
       // Update local state arrays
@@ -421,7 +500,7 @@
   }
 
   function handleMetadataLocationSelect(
-    e: CustomEvent<{ lat: number; lng: number }>
+    e: CustomEvent<{ lat: number; lng: number }>,
   ) {
     newMetadataLat = e.detail.lat
     newMetadataLng = e.detail.lng
@@ -482,7 +561,10 @@
     <section class="locations-section">
       <div class="section-header">
         <h2>Lugares Visitados</h2>
-        <a href="/locations?trip={trip.id}" class="btn btn-sm">Añadir Lugar</a>
+        <button
+          on:click={() => (showAddLocationModal = true)}
+          class="btn btn-sm">Añadir Lugar</button
+        >
       </div>
 
       {#if tripLocations.length > 0}
@@ -833,6 +915,87 @@
   </div>
 {/if}
 
+{#if showAddLocationModal}
+  <div
+    class="modal-backdrop pointer-events-auto flex items-center justify-center p-4"
+  >
+    <div
+      class="modal card meta-modal w-full max-w-lg bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl overflow-y-auto max-h-[90vh] text-left"
+    >
+      <header class="modal-header flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold text-white m-0">Añadir Lugar</h3>
+        <button
+          class="text-slate-400 hover:text-white"
+          on:click={() => (showAddLocationModal = false)}>&times;</button
+        >
+      </header>
+
+      <div class="flex flex-col gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1"
+            >Nombre</label
+          >
+          <input
+            type="text"
+            bind:value={newLocationName}
+            placeholder="Ej: Torre Eiffel"
+            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1"
+            >País</label
+          >
+          <CountryPicker id="new-loc-country" bind:value={newLocationCountry} />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1"
+            >Categoría</label
+          >
+          <select
+            bind:value={newLocationCategory}
+            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
+          >
+            <option value="Monumento">Monumento</option>
+            <option value="Naturaleza">Naturaleza</option>
+            <option value="Ciudad">Ciudad</option>
+            <option value="Ciudad de escala">Ciudad de escala</option>
+            <option value="Cultura">Cultura</option>
+            <option value="Playa">Playa</option>
+            <option value="Montaña">Montaña</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1"
+            >Ubicación</label
+          >
+          <div class="mt-1 border border-slate-700 rounded-md overflow-hidden">
+            <LocationPicker
+              height="200px"
+              initialLocation={newLocationLat !== 0
+                ? { lat: newLocationLat, lng: newLocationLng }
+                : null}
+              on:locationSelect={handleLocationModalSelect}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-700">
+        <button
+          class="btn btn-secondary"
+          on:click={() => (showAddLocationModal = false)}>Cancelar</button
+        >
+        <button class="btn btn-sm" on:click={saveNewLocation}>Guardar</button>
+      </div>
+    </div>
+  </div>
+{/if}
+
 {#if selectedMetadataPhoto}
   <div class="modal-backdrop" on:click|self={closeMetadata}>
     <div class="modal card meta-modal">
@@ -871,7 +1034,7 @@
             <span class="meta-val font-medium text-slate-200"
               >{selectedMetadataPhoto.metadata.exif.dateTimeOriginal
                 ? formatDate(
-                    selectedMetadataPhoto.metadata.exif.dateTimeOriginal
+                    selectedMetadataPhoto.metadata.exif.dateTimeOriginal,
                   )
                 : "Desconocida"}</span
             >
@@ -920,7 +1083,7 @@
                 {/if}
               {:else if selectedMetadataPhoto.metadata.exif.latitude !== null && selectedMetadataPhoto.metadata.exif.longitude !== null}
                 {selectedMetadataPhoto.metadata.exif.latitude.toFixed(6)}, {selectedMetadataPhoto.metadata.exif.longitude.toFixed(
-                  6
+                  6,
                 )}
                 {#if newMetadataLat && newMetadataLng && !editingMetadataLocation}
                   <div class="text-xs text-green-400 mt-1">
