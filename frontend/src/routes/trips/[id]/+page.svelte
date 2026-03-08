@@ -1149,16 +1149,19 @@
       {/if}
     </section>
 
-    <div class="actions">
-      <button class="btn btn-danger" on:click={handleDelete}
+    <div
+      class="flex justify-between items-center mt-12 mb-8 gap-4 border-t border-border pt-6"
+    >
+      <button class="btn btn-danger font-medium" on:click={handleDelete}
         >Eliminar Viaje</button
       >
-      <a href="/trips" class="btn btn-secondary">Volver a Viajes</a>
+      <a href="/trips" class="btn btn-ghost font-medium">Volver a Viajes</a>
     </div>
   </div>
-{:else}
-  <div class="not-found">
-    <h1>Viaje no encontrado</h1>
+  <div
+    class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4"
+  >
+    <h1 class="text-2xl font-bold mb-4">Viaje no encontrado</h1>
     <a href="/trips" class="btn btn-primary">Volver a mis viajes</a>
   </div>
 {/if}
@@ -1192,21 +1195,14 @@
           <label class="block text-sm font-medium text-slate-300 mb-1"
             >Nombre</label
           >
-          <input
-            type="text"
-            bind:value={editTripData.name}
-            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
-          />
+          <input type="text" bind:value={editTripData.name} class="input-box" />
         </div>
 
         <div>
           <label class="block text-sm font-medium text-slate-300 mb-1"
             >Estado</label
           >
-          <select
-            bind:value={editTripData.status}
-            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
-          >
+          <select bind:value={editTripData.status} class="input-box">
             <option value="Planificado">Planificado</option>
             <option value="En curso">En curso</option>
             <option value="Completado">Completado</option>
@@ -1221,7 +1217,7 @@
             <input
               type="date"
               bind:value={editTripData.startDate}
-              class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
+              class="input-box"
             />
           </div>
           <div class="flex-1">
@@ -1238,7 +1234,7 @@
                     new Date().toISOString().split("T")[0]
                 }
               }}
-              class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
+              class="input-box"
             />
           </div>
         </div>
@@ -1250,7 +1246,7 @@
           <textarea
             bind:value={editTripData.description}
             rows="3"
-            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
+            class="input-box"
           />
         </div>
 
@@ -1286,11 +1282,10 @@
       </div>
 
       <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-700">
-        <button
-          class="btn btn-secondary"
-          on:click={() => (isEditingTrip = false)}>Cancelar</button
+        <button class="btn btn-ghost" on:click={() => (isEditingTrip = false)}
+          >Cancelar</button
         >
-        <button class="btn btn-sm" on:click={saveTripEdit}
+        <button class="btn btn-primary" on:click={saveTripEdit}
           >Guardar Cambios</button
         >
       </div>
@@ -1324,7 +1319,7 @@
             type="text"
             bind:value={modalLocationName}
             placeholder="Ej: Torre Eiffel"
-            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white placeholder-slate-500"
+            class="input-box"
           />
         </div>
 
@@ -1334,7 +1329,7 @@
           >
           <textarea
             bind:value={modalLocationDescription}
-            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white placeholder-slate-500"
+            class="input-box"
             rows="2"
             placeholder="Descripción opcional"
           />
@@ -1356,10 +1351,7 @@
           <label class="block text-sm font-medium text-slate-300 mb-1"
             >Categoría</label
           >
-          <select
-            bind:value={modalLocationCategory}
-            class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-white"
-          >
+          <select bind:value={modalLocationCategory} class="input-box">
             <option value="Monumento">Monumento</option>
             <option value="Naturaleza">Naturaleza</option>
             <option value="Ciudad">Ciudad</option>
@@ -1430,15 +1422,15 @@
       <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-700">
         {#if editingLocation}
           <button
-            class="btn btn-danger text-red-500 hover:text-red-400 border-red-500/30 hover:bg-red-500/10 mr-auto"
+            class="btn btn-danger mr-auto"
             on:click={requestDeleteLocation}>Eliminar</button
           >
         {/if}
         <button
-          class="btn btn-secondary"
+          class="btn btn-ghost"
           on:click={() => (showLocationModal = false)}>Cancelar</button
         >
-        <button class="btn btn-sm" on:click={saveLocation}>Guardar</button>
+        <button class="btn btn-primary" on:click={saveLocation}>Guardar</button>
       </div>
     </div>
   </div>

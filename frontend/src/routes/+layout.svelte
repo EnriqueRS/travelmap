@@ -1,12 +1,38 @@
 <script lang="ts">
   import "../app.css"
   import Toast from "$lib/components/ui/Toast.svelte"
-  import { Map, Globe, Compass, User, Home, LogOut, LogIn } from "lucide-svelte"
+  import {
+    Map,
+    Globe,
+    Compass,
+    User,
+    Home,
+    LogOut,
+    LogIn,
+    Palette,
+    Check,
+  } from "lucide-svelte"
   import { currentUser, authService } from "$lib/services/auth"
+  import { themeStore, type ThemeType } from "$lib/stores/ui"
   import { goto } from "$app/navigation"
   import { onMount } from "svelte"
 
   let isInitializing = true
+  let currentTheme: ThemeType
+
+  themeStore.subscribe((value) => {
+    currentTheme = value
+    if (typeof window !== "undefined") {
+      document.body.className = value
+    }
+  })
+
+  function setTheme(t: ThemeType) {
+    themeStore.set(t)
+    showThemeMenu = false
+  }
+
+  let showThemeMenu = false
 
   onMount(async () => {
     if ($currentUser?.access_token) {
@@ -62,6 +88,63 @@
           <span>Perfil</span>
         </a>
 
+        <!-- Theme Switcher -->
+        <div class="relative">
+          <button
+            class="nav-link"
+            on:click={() => (showThemeMenu = !showThemeMenu)}
+            title="Cambiar Tema"
+          >
+            <Palette size={18} />
+          </button>
+
+          {#if showThemeMenu}
+            <div
+              class="absolute right-0 mt-2 w-48 bg-background-secondary border border-border rounded-lg shadow-xl py-2 z-50"
+            >
+              <button
+                class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
+                on:click={() => setTheme("theme-sea-blue")}
+              >
+                <span
+                  class={currentTheme === "theme-sea-blue"
+                    ? "text-accent-primary font-medium"
+                    : "text-text-primary"}>Deep Sea (Gris)</span
+                >
+                {#if currentTheme === "theme-sea-blue"}
+                  <Check size={14} class="text-accent-primary" />
+                {/if}
+              </button>
+              <button
+                class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
+                on:click={() => setTheme("theme-light")}
+              >
+                <span
+                  class={currentTheme === "theme-light"
+                    ? "text-accent-primary font-medium"
+                    : "text-text-primary"}>Light Mode</span
+                >
+                {#if currentTheme === "theme-light"}
+                  <Check size={14} class="text-accent-primary" />
+                {/if}
+              </button>
+              <button
+                class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
+                on:click={() => setTheme("theme-neon-obsidian")}
+              >
+                <span
+                  class={currentTheme === "theme-neon-obsidian"
+                    ? "text-accent-primary font-medium"
+                    : "text-text-primary"}>Neon Obsidian</span
+                >
+                {#if currentTheme === "theme-neon-obsidian"}
+                  <Check size={14} class="text-accent-primary" />
+                {/if}
+              </button>
+            </div>
+          {/if}
+        </div>
+
         {#if $currentUser}
           <button class="nav-link logout-btn" on:click={handleLogout}>
             <LogOut size={18} />
@@ -103,18 +186,14 @@
 
 <style>
   :global(body) {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-      sans-serif;
-    background-color: #0f172a;
-    color: #e2e8f0;
+    /* Base setup handled by app.css */
   }
 
   .navbar {
-    background: rgba(30, 41, 59, 0.8);
+    background: var(--color-bg-secondary);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--color-border);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
@@ -137,13 +216,14 @@
     gap: 0.5rem;
     font-size: 1.5rem;
     font-weight: 700;
-    color: #60a5fa;
+    color: var(--color-accent-primary);
     text-decoration: none;
   }
 
   .nav-links {
     display: flex;
     gap: 1rem;
+    align-items: center;
   }
 
   .nav-link {
@@ -151,16 +231,17 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
+    border-radius: var(--border-radius-base);
     text-decoration: none;
-    color: #cbd5e1;
+    color: var(--color-text-secondary);
     transition: all 0.3s ease;
     border: 1px solid transparent;
+    cursor: pointer;
   }
 
   .nav-link:hover {
-    background-color: #475569;
-    color: #60a5fa;
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-accent-primary);
     transform: translateY(-2px);
   }
 
@@ -169,8 +250,8 @@
   }
 
   .footer {
-    background: #1e293b;
-    border-top: 1px solid #475569;
+    background: var(--color-bg-secondary);
+    border-top: 1px solid var(--color-border);
     margin-top: 4rem;
   }
 
@@ -179,7 +260,7 @@
     margin: 0 auto;
     padding: 2rem;
     text-align: center;
-    color: #94a3b8;
+    color: var(--color-text-secondary);
   }
 
   .footer-content p {
@@ -215,8 +296,8 @@
   }
 
   .demo-badge {
-    background: #f59e0b;
-    color: #0f172a;
+    background: var(--color-accent-hover);
+    color: var(--color-bg-main);
     font-size: 0.75rem;
     padding: 0.1rem 0.5rem;
     border-radius: 9999px;
@@ -226,7 +307,11 @@
   }
 
   .demo-banner {
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    background: linear-gradient(
+      90deg,
+      var(--color-accent-primary),
+      var(--color-accent-hover)
+    );
     color: white;
     text-align: center;
     padding: 0.75rem;
@@ -255,14 +340,14 @@
   }
 
   .login-btn {
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.5);
-    color: #60a5fa;
+    background: rgba(var(--color-accent-primary), 0.1);
+    border: 1px solid var(--color-accent-primary);
+    color: var(--color-accent-primary);
   }
 
   .login-btn:hover {
-    background: rgba(59, 130, 246, 0.2);
-    color: #93c5fd;
+    background: rgba(var(--color-accent-primary), 0.2);
+    color: var(--color-accent-hover);
   }
 
   .loading-screen {
@@ -275,17 +360,17 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: #0f172a;
-    color: #cbd5e1;
+    background-color: var(--color-bg-main);
+    color: var(--color-text-secondary);
     z-index: 9999;
   }
 
   .spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid rgba(255, 255, 255, 0.1);
+    border: 3px solid var(--color-border);
     border-radius: 50%;
-    border-top-color: #60a5fa;
+    border-top-color: var(--color-accent-primary);
     animation: spin 1s ease-in-out infinite;
     margin-bottom: 1rem;
   }

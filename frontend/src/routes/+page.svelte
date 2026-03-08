@@ -1,14 +1,14 @@
 <script lang="ts">
-  import "../app.css";
-  import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
-  import { getToken } from "$lib/services/auth";
+  import "../app.css"
+  import { onMount } from "svelte"
+  import { goto } from "$app/navigation"
+  import { getToken } from "$lib/services/auth"
 
   onMount(() => {
     if (getToken()) {
-      goto("/map");
+      goto("/map")
     }
-  });
+  })
 </script>
 
 <svelte:head>

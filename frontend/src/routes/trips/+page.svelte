@@ -57,7 +57,7 @@
     <div class="trips-grid">
       {#each $trips as trip (trip.id)}
         <div
-          class="trip-card cursor-pointer"
+          class="card cursor-pointer flex flex-col hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
           on:click={() => goto(`/trips/${trip.id}`)}
           on:keydown={(e) => e.key === "Enter" && goto(`/trips/${trip.id}`)}
           tabindex="0"
@@ -145,23 +145,23 @@
     <div class="summary-content">
       <h2>📊 Resumen de Viajes</h2>
       <div class="summary-stats">
-        <div class="summary-card">
+        <div class="card p-6 text-center border-border">
           <div class="summary-number">{stats.total}</div>
           <div class="summary-label">Viajes Totales</div>
         </div>
-        <div class="summary-card">
+        <div class="card p-6 text-center border-border">
           <div class="summary-number">{stats.completed}</div>
           <div class="summary-label">Completados</div>
         </div>
-        <div class="summary-card">
+        <div class="card p-6 text-center border-border">
           <div class="summary-number">{stats.ongoing}</div>
           <div class="summary-label">En Curso</div>
         </div>
-        <div class="summary-card">
+        <div class="card p-6 text-center border-border">
           <div class="summary-number">{stats.locations}</div>
           <div class="summary-label">Ubicaciones</div>
         </div>
-        <div class="summary-card">
+        <div class="card p-6 text-center border-border">
           <div class="summary-number">{stats.countries}</div>
           <div class="summary-label">Países Visitados</div>
         </div>
@@ -173,15 +173,13 @@
 <style>
   .trips-page {
     padding: 2rem 0;
-    background: #1e293b;
-    color: white;
     min-height: 100vh;
   }
 
   .trips-header {
-    background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+    background: var(--color-bg-secondary);
     padding: 2rem;
-    border-bottom: 1px solid #475569;
+    border-bottom: 1px solid var(--color-border);
   }
 
   .header-content {
@@ -213,19 +211,6 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 2rem;
-  }
-
-  .trip-card {
-    background: rgba(30, 41, 59, 0.5);
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid #475569;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .trip-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   }
 
   .trip-image {
@@ -333,9 +318,9 @@
   }
 
   .trips-summary {
-    background: #0f172a;
+    background: var(--color-bg-secondary);
     padding: 2rem;
-    border-top: 1px solid #1e293b;
+    border-top: 1px solid var(--color-border);
     margin-top: 2rem;
   }
 
@@ -349,72 +334,6 @@
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
     margin-top: 1.5rem;
-  }
-
-  .summary-card {
-    background: rgba(30, 41, 59, 0.5);
-    padding: 1.5rem;
-    border-radius: 8px;
-    text-align: center;
-    border: 1px solid #374151;
-  }
-
-  .summary-number {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #60a5fa;
-    margin-bottom: 0.5rem;
-  }
-
-  .summary-label {
-    color: #cbd5e1;
-    font-size: 0.9rem;
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    border: 1px solid #475569;
-    background: #1e293b;
-    color: #cbd5e1;
-    font-size: 0.9rem;
-  }
-
-  .btn-primary {
-    background: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
-  }
-
-  .btn-primary:hover {
-    background: #2563eb;
-    border-color: #2563eb;
-    transform: translateY(-2px);
-  }
-
-  .btn-secondary {
-    background: transparent;
-    color: #60a5fa;
-    border-color: #60a5fa;
-  }
-
-  .btn-secondary:hover {
-    background: rgba(96, 165, 250, 0.1);
-    border-color: #60a5fa;
-  }
-
-  .btn-small {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
-    width: 100%;
-    justify-content: center;
   }
 
   .empty-state {

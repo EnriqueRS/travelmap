@@ -62,7 +62,7 @@
 >
   <button
     type="button"
-    class="dropdown-trigger"
+    class="input-box dropdown-trigger"
     class:disabled
     on:click={toggleDropdown}
   >
@@ -86,6 +86,8 @@
           bind:value={searchQuery}
           placeholder="Buscar..."
           on:click|stopPropagation
+          class="input-box"
+          style="padding-left: 2rem;"
         />
       </div>
 
@@ -122,14 +124,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #0f172a;
-    border: 1px solid #334155;
-    padding: 0.75rem;
-    border-radius: 6px;
-    color: white;
-    font-size: 1rem;
     cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
   }
 
   .dropdown-trigger.disabled {
@@ -139,7 +134,7 @@
 
   .dropdown-trigger:focus-visible {
     outline: none;
-    border-color: #6366f1;
+    border-color: var(--color-accent-primary);
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
   }
 
@@ -167,8 +162,8 @@
     top: calc(100% + 4px);
     left: 0;
     width: 100%;
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
     z-index: 50;
@@ -181,8 +176,8 @@
   .search-box {
     position: relative;
     padding: 0.5rem;
-    border-bottom: 1px solid #334155;
-    background: #0f172a;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg-main);
   }
 
   .search-icon {
@@ -191,21 +186,6 @@
     top: 50%;
     transform: translateY(-50%);
     color: #64748b;
-  }
-
-  .search-box input {
-    width: 100%;
-    background: #1e293b;
-    border: 1px solid #334155;
-    padding: 0.4rem 0.4rem 0.4rem 2rem;
-    border-radius: 4px;
-    color: white;
-    font-size: 0.9rem;
-  }
-
-  .search-box input:focus {
-    outline: none;
-    border-color: #6366f1;
   }
 
   .options-list {
@@ -224,7 +204,7 @@
     padding: 0.5rem 0.75rem;
     background: transparent;
     border: none;
-    color: #e2e8f0;
+    color: var(--color-text-primary);
     font-size: 0.95rem;
     cursor: pointer;
     text-align: left;
@@ -232,12 +212,12 @@
   }
 
   .option-btn:hover {
-    background: #334155;
+    background: var(--color-bg-hover);
   }
 
   .option-btn.selected {
     background: rgba(99, 102, 241, 0.15);
-    color: #818cf8;
+    color: var(--color-accent-primary);
   }
 
   .option-flag {

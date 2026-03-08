@@ -9,6 +9,24 @@ export default {
   theme: {
     extend: {
       colors: {
+        background: {
+          main: 'var(--color-bg-main)',
+          secondary: 'var(--color-bg-secondary)',
+          tertiary: 'var(--color-bg-tertiary)',
+        },
+        text: {
+          primary: 'var(--color-text-primary)',
+          secondary: 'var(--color-text-secondary)',
+          muted: 'var(--color-text-muted)',
+        },
+        accent: {
+          primary: 'var(--color-accent-primary)',
+          hover: 'var(--color-accent-hover)',
+        },
+        border: {
+          DEFAULT: 'var(--color-border)',
+          light: 'var(--color-border-light)',
+        },
         primary: {
           50: '#eff6ff',
           100: '#dbeafe',

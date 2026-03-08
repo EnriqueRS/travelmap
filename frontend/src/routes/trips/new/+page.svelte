@@ -80,6 +80,7 @@
           bind:value={name}
           required
           placeholder="Ej: Verano en Italia"
+          class="input-box"
         />
       </div>
 
@@ -90,6 +91,7 @@
           bind:value={description}
           rows="3"
           placeholder="Describe brevemente tu viaje..."
+          class="input-box"
         />
       </div>
 
@@ -149,7 +151,7 @@
 
       <div class="form-group">
         <label for="status">Estado</label>
-        <select id="status" bind:value={status}>
+        <select id="status" bind:value={status} class="input-box">
           <option value="Planificado">Planificado</option>
           <option value="En curso">En curso</option>
           <option value="Completado">Completado</option>
@@ -157,7 +159,7 @@
       </div>
 
       <div class="form-actions">
-        <a href="/trips" class="btn btn-secondary">Cancelar</a>
+        <a href="/trips" class="btn btn-ghost border border-border">Cancelar</a>
         <button type="submit" class="btn btn-primary">Crear Viaje</button>
       </div>
     </form>
@@ -182,11 +184,11 @@
   }
 
   .form-container {
-    background: #1e293b;
+    background: var(--color-bg-secondary);
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid #334155;
+    border: 1px solid var(--color-border);
   }
 
   .form-group {
@@ -196,30 +198,8 @@
   label {
     display: block;
     margin-bottom: 0.5rem;
-    color: #cbd5e1;
+    color: var(--color-text-secondary);
     font-weight: 500;
-  }
-
-  input,
-  textarea,
-  select {
-    width: 100%;
-    padding: 0.75rem;
-    border-radius: 8px;
-    border: 1px solid #475569;
-    background: #0f172a;
-    color: white;
-    font-family: inherit;
-    transition: border-color 0.2s;
-    box-sizing: border-box; /* Fix for width 100% pushing layout */
-  }
-
-  input:focus,
-  textarea:focus,
-  select:focus {
-    outline: none;
-    border-color: #60a5fa;
-    background: #1e293b;
   }
 
   .row {
@@ -234,41 +214,7 @@
     gap: 1rem;
     margin-top: 2rem;
     padding-top: 1rem;
-    border-top: 1px solid #334155;
-  }
-
-  .btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-
-  .btn-primary {
-    background: #3b82f6;
-    color: white;
-  }
-
-  .btn-primary:hover {
-    background: #2563eb;
-  }
-
-  .btn-secondary {
-    background: transparent;
-    color: #cbd5e1;
-    border: 1px solid #475569;
-  }
-
-  .btn-secondary:hover {
-    background: #334155;
-    color: white;
+    border-top: 1px solid var(--color-border);
   }
 
   .country-selector {

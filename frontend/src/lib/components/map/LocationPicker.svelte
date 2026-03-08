@@ -120,14 +120,14 @@
   <div class="search-row">
     <input
       type="text"
-      class="search-input"
-      placeholder="Buscar ciudad, dirección..."
       bind:value={searchQuery}
       on:keydown={(e) => e.key === "Enter" && handleSearch()}
+      placeholder="Buscar lugar (ej. Torre Eiffel, París)"
+      class="input-box pr-10"
     />
     <button
       type="button"
-      class="search-btn"
+      class="btn btn-primary"
       disabled={searchLoading || !searchQuery.trim()}
       on:click={handleSearch}
       title="Buscar ubicación"
@@ -155,45 +155,6 @@
     display: flex;
     gap: 0.5rem;
     margin-bottom: 0.5rem;
-  }
-  .search-input {
-    flex: 1;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid rgba(71, 85, 105, 0.6);
-    border-radius: 8px;
-    background: rgba(30, 41, 59, 0.8);
-    color: #e2e8f0;
-    font-size: 0.875rem;
-    font-family: inherit;
-  }
-  .search-input::placeholder {
-    color: #64748b;
-  }
-  .search-input:focus {
-    outline: none;
-    border-color: rgba(96, 165, 250, 0.8);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-  }
-  .search-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.5rem 0.75rem;
-    border: none;
-    border-radius: 8px;
-    background: #3b82f6;
-    color: #fff;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .search-btn:hover:not(:disabled) {
-    background: #2563eb;
-  }
-  .search-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
   }
   .search-error {
     margin: 0 0 0.5rem 0;
