@@ -10,7 +10,8 @@
   } from "$lib/stores/data"
   import { goto } from "$app/navigation"
   import { formatDate } from "$lib/utils/formatters"
-  import { getCountryFlag } from "$lib/utils/countries"
+  import { getCountryFlag, getCountryName } from "$lib/utils/countries"
+  import { languageStore } from "$lib/stores/ui"
   import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
   import AlbumModal from "$lib/components/ui/AlbumModal.svelte"
   import CountryPicker from "$lib/components/ui/CountryPicker.svelte"
@@ -40,6 +41,7 @@
 
   import { tripsService } from "$lib/services/trips"
   import { locationsService } from "$lib/services/locations"
+  import { t } from "$lib/stores/i18n"
 
   $: tripId = $page.params.id
   $: trip = $trips.find((t) => t.id === tripId)
@@ -108,15 +110,15 @@
       if (country) {
         modalLocationCountry = country
       }
-      toast.success("Foto vinculada y coordenadas extraídas del GPS")
+      toast.success($t("trip.photoLinkedGps"))
     } else {
-      toast.success("Foto vinculada al lugar (sin ubicación GPS)")
+      toast.success($t("trip.photoLinkedNoGps"))
     }
   }
 
   async function saveLocation() {
-    if (!modalLocationName || !modalLocationCountry) {
-      toast.error("Nombre y País son obligatorios")
+    if (!modalLocationName) {
+      toast.error($t("form.nameRequired"))
       return
     }
 
@@ -155,7 +157,7 @@
         console.error("[saveLocation] Failed to persist update:", err)
       }
 
-      toast.success("Lugar actualizado correctamente")
+      toast.success($t("trip.locationUpdated"))
     } else {
       // --- ADD MODE ---
       const newLocId = crypto.randomUUID()
@@ -216,7 +218,7 @@
         console.error("[saveLocation] Failed to update trip countries:", err)
       }
 
-      toast.success("Lugar añadido correctamente")
+      toast.success($t("trip.locationAdded"))
     }
 
     showLocationModal = false
@@ -254,12 +256,12 @@
         }),
       )
 
-      toast.success("Lugar eliminado correctamente")
+      toast.success($t("trip.locationDeleted"))
       showLocationModal = false
       editingLocation = null
     } catch (err) {
       console.error("[deleteLocation] Failed to delete location:", err)
-      toast.error("Error al eliminar el lugar")
+      toast.error($t("trip.errorDeletingLocation"))
     }
   }
 
@@ -296,7 +298,7 @@
 
   async function saveBatchLocation() {
     if (!batchSelectedCoords) {
-      toast.error("Por favor, selecciona una ubicación en el mapa primero.")
+      toast.error($t("trip.selectLocationPrompt"))
       return
     }
 
@@ -315,7 +317,9 @@
 
     try {
       await mediaService.batchUpdatePhotos(selectedPhotosIds, updatedData)
-      toast.success(`Ubicación añadida a ${selectedPhotosIds.length} fotos`)
+      toast.success(
+        $t("trip.batchGpsSuccess", { count: selectedPhotosIds.length }),
+      )
 
       photos = photos.map((p) => {
         if (selectedPhotosIds.includes(p.id)) {
@@ -341,7 +345,7 @@
       batchSelectedCoords = null
     } catch (err) {
       console.error("[saveBatchLocation] Error:", err)
-      toast.error("Error al actualizar la ubicación en lote")
+      toast.error($t("trip.batchGpsError"))
     }
   }
 
@@ -372,16 +376,16 @@
     addCountryToEdit()
 
     if (!editTripData.name.trim()) {
-      toast.error("El nombre es requerido")
+      toast.error($t("form.nameRequired"))
       return
     }
     if (!editTripData.startDate) {
-      toast.error("Fecha de inicio requerida")
+      toast.error($t("form.startDateRequired"))
       return
     }
 
     try {
-      toast.info("Guardando...")
+      toast.info($t("form.saving"))
       await tripsService.updateTrip(tripId, editTripData)
 
       trips.update((allTrips) =>
@@ -396,10 +400,10 @@
         }),
       )
       isEditingTrip = false
-      toast.success("Viaje actualizado correctamente")
+      toast.success($t("trip.tripUpdated"))
     } catch (error) {
-      console.error("Error al actualizar el viaje:", error)
-      toast.error("Hubo un error al guardar los cambios en la nube.")
+      console.error($t("trip.errorUpdatingTrip"), error)
+      toast.error($t("trip.tripUpdateError"))
     }
   }
 
@@ -422,7 +426,7 @@
   }
 
   function handleDelete() {
-    if (confirm("¿Estás seguro de que quieres eliminar este viaje?")) {
+    if (confirm($t("trip.deleteConfirm"))) {
       trips.update((current) => current.filter((t) => t.id !== tripId))
       goto("/trips")
     }
@@ -482,8 +486,8 @@
       try {
         photos = await mediaService.getTripPhotos(tripId)
       } catch (e) {
-        console.error("Error cargando fotos", e)
-        toast.error("Error al actualizar galería")
+        console.error($t("trip.errorLoadingPhotos"), e)
+        toast.error($t("trip.errorRefreshingGallery"))
       }
     }
   }
@@ -491,7 +495,7 @@
   async function handleFileUpload(e: Event) {
     const input = e.target as HTMLInputElement
     if (input.files && input.files.length > 0) {
-      toast.info("Subiendo imagen...")
+      toast.info($t("trip.uploading"))
       try {
         const newPhoto = await mediaService.uploadLocalPhoto(
           tripId,
@@ -499,10 +503,10 @@
         )
         photos = [newPhoto, ...photos]
         input.value = "" // Reset
-        toast.success("Foto subida correctamente")
+        toast.success($t("trip.uploadSuccess"))
       } catch (err) {
-        console.error("Error subiendo foto", err)
-        toast.error("Error al subir la imagen")
+        console.error($t("trip.errorUploadingPhoto"), err)
+        toast.error($t("trip.uploadError"))
       }
     }
   }
@@ -512,7 +516,7 @@
 
     // Auto-prompt GPS if missing
     if (!photo.showOnMap && !photo.metadata?.exif?.latitude) {
-      toast.error("Por favor, añade una ubicación GPS a esta foto primero")
+      toast.error($t("trip.addGpsPrompt"))
       selectedPhotosIds = [photo.id]
       isSelectionMode = true
       showBatchLocationModal = true
@@ -531,9 +535,11 @@
       const newIndex = displayedPhotos.findIndex((p) => p.id === photoId)
       if (newIndex !== -1) activeIndex = newIndex
 
-      toast.success(updated.showOnMap ? "Añadida al mapa" : "Ocultada del mapa")
+      toast.success(
+        updated.showOnMap ? $t("trip.addedToMap") : $t("trip.hiddenFromMap"),
+      )
     } catch (err) {
-      toast.error("Error al actualizar la foto")
+      toast.error($t("trip.errorUpdatingPhoto"))
     }
   }
 
@@ -551,10 +557,10 @@
       if (newIndex !== -1) activeIndex = newIndex
 
       toast.success(
-        updated.isHidden ? "Foto oculta de la galería" : "Foto restaurada",
+        updated.isHidden ? $t("trip.photoHidden") : $t("trip.photoRestored"),
       )
     } catch (err) {
-      toast.error("Error al ocultar la foto")
+      toast.error($t("trip.errorHidingPhoto"))
     }
   }
 
@@ -581,9 +587,10 @@
         )
       }
       activeIndex = 0
-      toast.success("Portada actualizada")
+      toast.success($t("trip.coverUpdated"))
     } catch (err) {
-      toast.error("Error al establecer la portada")
+      console.error($t("trip.errorSettingCover"), err)
+      toast.error($t("trip.errorSettingCover"))
     }
   }
 
@@ -596,7 +603,7 @@
       immichAlbums = await integrationsService.getImmichAlbums()
       showImmichModal = true
     } catch (e) {
-      toast.error("Error. Asegúrate de haber conectado Immich en tu Perfil.")
+      toast.error($t("trip.immichConnectError"))
     }
   }
 
@@ -604,7 +611,7 @@
     const selectedAlbumId = event.detail.albumId
     if (!selectedAlbumId) return
     isLinkingInfo = true
-    toast.info("Importando fotos de Immich...")
+    toast.info($t("trip.importingImmichPhotos"))
     try {
       const assets = await integrationsService.getImmichAlbumAssets(
         selectedAlbumId,
@@ -629,10 +636,10 @@
         count++
       }
       showImmichModal = false
-      toast.success(`Se importaron ${count} fotos del álbum.`)
+      toast.success($t("trip.immichImportSuccess", { count }))
     } catch (err) {
       console.error(err)
-      toast.error("Error importando el álbum.")
+      toast.error($t("trip.immichImportError"))
     } finally {
       isLinkingInfo = false
     }
@@ -640,7 +647,7 @@
 
   async function handleUnlinkAlbum() {
     isUnlinkingAlbum = true
-    toast.info("Comprobando álbumes vinculados...")
+    toast.info($t("trip.checkingLinkedAlbums"))
     try {
       const allAlbums = await integrationsService.getImmichAlbums()
 
@@ -672,7 +679,7 @@
       immichAlbums = allAlbums.filter((a: any) => a.isLinked)
       showUnlinkModal = true
     } catch (e) {
-      toast.error("Error cargando álbumes de Immich.")
+      toast.error($t("trip.errorLoadingImmichAlbums"))
     } finally {
       isUnlinkingAlbum = false
     }
@@ -685,7 +692,7 @@
     if (!selectedAlbumId) return
 
     isUnlinkingAlbum = true
-    toast.info("Desvinculando fotos del álbum seleccionado...")
+    toast.info($t("trip.unlinkingAlbumPhotos"))
 
     try {
       // 1. Get the assets for the selected album
@@ -715,10 +722,10 @@
       // Remove them from local state
       photos = photos.filter((p) => !photosToDelete.includes(p))
       showUnlinkModal = false
-      toast.success(`Se eliminaron ${deletedCount} fotos del álbum.`)
+      toast.success($t("trip.albumUnlinkSuccess", { count: deletedCount }))
     } catch (err) {
       console.error(err)
-      toast.error("Error al desvincular el álbum.")
+      toast.error($t("trip.errorUnlinkingAlbum"))
     } finally {
       isUnlinkingAlbum = false
     }
@@ -733,7 +740,7 @@
   async function saveMetadataLocation() {
     if (!selectedMetadataPhoto || !newMetadataLat || !newMetadataLng) return
     try {
-      toast.info("Guardando ubicación...")
+      toast.info($t("trip.savingLocation"))
       const updatedExif = {
         ...selectedMetadataPhoto.metadata?.exif,
         latitude: newMetadataLat,
@@ -755,10 +762,10 @@
       selectedMetadataPhoto = updatedPhoto
 
       editingMetadataLocation = false
-      toast.success("Ubicación guardada")
+      toast.success($t("trip.locationSaved"))
     } catch (err) {
-      console.error(err)
-      toast.error("Error al guardar la ubicación")
+      console.error($t("trip.errorSavingLocation"), err)
+      toast.error($t("trip.errorSavingLocation"))
     }
   }
 
@@ -797,35 +804,40 @@
         {/if}
       </div>
       <div class="header-content">
-        <div class="badge {getStatusColor(trip.status)}">{trip.status}</div>
+        <div class="badge {getStatusColor(trip.status)}">
+          {$t(`status.${trip.status}`)}
+        </div>
         <h1>{trip.name}</h1>
         <p class="dates">
           {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
         </p>
         <div class="countries">
           {#each trip.countries as country}
-            <span class="country-tag">{getCountryFlag(country)} {country}</span>
+            <span class="country-tag"
+              >{getCountryFlag(country)}
+              {getCountryName(country, $languageStore)}</span
+            >
           {/each}
         </div>
         <button
           class="btn btn-sm btn-secondary mx-auto mt-4 block"
           on:click={startEditTrip}
         >
-          Editar Info
+          {$t("trip.editInfo")}
         </button>
       </div>
     </header>
 
     <section class="description-section">
-      <h2>Acerca del viaje</h2>
+      <h2>{$t("trip.about")}</h2>
       <p>{trip.description}</p>
     </section>
 
     <section class="locations-section">
       <div class="section-header">
-        <h2>Lugares Visitados</h2>
+        <h2>{$t("trip.locationsTitle")}</h2>
         <button on:click={openAddLocation} class="btn btn-sm"
-          >Añadir Lugar</button
+          >{$t("trip.addLocation")}</button
         >
       </div>
 
@@ -872,7 +884,8 @@
                 <h3>{getCategoryEmoji(location.category)} {location.name}</h3>
                 <p class="location-country">
                   {#if location.country}
-                    {getCountryFlag(location.country)} {location.country}
+                    {getCountryFlag(location.country)}
+                    {getCountryName(location.country, $languageStore)}
                   {/if}
                 </p>
               </div>
@@ -881,7 +894,7 @@
         </div>
       {:else}
         <div class="empty-state">
-          <p>No hay lugares registrados en este viaje aún.</p>
+          <p>{$t("trip.emptyLocations")}</p>
         </div>
       {/if}
     </section>
@@ -898,7 +911,7 @@
           <div class="bg-blue-500/20 p-2 rounded-full">
             <Eye class="text-blue-400" size={24} />
           </div>
-          Galería Fotográfica
+          {$t("trip.galleryTitle")}
         </h2>
 
         <div class="actions-group flex flex-wrap gap-3 items-center w-full">
@@ -909,9 +922,9 @@
             on:click={() => (showHiddenPhotos = !showHiddenPhotos)}
           >
             {#if showHiddenPhotos}
-              <Eye size={16} /> Mostrar Ocultas
+              <Eye size={16} /> {$t("trip.hideHidden")}
             {:else}
-              <EyeOff size={16} /> Ocultar de Galería
+              <EyeOff size={16} /> {$t("trip.showHidden")}
             {/if}
           </button>
 
@@ -929,7 +942,8 @@
             class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors shadow-sm shadow-blue-500/20"
             on:click={() => fileInput.click()}
           >
-            <Upload size={16} /> Subir Foto
+            <Upload size={16} />
+            {$t("trip.uploadPhoto")}
           </button>
 
           <div
@@ -939,7 +953,7 @@
               class="flex items-center justify-center p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-colors"
               on:click={openImmichModal}
               disabled={isLinkingInfo || isUnlinkingAlbum}
-              title="Vincular Álbum"
+              title={$t("trip.linkAlbum")}
             >
               <LinkIcon size={16} />
             </button>
@@ -960,7 +974,9 @@
             on:click={toggleSelectionMode}
           >
             <CheckSquare size={16} />
-            {isSelectionMode ? "Cancelar Selección" : "Seleccionar"}
+            {isSelectionMode
+              ? $t("trip.cancelSelection")
+              : $t("trip.selectMultiple")}
           </button>
 
           {#if isSelectionMode && selectedPhotosIds.length > 0}
@@ -968,7 +984,8 @@
               class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-green-600/20 text-green-400 border border-green-600/30 hover:bg-green-600/30 transition-colors ml-auto"
               on:click={openBatchLocationPicker}
             >
-              <MapPin size={16} /> Añadir GPS ({selectedPhotosIds.length})
+              <MapPin size={16} />
+              {$t("trip.batchGps")} ({selectedPhotosIds.length})
             </button>
           {/if}
 
@@ -979,7 +996,7 @@
               disabled={isLinkingInfo || isUnlinkingAlbum}
             >
               <Trash2 size={16} />
-              {isUnlinkingAlbum ? "Desvinculando..." : "Desvincular Álbum"}
+              {isUnlinkingAlbum ? $t("trip.unlinking") : $t("trip.unlinkAlbum")}
             </button>
           {/if}
         </div>
@@ -1013,7 +1030,7 @@
                   </div>
                 {/key}
                 {#if selectedPhoto.isCover}
-                  <span class="cover-badge">PORTADA</span>
+                  <span class="cover-badge">{$t("trip.coverBadge")}</span>
                 {/if}
                 {#if selectedPhoto.provider === "immich"}
                   <img src="/immich.png" alt="Immich" class="provider-badge" />
@@ -1070,7 +1087,7 @@
                       {#if !displayedPhotos[i].metadata?.exif?.latitude}
                         <div
                           class="absolute top-1.5 right-1.5 bg-yellow-500/90 rounded-full p-1 shadow flex items-center justify-center"
-                          title="Sin ubicación GPS"
+                          title={$t("trip.noGpsTitle")}
                         >
                           <AlertTriangle size={12} class="text-slate-900" />
                         </div>
@@ -1098,9 +1115,9 @@
                   on:click={() => toggleMapVisibility(selectedPhoto)}
                 >
                   {#if selectedPhoto.showOnMap}
-                    <MapPin size={16} /> Ocultar del Mapa
+                    <MapPin size={16} /> {$t("trip.hideFromMap")}
                   {:else}
-                    <MapPinOff size={16} /> Mostrar en Mapa
+                    <MapPinOff size={16} /> {$t("trip.addToMap")}
                   {/if}
                 </button>
 
@@ -1110,7 +1127,8 @@
                       class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-amber-400 border border-amber-500/40 hover:bg-amber-500/10 transition-colors"
                       on:click={() => setCover(selectedPhoto)}
                     >
-                      <Star size={16} /> Hacer Portada
+                      <Star size={16} />
+                      {$t("trip.makeCover")}
                     </button>
                   {/if}
 
@@ -1119,7 +1137,8 @@
                       class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-transparent text-slate-300 border border-slate-700/50 hover:bg-slate-800/50 transition-colors"
                       on:click={() => showMetadata(selectedPhoto)}
                     >
-                      <Info size={16} /> Info
+                      <Info size={16} />
+                      {$t("trip.info")}
                     </button>
                   {/if}
 
@@ -1131,8 +1150,8 @@
                   >
                     <Trash2 size={16} />
                     {selectedPhoto.isHidden
-                      ? "Mostrar en Galería"
-                      : "Ocultar de Galería"}
+                      ? $t("trip.showInGallery")
+                      : $t("trip.removeFromGallery")}
                   </button>
                 </div>
               </div>
@@ -1142,8 +1161,7 @@
       {:else}
         <div class="empty-state">
           <p>
-            Aún no hay fotos {showHiddenPhotos ? "" : "visibles"} en este viaje.
-            Sube algunas de tus mejores tomas locales o conéctalo con tu librería.
+            {$t("trip.emptyGallery")}
           </p>
         </div>
       {/if}
@@ -1153,16 +1171,17 @@
       class="flex justify-between items-center mt-12 mb-8 gap-4 border-t border-border pt-6"
     >
       <button class="btn btn-danger font-medium" on:click={handleDelete}
-        >Eliminar Viaje</button
+        >{$t("trip.deleteTrip")}</button
       >
-      <a href="/trips" class="btn btn-ghost font-medium">Volver a Viajes</a>
+      <a href="/trips" class="btn btn-ghost font-medium">{$t("trip.back")}</a>
     </div>
   </div>
+{:else}
   <div
     class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4"
   >
-    <h1 class="text-2xl font-bold mb-4">Viaje no encontrado</h1>
-    <a href="/trips" class="btn btn-primary">Volver a mis viajes</a>
+    <h1 class="text-2xl font-bold mb-4">{$t("trip.notFound")}</h1>
+    <a href="/trips" class="btn btn-primary">{$t("trip.backToTrips")}</a>
   </div>
 {/if}
 
@@ -1183,7 +1202,7 @@
       class="modal card meta-modal w-full max-w-lg bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl overflow-y-auto max-h-[90vh] text-left"
     >
       <header class="modal-header flex justify-between items-center mb-6">
-        <h3 class="text-xl font-bold text-white m-0">Editar Viaje</h3>
+        <h3 class="text-xl font-bold text-white m-0">{$t("trip.editTrip")}</h3>
         <button
           class="text-slate-400 hover:text-white"
           on:click={() => (isEditingTrip = false)}>&times;</button
@@ -1193,26 +1212,26 @@
       <div class="flex flex-col gap-4">
         <div>
           <label class="block text-sm font-medium text-slate-300 mb-1"
-            >Nombre</label
+            >{$t("form.name")}</label
           >
           <input type="text" bind:value={editTripData.name} class="input-box" />
         </div>
 
         <div>
           <label class="block text-sm font-medium text-slate-300 mb-1"
-            >Estado</label
+            >{$t("trip.status")}</label
           >
           <select bind:value={editTripData.status} class="input-box">
-            <option value="Planificado">Planificado</option>
-            <option value="En curso">En curso</option>
-            <option value="Completado">Completado</option>
+            <option value="Planificado">{$t("status.Planificado")}</option>
+            <option value="En curso">{$t("status.En curso")}</option>
+            <option value="Completado">{$t("status.Completado")}</option>
           </select>
         </div>
 
         <div class="flex gap-4">
           <div class="flex-1">
             <label class="block text-sm font-medium text-slate-300 mb-1"
-              >Inicio</label
+              >{$t("form.startDate")}</label
             >
             <input
               type="date"
@@ -1222,7 +1241,7 @@
           </div>
           <div class="flex-1">
             <label class="block text-sm font-medium text-slate-300 mb-1"
-              >Fin</label
+              >{$t("form.endDate")}</label
             >
             <input
               type="date"
@@ -1241,7 +1260,7 @@
 
         <div>
           <label class="block text-sm font-medium text-slate-300 mb-1"
-            >Descripción</label
+            >{$t("form.description")}</label
           >
           <textarea
             bind:value={editTripData.description}
@@ -1252,7 +1271,7 @@
 
         <div>
           <label class="block text-sm font-medium text-slate-300 mb-1"
-            >Países</label
+            >{$t("form.countries")}</label
           >
           <div class="flex gap-2 mb-2">
             <CountryPicker id="edit-country" bind:value={countryInputValue} />
@@ -1261,7 +1280,7 @@
               on:click={addCountryToEdit}
             >
               <Plus size={16} />
-              Añadir
+              {$t("form.add")}
             </button>
           </div>
           <div class="flex flex-wrap gap-2">
@@ -1269,7 +1288,7 @@
               <span
                 class="inline-flex items-center gap-1 bg-slate-700 text-sm px-2 py-1 rounded-md text-white border border-slate-600"
               >
-                {country}
+                {getCountryName(country, $languageStore)}
                 <button
                   class="text-red-400 hover:text-red-300 text-xs ml-1"
                   on:click={() => removeCountryFromEdit(country)}
@@ -1283,10 +1302,10 @@
 
       <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-700">
         <button class="btn btn-ghost" on:click={() => (isEditingTrip = false)}
-          >Cancelar</button
+          >{$t("form.cancel")}</button
         >
         <button class="btn btn-primary" on:click={saveTripEdit}
-          >Guardar Cambios</button
+          >{$t("form.saveChanges")}</button
         >
       </div>
     </div>
@@ -1302,7 +1321,7 @@
     >
       <header class="modal-header flex justify-between items-center mb-6">
         <h3 class="text-xl font-bold text-white m-0">
-          {editingLocation ? "Editar Lugar" : "Añadir Lugar"}
+          {editingLocation ? $t("trip.editLocation") : $t("trip.addLocation")}
         </h3>
         <button
           class="text-slate-400 hover:text-white"
@@ -1313,47 +1332,49 @@
       <div class="flex flex-col gap-4">
         <div>
           <label class="block text-sm font-medium text-slate-300 mb-1"
-            >Nombre</label
+            >{$t("form.name")}</label
           >
           <input
             type="text"
             bind:value={modalLocationName}
-            placeholder="Ej: Torre Eiffel"
+            placeholder="..."
             class="input-box"
           />
         </div>
 
         <div>
           <label class="block text-sm font-medium text-slate-300 mb-1"
-            >Descripción</label
+            >{$t("form.description")}</label
           >
           <textarea
             bind:value={modalLocationDescription}
             class="input-box"
             rows="2"
-            placeholder="Descripción opcional"
+            placeholder="..."
           />
         </div>
 
         <div>
           <label class="block text-sm font-medium text-slate-300 mb-1"
-            >Categoría</label
+            >{$t("form.category")}</label
           >
           <select bind:value={modalLocationCategory} class="input-box">
-            <option value="Monumento">Monumento</option>
-            <option value="Naturaleza">Naturaleza</option>
-            <option value="Ciudad">Ciudad</option>
-            <option value="Ciudad de escala">Ciudad de escala</option>
-            <option value="Cultura">Cultura</option>
-            <option value="Playa">Playa</option>
-            <option value="Montaña">Montaña</option>
-            <option value="Otro">Otro</option>
+            <option value="Monumento">{$t("categories.Monumento")}</option>
+            <option value="Naturaleza">{$t("categories.Naturaleza")}</option>
+            <option value="Ciudad">{$t("categories.Ciudad")}</option>
+            <option value="Ciudad de escala"
+              >{$t("categories.Ciudad de escala")}</option
+            >
+            <option value="Cultura">{$t("categories.Cultura")}</option>
+            <option value="Playa">{$t("categories.Playa")}</option>
+            <option value="Montaña">{$t("categories.Montaña")}</option>
+            <option value="Otro">{$t("categories.Otro")}</option>
           </select>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-slate-300 mb-2"
-            >Vincular con Foto (Opcional)</label
+            >{$t("trip.linkPhotoOptional")}</label
           >
           {#if displayedPhotos.length > 0}
             <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
@@ -1382,28 +1403,18 @@
           {/if}
         </div>
 
-        {#if modalLocationCountry}
-          <span class="country-tag"
-            >{getCountryFlag(modalLocationCountry)} {modalLocationCountry}</span
-          >
-          <!-- <div>
-            <label class="block text-sm font-medium text-slate-300 mb-1"
-              >{editingLocation ? "País" : "País detectado"}</label
-            >
-            <div
-              class="w-full bg-slate-900/50 border border-slate-700 rounded-md p-2 text-slate-400 min-h-[42px] content-center"
-            >
-              {modalLocationCountry ||
-                "Selecciona un punto en el mapa para detectar"}
-            </div>
-          </div> -->
-        {/if}
-
         <div>
           <label
             class="flex justify-between items-center text-sm font-medium text-slate-300 mb-1"
           >
-            <span>Ubicación</span>
+            <span>{$t("trip.location")}</span>
+
+            {#if modalLocationCountry}
+              <span class="country-tag"
+                >{getCountryFlag(modalLocationCountry)}
+                {getCountryName(modalLocationCountry, $languageStore)}</span
+              >
+            {/if}
             {#if modalLocationLat && modalLocationLng}
               <span
                 class="text-xs font-normal text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700"
@@ -1428,14 +1439,17 @@
         {#if editingLocation}
           <button
             class="btn btn-danger mr-auto"
-            on:click={requestDeleteLocation}>Eliminar</button
+            on:click={requestDeleteLocation}>{$t("form.delete")}</button
           >
         {/if}
         <button
           class="btn btn-ghost"
-          on:click={() => (showLocationModal = false)}>Cancelar</button
+          on:click={() => (showLocationModal = false)}
+          >{$t("form.cancel")}</button
         >
-        <button class="btn btn-primary" on:click={saveLocation}>Guardar</button>
+        <button class="btn btn-sm" on:click={saveLocation}
+          >{$t("form.save")}</button
+        >
       </div>
     </div>
   </div>
@@ -1448,7 +1462,8 @@
         class="modal-header flex flex-row justify-between items-start border-b border-slate-700 pb-3 mb-4"
       >
         <h3 class="text-xl font-semibold flex items-center gap-2">
-          <MapPin size={20} class="text-blue-400" /> Info. Fotográfica
+          <MapPin size={20} class="text-blue-400" />
+          {$t("trip.photoInfo")}
         </h3>
         <button
           class="close-btn text-slate-400 hover:text-white text-2xl leading-none"
@@ -1462,10 +1477,10 @@
           >
             <span
               class="meta-label text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1"
-              >Dispositivo</span
+              >{$t("trip.device")}</span
             >
             <span class="meta-val font-medium text-slate-200"
-              >{selectedMetadataPhoto.metadata.exif.make || "Desconocido"}
+              >{selectedMetadataPhoto.metadata.exif.make || $t("trip.unknown")}
               {selectedMetadataPhoto.metadata.exif.model || ""}</span
             >
           </div>
@@ -1474,14 +1489,14 @@
           >
             <span
               class="meta-label text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1"
-              >Fecha de captura</span
+              >{$t("trip.captureDate")}</span
             >
             <span class="meta-val font-medium text-slate-200"
               >{selectedMetadataPhoto.metadata.exif.dateTimeOriginal
                 ? formatDate(
                     selectedMetadataPhoto.metadata.exif.dateTimeOriginal,
                   )
-                : "Desconocida"}</span
+                : $t("trip.unknown")}</span
             >
           </div>
           <div
@@ -1490,7 +1505,7 @@
             <div class="flex justify-between items-center mb-1">
               <span
                 class="meta-label text-xs text-slate-400 uppercase tracking-wider font-semibold"
-                >Ubicación (Lat/Lng)</span
+                >{$t("trip.location")} (Lat/Lng)</span
               >
               <button
                 class="text-xs text-blue-400 hover:text-blue-300 font-medium"
@@ -1498,8 +1513,8 @@
                   (editingMetadataLocation = !editingMetadataLocation)}
               >
                 {editingMetadataLocation
-                  ? "Cancelar Edición"
-                  : "Editar Ubicación"}
+                  ? $t("trip.cancelEdit")
+                  : $t("trip.editLocation")}
               </button>
             </div>
             <span class="meta-val font-medium text-slate-200">
@@ -1523,7 +1538,8 @@
                     class="btn btn-sm w-full py-2"
                     on:click={saveMetadataLocation}
                   >
-                    <MapPin size={16} /> Guardar Ubicación
+                    <MapPin size={16} />
+                    {$t("trip.saveLocation")}
                   </button>
                 {/if}
               {:else if selectedMetadataPhoto.metadata.exif.latitude !== null && selectedMetadataPhoto.metadata.exif.longitude !== null}
@@ -1532,7 +1548,7 @@
                 )}
                 {#if newMetadataLat && newMetadataLng && !editingMetadataLocation}
                   <div class="text-xs text-green-400 mt-1">
-                    Ubicación Actualizada en este dispositivo.
+                    {$t("trip.locationUpdatedLocally")}
                   </div>
                 {/if}
                 {#if !editingMetadataLocation}
@@ -1545,7 +1561,7 @@
                   </div>
                 {/if}
               {:else}
-                No disponible en EXIF
+                {$t("trip.notAvailableExif")}
               {/if}
             </span>
           </div>
@@ -1554,11 +1570,11 @@
           >
             <span
               class="meta-label text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1"
-              >Lente</span
+              >{$t("trip.lens")}</span
             >
             <span class="meta-val font-medium text-slate-200"
               >{selectedMetadataPhoto.metadata.exif.lensModel ||
-                "Desconocido"}</span
+                $t("trip.unknown")}</span
             >
           </div>
         {:else}
@@ -1566,7 +1582,7 @@
             class="flex flex-col items-center justify-center p-6 text-center text-slate-400"
           >
             <MapPinOff size={48} class="mb-4 opacity-50" />
-            <p>No hay metadatos EXIF disponibles para esta foto.</p>
+            <p>{$t("trip.noExifData")}</p>
           </div>
         {/if}
       </div>
@@ -1574,21 +1590,12 @@
   </div>
 {/if}
 
-{#if showImmichModal}
-  <AlbumModal
-    albums={immichAlbums}
-    {isLinkingInfo}
-    on:close={() => (showImmichModal = false)}
-    on:link={handleLinkAlbum}
-  />
-{/if}
-
 {#if showUnlinkModal}
   <AlbumModal
-    title="Desvincular Álbum"
-    description="Selecciona un álbum de Immich para eliminar sus fotos de este viaje. Las fotos seleccionadas desaparecerán de TravelMap, pero seguirán intactas en tu servidor de Immich."
-    actionText="Desvincular"
-    loadingText="Desvinculando..."
+    title={$t("trip.unlinkAlbumTitle")}
+    description={$t("trip.unlinkAlbumDescription")}
+    actionText={$t("trip.unlinkAlbum")}
+    loadingText={$t("trip.unlinking")}
     actionClass="btn-danger"
     albums={immichAlbums}
     isLinkingInfo={isUnlinkingAlbum}
@@ -1606,7 +1613,8 @@
     >
       <header class="modal-header flex justify-between items-center mb-6">
         <h3 class="text-lg font-bold text-white m-0 tracking-tight">
-          Añadir GPS a {selectedPhotosIds.length} fotos
+          {$t("trip.batchGpsToPhotos", { count: selectedPhotosIds.length }) ||
+            `Añadir GPS a ${selectedPhotosIds.length} fotos`}
         </h3>
         <button
           class="text-slate-400 hover:text-white transition-colors"
@@ -1615,8 +1623,7 @@
       </header>
 
       <div class="mb-4 text-sm text-slate-300">
-        Haz clic en el mapa para establecer una ubicación GPS para todas las
-        fotos seleccionadas.
+        {$t("trip.clickToLocate")}
       </div>
 
       <div class="mb-6 rounded-lg overflow-hidden border border-slate-700/50">
@@ -1626,12 +1633,13 @@
       <div class="flex justify-end gap-3 pt-4 border-t border-slate-700">
         <button
           class="btn btn-secondary flex-1"
-          on:click={() => (showBatchLocationModal = false)}>Cancelar</button
+          on:click={() => (showBatchLocationModal = false)}
+          >{$t("form.cancel")}</button
         >
         <button
           class="btn btn-primary flex-1"
           disabled={!batchSelectedCoords}
-          on:click={saveBatchLocation}>Guardar Ubicación</button
+          on:click={saveBatchLocation}>{$t("trip.saveLocation")}</button
         >
       </div>
     </div>
@@ -1646,20 +1654,22 @@
     <div
       class="modal card w-full max-w-sm bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl text-center"
     >
-      <h3 class="text-lg font-bold text-white mb-2">Eliminar Lugar</h3>
+      <h3 class="text-lg font-bold text-white mb-2">
+        {$t("trip.deleteLocation")}
+      </h3>
       <p class="text-slate-300 text-sm mb-6">
-        ¿Estás seguro de que quieres eliminar este lugar de forma permanente?
-        Esta acción no se puede deshacer.
+        {$t("trip.deleteLocationConfirm")}
       </p>
 
       <div class="flex gap-3 justify-center">
         <button
           class="btn btn-secondary flex-1"
-          on:click={() => (showDeleteConfirm = false)}>Cancelar</button
+          on:click={() => (showDeleteConfirm = false)}
+          >{$t("form.cancel")}</button
         >
         <button
           class="btn btn-danger flex-1 bg-red-500 hover:bg-red-600 border-none text-white"
-          on:click={confirmDeleteLocation}>Eliminar</button
+          on:click={confirmDeleteLocation}>{$t("form.delete")}</button
         >
       </div>
     </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import "../app.css"
+  import { t } from "$lib/stores/i18n"
   import { onMount } from "svelte"
   import { goto } from "$app/navigation"
   import { getToken } from "$lib/services/auth"
@@ -28,7 +29,9 @@
       </p>
       <div class="hero-buttons">
         <a href="/map" class="btn btn-primary"> 🗺️ Explorar Mapa </a>
-        <a href="/trips" class="btn btn-secondary"> 🧳 Mis Viajes </a>
+        <a href="/trips" class="btn btn-secondary">
+          🧳 {$t("dashboard.title")}
+        </a>
       </div>
     </div>
   </section>
@@ -52,7 +55,7 @@
 
       <div class="feature-card">
         <div class="feature-icon">🧭</div>
-        <h3>Planificador de Viajes</h3>
+        <h3>{$t("landing.tripPlanner")}</h3>
         <p>Organiza tus próximos viajes y crea itinerarios detallados</p>
       </div>
 

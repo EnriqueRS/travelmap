@@ -66,8 +66,13 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
     if (!res.ok) return null;
 
     const data = await res.json();
-    if (data && data.address && data.address.country) {
-      return data.address.country;
+    if (data && data.address) {
+      if (data.address.country_code) {
+        return data.address.country_code.toUpperCase();
+      }
+      if (data.address.country) {
+        return data.address.country;
+      }
     }
   } catch (error) {
     console.warn("Error reverse geocoding:", error);

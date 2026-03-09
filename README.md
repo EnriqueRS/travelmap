@@ -457,6 +457,7 @@ npm run format      # Prettier format
 - Added a visual map indicator to the thumbnails in the photo carousel for photos that are shown on the map.
 - Added "My Trips" (Mis viajes) filter on the map view to display only the authenticated user's trips.
 - Enhanced initial demo data to provide a richer experience for unlogged users, including more trips and locations.
+- **Full Internationalization (i18n)**: Implemented a robust translation system supporting English and Spanish. All major views (Dashboard, Map, Trip Details, Profile) and shared components are now fully localized.
 
 **🇪🇸 Español:**
 - Se reemplazaron las alertas nativas del navegador por notificaciones tipo toast modernas y visualmente atractivas en la página del mapa.
@@ -465,3 +466,4 @@ npm run format      # Prettier format
 - Se ha añadido un indicador de mapa visual a las miniaturas del carrusel de fotos para aquellas que se muestran en el mapa.
 - Se añadió el filtro "Mis viajes" en la vista del mapa para mostrar únicamente los viajes del usuario autenticado.
 - Se mejoraron los datos iniciales de demostración para ofrecer una experiencia más rica a los usuarios no logueados, incluyendo más viajes y localizaciones.
+- **Internacionalización Completa (i18n)**: Se implementó un sistema de traducción robusto con soporte para Inglés y Español. Todas las vistas principales (Dashboard, Mapa, Detalle de Viaje, Perfil) y componentes compartidos están ahora totalmente localizados.

@@ -18,6 +18,7 @@
     Database,
   } from "lucide-svelte"
   import { userProfile, locations } from "$lib/stores/data"
+  import { t } from "$lib/stores/i18n"
   import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
   import LocationPicker from "$lib/components/map/LocationPicker.svelte"
   import { authService } from "$lib/services/auth"
@@ -55,14 +56,12 @@
       immichStatus.url = res.url
       immichMessage = {
         type: "success",
-        text: "Conectado. Tus álbumes ya pueden vincularse a tus viajes.",
+        text: $t("profile.immichConnected"),
       }
     } catch (e: any) {
       immichMessage = {
         type: "error",
-        text:
-          e.response?.data?.message ||
-          "Error al conectar. Verifica tu URL y API Key.",
+        text: e.response?.data?.message || $t("profile.immichError"),
       }
     } finally {
       isSavingImmich = false
@@ -141,7 +140,7 @@
 
       saveMessage = {
         type: "success",
-        text: "Perfil actualizado correctamente",
+        text: $t("profile.successToast"),
       }
       setTimeout(() => {
         showEditModal = false
@@ -150,8 +149,11 @@
     } catch (error: any) {
       console.error("Error saving profile:", error)
       const detail =
-        error.response?.data?.message || error.message || "Error desconocido"
-      saveMessage = { type: "error", text: `Error al guardar: ${detail}` }
+        error.response?.data?.message || error.message || "Unknown error"
+      saveMessage = {
+        type: "error",
+        text: `${$t("profile.errorSaving")}: ${detail}`,
+      }
     } finally {
       isSaving = false
     }
@@ -210,7 +212,7 @@
 </script>
 
 <svelte:head>
-  <title>TravelMap - Perfil</title>
+  <title>TravelMap - {$t("nav.profile")}</title>
   <meta
     name="description"
     content="Perfil de usuario con estadísticas y logros"
@@ -236,16 +238,19 @@
       <div class="profile-info">
         <div class="profile-name-row">
           <h1>{$userProfile.name}</h1>
-          <span class="pro-badge">MIEMBRO PRO</span>
+          <span class="pro-badge">{$t("profile.proMember")}</span>
         </div>
         <p class="profile-bio">
-          {$userProfile.bio ||
-            "Apasionado por descubrir nuevos lugares y culturas. Fotógrafo aficionado recorriendo el mundo un click a la vez."}
+          {$userProfile.bio || $t("profile.defaultBio")}
         </p>
         <div class="profile-meta">
-          <span class="meta-item">Joined Octubre 2023</span>
+          <span class="meta-item"
+            >{$t("profile.joinedPrefix")} Octubre 2023</span
+          >
           <span class="meta-separator">•</span>
-          <span class="meta-item">124 seguidores</span>
+          <span class="meta-item"
+            >{$t("profile.followersCount", { count: 124 })}</span
+          >
         </div>
       </div>
 
@@ -258,11 +263,11 @@
           }}
         >
           <Settings size={18} />
-          <span>Editar Perfil</span>
+          <span>{$t("profile.editProfile")}</span>
         </button>
         <a href="/trips/new" class="btn btn-primary">
           <Plus size={18} />
-          <span>Añadir Viaje</span>
+          <span>{$t("profile.addTrip")}</span>
         </a>
       </div>
     </div>
@@ -271,7 +276,7 @@
   <section class="profile-content">
     <div class="content-grid">
       <div class="stats-sidebar">
-        <div class="sidebar-header">ESTADÍSTICAS GLOBALES</div>
+        <div class="sidebar-header">{$t("profile.globalStats")}</div>
 
         <div class="stats-vertical-list">
           <div class="stats-item-card">
@@ -284,7 +289,7 @@
             <div class="stats-number">
               {$userProfile.stats.countriesVisited}
             </div>
-            <div class="stats-label">PAÍSES VISITADOS</div>
+            <div class="stats-label">{$t("profile.countriesVisited")}</div>
           </div>
 
           <div class="stats-item-card">
@@ -295,7 +300,7 @@
               <div class="stats-dash dash-pink" />
             </div>
             <div class="stats-number">{$userProfile.stats.placesVisited}</div>
-            <div class="stats-label">UBICACIONES</div>
+            <div class="stats-label">{$t("profile.placesVisited")}</div>
           </div>
 
           <div class="stats-item-card">
@@ -306,7 +311,7 @@
               <div class="stats-dash dash-yellow" />
             </div>
             <div class="stats-number">{$userProfile.stats.tripsCompleted}</div>
-            <div class="stats-label">VIAJES COMPLETADOS</div>
+            <div class="stats-label">{$t("profile.completedTrips")}</div>
           </div>
 
           <div class="stats-item-card">
@@ -317,7 +322,7 @@
               <div class="stats-dash dash-teal" />
             </div>
             <div class="stats-number">{$userProfile.stats.photosUploaded}</div>
-            <div class="stats-label">FOTOS SUBIDAS</div>
+            <div class="stats-label">{$t("profile.photosUploaded")}</div>
           </div>
 
           {#if furthestPlace}
@@ -336,7 +341,7 @@
                 {furthestPlace.name}
               </div>
               <div class="stats-label">
-                MÁS LEJANO ({furthestPlace.distance} km)
+                {$t("profile.furthestPlace")} ({furthestPlace.distance} km)
               </div>
             </div>
           {/if}
@@ -350,12 +355,10 @@
             <div class="icon-circle text-yellow-500 border-yellow-500/30">
               <AlertCircle size={18} />
             </div>
-            <h2>Información de Perfil</h2>
+            <h2>{$t("profile.profileInfoTitle")}</h2>
           </div>
           <p class="card-text">
-            Bienvenido a tu panel de control de TravelMap. Aquí puedes gestionar
-            tus conexiones externas, revisar tu progreso en el mapa mundial y
-            personalizar cómo se ven tus memorias.
+            {$t("profile.profileInfoDesc")}
           </p>
           <button
             class="action-row-btn"
@@ -366,10 +369,8 @@
                 <Map size={20} />
               </div>
               <div class="action-text">
-                <span class="action-title">Ver Mapa de Calor</span>
-                <span class="action-subtitle"
-                  >Visualiza tus rutas Frecuentes</span
-                >
+                <span class="action-title">{$t("profile.viewHeatmap")}</span>
+                <span class="action-subtitle">{$t("profile.viewRoutes")}</span>
               </div>
             </div>
             <ChevronRight size={18} class="text-gray-500" />
@@ -383,16 +384,16 @@
               <div class="icon-circle text-purple-400 border-purple-500/30">
                 <Database size={18} />
               </div>
-              <h2>Integraciones de Datos</h2>
+              <h2>{$t("profile.integrationTitle")}</h2>
             </div>
             {#if immichStatus.isConnected}
               <div class="status-badge-chip connected">
                 <RefreshCw size={12} />
-                <span>CONECTADO</span>
+                <span>{$t("profile.connected").toUpperCase()}</span>
               </div>
             {:else}
               <div class="status-badge-chip disconnected">
-                <span>DESCONECTADO</span>
+                <span>{$t("profile.notConnected").toUpperCase()}</span>
               </div>
             {/if}
           </div>
@@ -402,10 +403,9 @@
               <img src="/immich.png" alt="Immich" />
             </div>
             <div class="integration-text">
-              <h4>Servidor Immich</h4>
+              <h4>{$t("profile.immichTitle")}</h4>
               <p>
-                Conecta tu librería de fotos auto-hospedada para sincronizar
-                automáticamente tus viajes.
+                {$t("profile.immichDesc")}
               </p>
             </div>
           </div>
@@ -416,22 +416,22 @@
           >
             <div class="form-row">
               <div class="form-group-modern">
-                <label for="immich-url">ENDPOINT API</label>
+                <label for="immich-url">{$t("profile.apiEndpoint")}</label>
                 <input
                   id="immich-url"
                   type="url"
                   bind:value={immichConfig.url}
-                  placeholder="Ej: http://192.168.100.73:2283/api"
+                  placeholder={$t("profile.immichUrlPlaceholder")}
                   required
                 />
               </div>
               <div class="form-group-modern">
-                <label for="immich-key">CLAVE DE ACCESO (API KEY)</label>
+                <label for="immich-key">{$t("profile.apiKey")}</label>
                 <input
                   id="immich-key"
                   type="password"
                   bind:value={immichConfig.apiKey}
-                  placeholder="••••••••••••••••"
+                  placeholder={$t("profile.apiKeyPlaceholder")}
                   required
                 />
               </div>
@@ -439,15 +439,16 @@
 
             <div class="form-footer">
               <p class="disclaimer-text">
-                Tus credenciales se cifran localmente antes de ser enviadas al
-                motor de búsqueda.
+                {$t("profile.credentialsCrypted")}
               </p>
               <button
                 type="submit"
                 class="btn btn-white"
                 disabled={isSavingImmich}
               >
-                {isSavingImmich ? "Validando..." : "Actualizar Credenciales"}
+                {isSavingImmich
+                  ? $t("profile.validating")
+                  : $t("profile.updateCreds")}
               </button>
             </div>
 
@@ -474,7 +475,7 @@
     >
       <div class="modal-glass">
         <div class="modal-header">
-          <h2>Editar Perfil</h2>
+          <h2>{$t("profile.editProfileTitle")}</h2>
           <button class="close-btn" on:click={() => (showEditModal = false)}>
             <X size={24} />
           </button>
@@ -483,7 +484,7 @@
         <div class="scroll-content">
           <form class="edit-profile-form" on:submit|preventDefault={handleSave}>
             <div class="form-group-modern">
-              <label for="name">NOMBRE A MOSTRAR</label>
+              <label for="name">{$t("profile.displayName")}</label>
               <input
                 id="name"
                 type="text"
@@ -493,17 +494,17 @@
             </div>
 
             <div class="form-group-modern">
-              <label for="bio">BIOGRAFÍA O LEMA</label>
+              <label for="bio">{$t("profile.bioPlaceholder")}</label>
               <textarea
                 id="bio"
                 bind:value={editData.bio}
                 rows="3"
-                placeholder="Cuéntanos un poco sobre ti y tus viajes..."
+                placeholder={$t("profile.bioInputPlaceholder")}
               />
             </div>
 
             <div class="form-group-modern">
-              <label>FOTO DE PERFIL / AVATAR</label>
+              <label>{$t("profile.avatarTitle")}</label>
               <div class="avatar-selection-modern">
                 <div class="modern-tabs">
                   <button
@@ -512,7 +513,7 @@
                     class:active={avatarTab === "preset"}
                     on:click={() => (avatarTab = "preset")}
                   >
-                    Galería de Presets
+                    {$t("profile.presetGallery")}
                   </button>
                   <button
                     type="button"
@@ -520,7 +521,7 @@
                     class:active={avatarTab === "upload"}
                     on:click={() => (avatarTab = "upload")}
                   >
-                    Subir Imagen
+                    {$t("profile.uploadImage")}
                   </button>
                 </div>
 
@@ -575,8 +576,8 @@
                       <Upload size={18} />
                       <span
                         >{avatarFile
-                          ? "Cambiar Archivo"
-                          : "Seleccionar desde dispositivo"}</span
+                          ? $t("profile.changeFile")
+                          : $t("profile.selectDevice")}</span
                       >
                     </button>
                     {#if avatarFile}
@@ -589,23 +590,23 @@
 
             <div class="form-section-divider">
               <div class="divider-line" />
-              <span>UBICACIÓN BASE</span>
+              <span>{$t("profile.homeLocationTitle")}</span>
               <div class="divider-line" />
             </div>
 
             {#if editData.homeLocation}
               <div class="form-group-modern">
-                <label for="homeName">CIUDAD Ó PAÍS DE RESIDENCIA</label>
+                <label for="homeName">{$t("profile.homeLocationLabel")}</label>
                 <input
                   id="homeName"
                   type="text"
                   bind:value={editData.homeLocation.name}
-                  placeholder="Ej. Madrid, España"
+                  placeholder={$t("profile.homeLocationPlaceholder")}
                 />
               </div>
 
               <div class="form-group-modern map-wrapper-modern">
-                <label for="map-picker">MARCADOR EN EL MAPA</label>
+                <label for="map-picker">{$t("profile.mapMarkerLabel")}</label>
                 <div class="map-container-border" id="map-picker">
                   {#if showEditModal}
                     <LocationPicker
@@ -651,7 +652,7 @@
             class="btn btn-ghost"
             on:click={() => (showEditModal = false)}
           >
-            Cancelar
+            {$t("form.cancel")}
           </button>
           <button
             type="button"
@@ -659,7 +660,7 @@
             disabled={isSaving}
             on:click={handleSave}
           >
-            {isSaving ? "Guardando..." : "Guardar Cambios"}
+            {isSaving ? $t("profile.validating") : $t("profile.saveChanges")}
           </button>
         </div>
       </div>

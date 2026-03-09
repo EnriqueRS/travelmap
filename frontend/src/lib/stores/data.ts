@@ -318,7 +318,7 @@ export const updateStores = (userData: any) => {
       id: loc.id,
       name: loc.name || "",
       description: loc.description || "",
-      country: loc.country?.name || loc.country || "",
+      country: loc.country?.isoAlpha2 || loc.country?.name || loc.country || "",
       category: categoryToFrontend[loc.category] || loc.category || "Otro",
       coordinates: [
         loc.latitude ?? loc.coordinates?.[0] ?? 0,

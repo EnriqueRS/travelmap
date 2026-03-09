@@ -4,9 +4,11 @@
   import type { Trip } from "$lib/stores/data"
   import CountryPicker from "$lib/components/ui/CountryPicker.svelte"
   import { tripsService } from "$lib/services/trips"
-  import { toast } from "$lib/stores/ui"
+  import { toast, languageStore } from "$lib/stores/ui"
+  import { getCountryName } from "$lib/utils/countries"
   import { X, Plus } from "lucide-svelte"
   import DatePicker from "$lib/components/ui/DatePicker.svelte"
+  import { t } from "$lib/stores/i18n"
 
   let name = ""
   let description = ""
@@ -57,7 +59,7 @@
       goto("/trips")
     } catch (e) {
       console.error("Error creando el viaje", e)
-      toast.error("Hubo un error al crear el viaje")
+      toast.error($t("form.errorCreating"))
     } finally {
       isSubmitting = false
     }
@@ -66,38 +68,40 @@
 
 <div class="page-container">
   <header class="page-header">
-    <h1>Nuevo Viaje</h1>
-    <p>Planifica tu próxima aventura</p>
+    <h1>{$t("dashboard.newTrip")}</h1>
+    <p>
+      {$t("dashboard.planAventure")}
+    </p>
   </header>
 
   <div class="form-container">
     <form on:submit|preventDefault={handleSubmit}>
       <div class="form-group">
-        <label for="name">Nombre del Viaje</label>
+        <label for="name">{$t("form.name")}</label>
         <input
           type="text"
           id="name"
           bind:value={name}
           required
-          placeholder="Ej: Verano en Italia"
+          placeholder={$t("form.namePlaceholder")}
           class="input-box"
         />
       </div>
 
       <div class="form-group">
-        <label for="description">Descripción</label>
+        <label for="description">{$t("form.description")}</label>
         <textarea
           id="description"
           bind:value={description}
           rows="3"
-          placeholder="Describe brevemente tu viaje..."
+          placeholder={$t("form.descPlaceholder")}
           class="input-box"
         />
       </div>
 
       <div class="row">
         <div class="form-group">
-          <label for="startDate">Fecha Inicio</label>
+          <label for="startDate">{$t("form.startDate")}</label>
           <DatePicker id="startDate" bind:value={startDate} required={true} />
         </div>
 
@@ -107,18 +111,15 @@
             if (!endDate && startDate) endDate = startDate
           }}
         >
-          <label for="endDate">Fecha Fin</label>
+          <label for="endDate">{$t("form.endDate")}</label>
           <DatePicker id="endDate" bind:value={endDate} required={true} />
         </div>
       </div>
 
       <div class="form-group">
-        <label>Países</label>
+        <label>{$t("form.countries")}</label>
         <div class="country-selector">
-          <CountryPicker
-            bind:value={selectedCountry}
-            placeholder="Añadir un país..."
-          />
+          <CountryPicker bind:value={selectedCountry} placeholder="..." />
           <button
             type="button"
             class="btn btn-primary"
@@ -127,7 +128,6 @@
             style="padding: 0.75rem;"
           >
             <Plus size={16} />
-            Añadir
           </button>
         </div>
 
@@ -135,7 +135,7 @@
           <div class="selected-countries">
             {#each selectedCountries as country}
               <div class="country-tag">
-                {country}
+                {getCountryName(country, $languageStore)}
                 <button
                   type="button"
                   class="btn-remove-country"
@@ -150,17 +150,19 @@
       </div>
 
       <div class="form-group">
-        <label for="status">Estado</label>
+        <label for="status">{$t("form.status")}</label>
         <select id="status" bind:value={status} class="input-box">
-          <option value="Planificado">Planificado</option>
-          <option value="En curso">En curso</option>
-          <option value="Completado">Completado</option>
+          <option value="Planificado">{$t("status.Planificado")}</option>
+          <option value="En curso">{$t("status.En curso")}</option>
+          <option value="Completado">{$t("status.Completado")}</option>
         </select>
       </div>
 
       <div class="form-actions">
-        <a href="/trips" class="btn btn-ghost border border-border">Cancelar</a>
-        <button type="submit" class="btn btn-primary">Crear Viaje</button>
+        <a href="/trips" class="btn btn-ghost border border-border"
+          >{$t("form.cancel")}</a
+        >
+        <button type="submit" class="btn btn-primary">{$t("form.save")}</button>
       </div>
     </form>
   </div>

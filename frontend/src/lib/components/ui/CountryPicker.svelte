@@ -2,11 +2,13 @@
   import { createEventDispatcher, onMount } from "svelte"
   import { Search, ChevronDown } from "lucide-svelte"
 
-  import { COUNTRIES } from "$lib/utils/countries"
+  import { COUNTRIES, getCountryName } from "$lib/utils/countries"
   import { normalizeString } from "$lib/utils/string"
+  import { languageStore } from "$lib/stores/ui"
+  import { t } from "$lib/stores/i18n"
 
-  export let value = ""
-  export let placeholder = "Selecciona un país..."
+  export let value = "" // This is now expected to be the ISO id (e.g. "ES", "FR")
+  export let placeholder = $t("common.selectCountry")
   export let id = ""
   export let disabled = false
 
@@ -16,10 +18,13 @@
   let searchQuery = ""
   let dropdownRef: HTMLDivElement
 
-  $: filteredCountries = COUNTRIES.filter((c) =>
-    normalizeString(c.name).includes(normalizeString(searchQuery)),
+  // We filter by checking if the search matches either English or Spanish labels
+  $: filteredCountries = COUNTRIES.filter(
+    (c) =>
+      normalizeString(c.labelEs).includes(normalizeString(searchQuery)) ||
+      normalizeString(c.labelEn).includes(normalizeString(searchQuery)),
   )
-  $: selectedCountryObj = COUNTRIES.find((c) => c.name === value)
+  $: selectedCountryObj = COUNTRIES.find((c) => c.id === value)
 
   function toggleDropdown() {
     if (disabled) return
@@ -34,8 +39,8 @@
     }
   }
 
-  function selectCountry(countryName: string) {
-    value = countryName
+  function selectCountry(countryId: string) {
+    value = countryId
     isOpen = false
     searchQuery = ""
     dispatch("change", { value })
@@ -69,7 +74,9 @@
     {#if selectedCountryObj}
       <span class="country-display">
         <span class="flag">{selectedCountryObj.flag}</span>
-        <span class="name">{selectedCountryObj.name}</span>
+        <span class="name"
+          >{getCountryName(selectedCountryObj.id, $languageStore)}</span
+        >
       </span>
     {:else}
       <span class="placeholder">{placeholder}</span>
@@ -84,7 +91,7 @@
         <input
           type="text"
           bind:value={searchQuery}
-          placeholder="Buscar..."
+          placeholder={$t("common.search")}
           on:click|stopPropagation
           class="input-box"
           style="padding-left: 2rem;"
@@ -97,15 +104,19 @@
             <button
               type="button"
               class="option-btn"
-              class:selected={value === country.name}
-              on:click={() => selectCountry(country.name)}
+              class:selected={value === country.id}
+              on:click={() => selectCountry(country.id)}
             >
               <span class="option-flag">{country.flag}</span>
-              <span class="option-name">{country.name}</span>
+              <span class="option-name"
+                >{getCountryName(country.id, $languageStore)}</span
+              >
             </button>
           </li>
         {:else}
-          <li class="no-results">No se encontraron países</li>
+          <li class="no-results">
+            {$t("common.noCountriesFound")}
+          </li>
         {/each}
       </ul>
     </div>

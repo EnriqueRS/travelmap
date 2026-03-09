@@ -2,7 +2,8 @@
   import { onMount, onDestroy } from "svelte"
   import MapContainer from "$lib/components/map/MapContainer.svelte"
 
-  import { toast } from "$lib/stores/ui"
+  import { toast, languageStore } from "$lib/stores/ui"
+  import { t } from "$lib/stores/i18n"
   import { locations, trips, userProfile } from "$lib/stores/data"
   import type { Location, Trip } from "$lib/stores/data"
   import { mediaService } from "$lib/services/media"
@@ -21,7 +22,7 @@
     X,
     Eye,
   } from "lucide-svelte"
-  import { COUNTRIES } from "$lib/utils/countries"
+  import { COUNTRIES, getCountryName } from "$lib/utils/countries"
   import { normalizeString } from "$lib/utils/string"
   import { locationsService } from "$lib/services/locations"
   import { tripsService } from "$lib/services/trips"
@@ -73,9 +74,7 @@
   function toggleAddingMode() {
     addingMode = !addingMode
     if (addingMode && mapComponent) {
-      toast.success(
-        "Haz clic en cualquier lugar del mapa para añadir la ubicación",
-      )
+      toast.success($t("map.clickPrompt"))
     }
   }
 
@@ -110,7 +109,7 @@
 
   async function saveNewLocation() {
     if (!newLocationName) {
-      toast.error("Introduce un nombre")
+      toast.error($t("map.nameRequired"))
       return
     }
 
@@ -119,7 +118,7 @@
 
     if (newLocationTripId === "new") {
       if (!newTripName) {
-        toast.error("Introduce un nombre para el nuevo viaje")
+        toast.error($t("map.newTripNameRequired"))
         isSavingLocation = false
         return
       }
@@ -144,7 +143,7 @@
       id: newLocId,
       name: newLocationName,
       description: "",
-      country: newLocationCountry || "Desconocido",
+      country: newLocationCountry || $t("map.unknownCountry"),
       category: newLocationCategory,
       coordinates: [newLocationLat, newLocationLng],
       rating: 5,
@@ -161,7 +160,7 @@
       newLocationTripId !== "new"
     ) {
       try {
-        toast.info("Subiendo imagen para la ubicación...")
+        toast.info($t("map.uploadingToast"))
         const newPhotoPayload = await mediaService.uploadLocalPhoto(
           finalTripId,
           newLocationPhotoFiles[0],
@@ -173,14 +172,12 @@
             exif: { latitude: newLocationLat, longitude: newLocationLng },
           },
         })
-        toast.success("Foto asociada al nuevo lugar exitosamente.")
+        toast.success($t("map.uploadSuccessToast"))
         newLoc.images = [newPhotoPayload.id]
         mapPhotos = await mediaService.getMapPhotos() // Refrescar fotos del mapa global
       } catch (e) {
         console.error("No se pudo subir la foto con el viaje", e)
-        toast.error(
-          "Error subiendo foto. Asegúrate de asociar a un viaje existente.",
-        )
+        toast.error($t("map.uploadErrorToast"))
       }
     }
 
@@ -301,7 +298,9 @@
     if (
       searchQuery &&
       !normalizeString(loc.name).includes(normalizeString(searchQuery)) &&
-      !normalizeString(loc.country).includes(normalizeString(searchQuery))
+      !normalizeString(getCountryName(loc.country, $languageStore)).includes(
+        normalizeString(searchQuery),
+      )
     ) {
       return false
     }
@@ -365,7 +364,9 @@
     <button
       class="sidebar-toggle bg-slate-800 hover:bg-slate-700 p-1.5 rounded-full text-slate-300 border border-slate-600 absolute z-50 transition-all"
       on:click={toggleSidebar}
-      title="Minimizar panel"
+      title={isSidebarMinimized
+        ? $t("map.maximizeSidebar")
+        : $t("map.minimizeSidebar")}
     >
       {#if isSidebarMinimized}
         <ChevronRight size={18} />
@@ -376,36 +377,37 @@
 
     <div class="sidebar-header">
       <h2 class="section-title">
-        <BarChart3 size={18} /> Estadísticas de aventura
+        <BarChart3 size={18} />
+        {$t("map.statsAventura")}
       </h2>
     </div>
 
     <div class="stats-container">
       <div class="stat-main">
-        <span class="stat-label">Viajes totales</span>
+        <span class="stat-label">{$t("map.totalTrips")}</span>
         <span class="stat-value big">{totalTrips}</span>
       </div>
 
       <div class="stats-row">
         <div class="stat-item">
-          <span class="stat-label">Locaciones</span>
+          <span class="stat-label">{$t("map.totalLocations")}</span>
           <span class="stat-value text-blue">{totalLocations}</span>
         </div>
       </div>
 
       <div class="stats-row mt-4">
         <div class="stat-item">
-          <span class="stat-label">Completado</span>
+          <span class="stat-label">{$t("status.Completado")}</span>
           <span class="stat-value text-green">{visitedCount}</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label">Planificado</span>
+          <span class="stat-label">{$t("status.Planificado")}</span>
           <span class="stat-value text-blue">{plannedCount}</span>
         </div>
       </div>
 
       <div class="stat-item mt-4">
-        <span class="stat-label">En curso</span>
+        <span class="stat-label">{$t("status.En curso")}</span>
         <span class="stat-value text-teal">{onGoingCount}</span>
       </div>
 
@@ -415,11 +417,11 @@
         on:keydown={(e) => e.key === "Enter" && (showProgressModal = true)}
         tabindex="0"
         role="button"
-        title="Ver todos los países"
+        title={$t("map.viewAllCountries")}
       >
         <div class="progress-labels">
-          <span>Progreso</span>
-          <span>{regions} / 195 países</span>
+          <span>{$t("map.progress")}</span>
+          <span>{$t("map.countriesCount", { count: regions })}</span>
         </div>
         <div class="progress-bar">
           <div class="progress-fill" style="width: {completion}%" />
@@ -428,38 +430,50 @@
     </div>
 
     <div class="sidebar-section mt-6">
-      <h2 class="section-title"><Eye size={18} /> Opciones de visualización</h2>
+      <h2 class="section-title">
+        <Eye size={18} />
+        {$t("map.displayOptions")}
+      </h2>
 
       <div class="options-list">
         <label class="option-item">
           <input type="checkbox" bind:checked={showHome} />
           <span class="checkmark checked-red" />
-          <span class="option-text">Casa</span>
+          <span class="option-text">{$t("map.home")}</span>
         </label>
 
         <label class="option-item">
           <input type="checkbox" bind:checked={showCompleted} />
           <span class="checkmark checked-green" />
-          <span class="option-text">Completados ({visitedCount})</span>
+          <span class="option-text"
+            >{$t("map.completedCount", { count: visitedCount })}</span
+          >
         </label>
 
         <label class="option-item">
           <input type="checkbox" bind:checked={showPlanned} />
           <span class="checkmark checked-blue" />
-          <span class="option-text">Planificados ({plannedCount})</span>
+          <span class="option-text"
+            >{$t("map.plannedCount", { count: plannedCount })}</span
+          >
         </label>
 
         <label class="option-item">
           <input type="checkbox" bind:checked={showOngoing} />
           <span class="checkmark checked-teal" />
-          <span class="option-text">En curso ({onGoingCount})</span>
+          <span class="option-text"
+            >{$t("map.ongoingCount", { count: onGoingCount })}</span
+          >
         </label>
       </div>
     </div>
 
     <!-- Filtros de Viajes Específicos -->
     <div class="sidebar-section mt-6">
-      <h2 class="section-title"><MapIcon size={18} /> Filtrar por Viaje</h2>
+      <h2 class="section-title">
+        <MapIcon size={18} />
+        {$t("map.filterByTrip")}
+      </h2>
       <div
         class="options-list mt-2"
         style="max-height: 200px; overflow-y: auto;"
@@ -483,7 +497,9 @@
             />
             <span class="option-text"
               >{trip.name}
-              {trip.userId !== $userProfile.id ? "(De otro usuario)" : ""}</span
+              {trip.userId !== $userProfile.id
+                ? $t("map.othersTrip")
+                : ""}</span
             >
           </label>
         {/each}
@@ -493,27 +509,27 @@
           class="text-xs text-blue-400 hover:text-blue-300 mt-2 block"
           on:click={() => (hiddenTrips = [])}
         >
-          Mostrar todos los viajes
+          {$t("map.showAllTrips")}
         </button>
       {/if}
     </div>
 
     <div class="sidebar-footer">
-      <h2 class="section-title"><Plus size={18} /> Nueva ubicación</h2>
+      <h2 class="section-title"><Plus size={18} /> {$t("map.newLocation")}</h2>
       <button
         class="btn-sidebar-action"
         class:btn-active={addingMode}
         on:click={toggleAddingMode}
       >
         {#if addingMode}
-          <span>Cancelar adición</span>
+          <span>{$t("form.cancel")}</span>
         {:else}
-          <Plus size={16} /> Agregar al mapa
+          <Plus size={16} /> {$t("map.addToMapBtn")}
         {/if}
       </button>
       {#if addingMode}
         <p class="help-text mt-2 text-center text-blue-400">
-          Haz clic en el mapa para ubicar un punto
+          {$t("map.clickPrompt")}
         </p>
       {/if}
     </div>
@@ -526,9 +542,12 @@
       <div class="topbar-left">
         <MapIcon size={24} class="text-blue" />
         <div class="title-group">
-          <h1>Mapa de ubicación</h1>
+          <h1>{$t("map.title")}</h1>
           <p>
-            {filteredLocations.length} de {totalLocations} ubicaciones mostradas
+            {$t("map.subtitle", {
+              filtered: filteredLocations.length,
+              total: totalLocations,
+            })}
           </p>
         </div>
       </div>
@@ -538,7 +557,7 @@
           <Search size={16} class="search-icon" />
           <input
             type="text"
-            placeholder="Buscar ubicaciones..."
+            placeholder={$t("map.searchPlaceholder")}
             bind:value={searchQuery}
           />
         </div>
@@ -547,20 +566,20 @@
           on:click={toggleAddingMode}
         >
           {#if addingMode}
-            Cancelar
+            {$t("form.cancel")}
           {:else}
-            <Plus size={16} /> Agregar ubicación
+            <Plus size={16} /> {$t("map.newLocation")}
           {/if}
         </button>
       </div>
 
       <div class="topbar-right">
         <div class="mini-stat">
-          <span class="label">Visitado</span>
+          <span class="label">{$t("status.Completado")}</span>
           <span class="value text-green">{visitedCount}</span>
         </div>
         <div class="mini-stat">
-          <span class="label">Planificado</span>
+          <span class="label">{$t("status.Planificado")}</span>
           <span class="value text-blue">{plannedCount}</span>
         </div>
       </div>
@@ -585,7 +604,9 @@
       <div class="map-controls-floating flex flex-col gap-2">
         <button class="control-btn" on:click={toggleLayer}>
           <Layers size={16} />
-          {currentLayer === "default" ? "Satélite" : "Default"}
+          {currentLayer === "default"
+            ? $t("map.satellite")
+            : $t("map.defaultLayer")}
         </button>
         <button
           class="control-btn {showCountryHighlights
@@ -594,7 +615,9 @@
           on:click={() => (showCountryHighlights = !showCountryHighlights)}
         >
           <MapIcon size={16} />
-          {showCountryHighlights ? "Ocultar Países" : "Mostrar Países"}
+          {showCountryHighlights
+            ? $t("map.hideCountries")
+            : $t("map.showCountries")}
         </button>
       </div>
     </div>
@@ -607,7 +630,7 @@
       <h3
         style="margin-top: 0; color: #f8fafc; margin-bottom: 0.5rem; font-size: 1.25rem;"
       >
-        Añadir nueva ubicación
+        {$t("map.addLocationHeader")}
       </h3>
       <div class="form-group" style="margin-bottom: 1.5rem;">
         <LocationPicker
@@ -619,44 +642,48 @@
         />
         {#if newLocationCountry}
           <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">
-            País detectado: <strong>{newLocationCountry}</strong>
+            {$t("map.detectedCountry")}
+            <strong>{getCountryName(newLocationCountry, $languageStore)}</strong
+            >
           </div>
         {/if}
       </div>
 
       <div class="form-group">
         <label>
-          Nombre del lugar
+          {$t("map.placeName")}
           <input
             type="text"
             bind:value={newLocationName}
-            placeholder="Ej: Playa Escondida"
+            placeholder={$t("map.placeNamePlaceholder")}
           />
         </label>
       </div>
 
       <div class="form-group">
         <label>
-          Categoría
+          {$t("form.category")}
           <select bind:value={newLocationCategory}>
-            <option value="Monumento">Monumento 🏛️</option>
-            <option value="Naturaleza">Naturaleza 🌲</option>
-            <option value="Ciudad">Ciudad 🏙️</option>
-            <option value="Ciudad de escala">Ciudad de escala ✈️</option>
-            <option value="Playa">Playa 🏖️</option>
-            <option value="Montaña">Montaña 🏔️</option>
-            <option value="Cultura">Cultura 🏛️</option>
-            <option value="Otro">Otro 📍</option>
+            <option value="Monumento">{$t("categories.Monumento")} 🏛️</option>
+            <option value="Naturaleza">{$t("categories.Naturaleza")} 🌲</option>
+            <option value="Ciudad">{$t("categories.Ciudad")} 🏙️</option>
+            <option value="Ciudad de escala"
+              >{$t("categories.Ciudad de escala")} ✈️</option
+            >
+            <option value="Playa">{$t("categories.Playa")} 🏖️</option>
+            <option value="Montaña">{$t("categories.Montaña")} 🏔️</option>
+            <option value="Cultura">{$t("categories.Cultura")} 🏛️</option>
+            <option value="Otro">{$t("categories.Otro")} 📍</option>
           </select>
         </label>
       </div>
 
       <div class="form-group">
         <label>
-          Viaje
+          {$t("map.tripLabel")}
           <select bind:value={newLocationTripId}>
-            <option value="">Ninguno</option>
-            <option value="new">+ Crear nuevo viaje...</option>
+            <option value="">{$t("map.noTrip")}</option>
+            <option value="new">{$t("map.newTripOption")}</option>
             {#each $trips as trip}
               <option value={trip.id}>{trip.name}</option>
             {/each}
@@ -667,11 +694,11 @@
       {#if newLocationTripId === "new"}
         <div class="form-group">
           <label>
-            Nombre del nuevo viaje
+            {$t("map.newTripNameLabel")}
             <input
               type="text"
               bind:value={newTripName}
-              placeholder="Ej: Roadtrip Costa Oeste"
+              placeholder={$t("map.newTripNamePlaceholder")}
             />
           </label>
         </div>
@@ -679,7 +706,7 @@
 
       <div class="form-group">
         <label>
-          Añadir foto (opcional)
+          {$t("map.uploadingPhoto")}
           <input
             type="file"
             accept="image/*"
@@ -690,7 +717,7 @@
         </label>
         {#if newLocationTripId === "new" || newLocationTripId === ""}
           <span style="font-size: 0.75rem; color: #f59e0b; margin-top: 0.25rem;"
-            >Debes seleccionar un viaje existente para subir fotos.</span
+            >{$t("map.uploadPhotoNote")}</span
           >
         {/if}
       </div>
@@ -698,12 +725,13 @@
       <div class="modal-actions">
         <button
           class="btn-cancel"
-          on:click={() => (showAddLocationModal = false)}>Cancelar</button
+          on:click={() => (showAddLocationModal = false)}
+          >{$t("form.cancel")}</button
         >
         <button
           class="btn-sidebar-action"
           style="width: auto; padding: 0.5rem 1.5rem;"
-          on:click={saveNewLocation}>Guardar</button
+          on:click={saveNewLocation}>{$t("form.save")}</button
         >
       </div>
     </div>
@@ -721,10 +749,13 @@
           <h3
             style="margin: 0; color: #f8fafc; font-size: 1.5rem; display: flex; items-center; gap: 0.5rem;"
           >
-            🌎 Países del Mundo
+            🌎 {$t("map.worldCountries")}
           </h3>
           <p class="text-slate-400 text-sm mt-1 mb-0">
-            Has visitado {regions} de 195 países ({completion}%)
+            {$t("map.visitedCountriesAmount", {
+              count: regions,
+              percentage: completion,
+            })}
           </p>
         </div>
         <button
@@ -740,17 +771,20 @@
           class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"
         >
           {#each [...COUNTRIES].sort((a, b) => {
-            const aVisited = visitedCountryNames.includes(a.name) ? -1 : 1
-            const bVisited = visitedCountryNames.includes(b.name) ? -1 : 1
-            return aVisited === bVisited ? a.name.localeCompare(b.name) : aVisited - bVisited
+            const aName = getCountryName(a.id, $languageStore)
+            const bName = getCountryName(b.id, $languageStore)
+            const aVisited = visitedCountryNames.includes(a.id) ? -1 : 1
+            const bVisited = visitedCountryNames.includes(b.id) ? -1 : 1
+            return aVisited === bVisited ? aName.localeCompare(bName) : aVisited - bVisited
           }) as country}
-            {@const isVisited = visitedCountryNames.includes(country.name)}
+            {@const isVisited = visitedCountryNames.includes(country.id)}
             <div class="country-flag-card" class:visited={isVisited}>
               <span class="text-3xl mb-2 filter-flag">{country.flag}</span>
               <span
                 class="text-xs text-center leading-tight font-medium"
                 class:text-slate-300={isVisited}
-                class:text-slate-500={!isVisited}>{country.name}</span
+                class:text-slate-500={!isVisited}
+                >{getCountryName(country.id, $languageStore)}</span
               >
             </div>
           {/each}

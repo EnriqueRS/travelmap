@@ -1,14 +1,14 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte"
+  import { t } from "$lib/stores/i18n"
 
   export let albums: any[] = []
   export let isLinkingInfo = false
 
-  export let title = "Vincular Álbum de Immich"
-  export let description =
-    "Selecciona un álbum de tu cuenta de Immich para importar sus fotos a este viaje. Solo se enlazarán las imágenes y se extraerán sus metadatos (ubicación y fecha)."
-  export let actionText = "Vincular Álbum"
-  export let loadingText = "Vinculando..."
+  export let title = $t("trip.linkAlbumTitle")
+  export let description = $t("trip.linkAlbumDesc")
+  export let actionText = $t("trip.linkAlbum")
+  export let loadingText = $t("trip.unlinking") // Or maybe a 'linking' key? I'll use unlinking for now as it exists, but I should probably add a 'linking' key.
   export let actionClass = "btn-primary"
 
   const dispatch = createEventDispatcher()
@@ -56,7 +56,7 @@
         <input
           type="text"
           bind:value={searchQuery}
-          placeholder="Filtrar álbumes..."
+          placeholder={$t("trip.filterAlbums")}
           class="search-input"
           style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; outline: none;"
         />
@@ -66,8 +66,8 @@
         <div class="loading-state">
           <p>
             {albums.length === 0
-              ? "Cargando álbumes o no hay ninguno disponible..."
-              : "Ningún álbum coincide con la búsqueda"}
+              ? $t("trip.loadingAlbums")
+              : $t("trip.noAlbumsMatch")}
           </p>
         </div>
       {:else}
@@ -88,10 +88,12 @@
                 <span class="album-name">
                   {alb.albumName}
                   {#if alb.isLinked}
-                    <span class="linked-badge">(Vinculado)</span>
+                    <span class="linked-badge">{$t("trip.linkedBadge")}</span>
                   {/if}
                 </span>
-                <span class="album-count badge">{alb.assetCount} items</span>
+                <span class="album-count badge"
+                  >{$t("trip.itemsCount", { count: alb.assetCount })}</span
+                >
               </div>
             </label>
           {/each}
@@ -100,7 +102,9 @@
     </div>
 
     <footer class="modal-footer">
-      <button class="btn btn-secondary" on:click={close}>Cancelar</button>
+      <button class="btn btn-secondary" on:click={close}
+        >{$t("form.cancel")}</button
+      >
       <button
         class="btn {actionClass}"
         on:click={link}

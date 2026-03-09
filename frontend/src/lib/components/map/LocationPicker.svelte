@@ -7,6 +7,7 @@
   import markerShadowUrl from "leaflet/dist/images/marker-shadow.png"
   import { geocode } from "$lib/utils/geocode"
   import { Search } from "lucide-svelte"
+  import { t } from "$lib/stores/i18n"
 
   export let height = "300px"
   export let initialLocation: { lat: number; lng: number } | null = null
@@ -100,10 +101,10 @@
         addMarker(result.lat, result.lng)
         dispatch("locationSelect", { lat: result.lat, lng: result.lng })
       } else {
-        searchError = "No se encontró la ubicación. Prueba con otra búsqueda."
+        searchError = $t("common.noLocationFound")
       }
     } catch (e) {
-      searchError = "Error al buscar. Intenta de nuevo."
+      searchError = $t("common.searchError")
     } finally {
       searchLoading = false
     }
@@ -122,7 +123,7 @@
       type="text"
       bind:value={searchQuery}
       on:keydown={(e) => e.key === "Enter" && handleSearch()}
-      placeholder="Buscar lugar (ej. Torre Eiffel, París)"
+      placeholder={$t("common.searchPlaceholderMap")}
       class="input-box pr-10"
     />
     <button
@@ -130,10 +131,12 @@
       class="btn btn-primary"
       disabled={searchLoading || !searchQuery.trim()}
       on:click={handleSearch}
-      title="Buscar ubicación"
+      title={$t("common.searchBtn")}
     >
       <Search size={18} />
-      <span>{searchLoading ? "Buscando..." : "Buscar"}</span>
+      <span
+        >{searchLoading ? $t("common.searching") : $t("common.searchBtn")}</span
+      >
     </button>
   </div>
   {#if searchError}
@@ -144,7 +147,7 @@
     class="map-container"
     style="height: {height};"
   />
-  <p class="hint">Haz clic en el mapa o busca una ubicación para elegir.</p>
+  <p class="hint">{$t("common.mapHint")}</p>
 </div>
 
 <style>

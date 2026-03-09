@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Location } from './entities/location.entity';
+import { Country } from '../geo/entities/country.entity';
 import { Photo } from '../media/entities/photo.entity';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -23,6 +24,11 @@ export class LocationsService {
       rating: createData.rating || 5,
       visitDate: createData.visitedDate,
       tripId: createData.tripId || null,
+      countryId: createData.country ? (await Country.query()
+        .where('iso_alpha2', createData.country.toUpperCase())
+        .orWhere('name', createData.country)
+        .select('id')
+        .first())?.id || null : null,
       latitude,
       longitude,
     };
@@ -47,7 +53,11 @@ export class LocationsService {
     if (!location) {
       throw new Error('Location not found or unauthorized');
     }
-
+    let countryId = updateData.country ? await Country.query()
+        .where('iso_alpha2', updateData.country.toUpperCase())
+        .orWhere('name', updateData.country)
+        .select('id')
+        .first() : null;
     const patchData: any = {};
     if (updateData.name !== undefined) patchData.name = updateData.name;
     if (updateData.description !== undefined) patchData.description = updateData.description;
@@ -57,6 +67,7 @@ export class LocationsService {
     if (updateData.tripId !== undefined) patchData.tripId = updateData.tripId;
     if (updateData.latitude !== undefined) patchData.latitude = updateData.latitude;
     if (updateData.longitude !== undefined) patchData.longitude = updateData.longitude;
+    if (updateData.country !== undefined) patchData.countryId = countryId?.id || null;
 
     const updated = await Location.query().patchAndFetchById(id, patchData);
 

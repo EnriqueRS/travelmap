@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { authService } from "$lib/services/auth";
-  import { goto } from "$app/navigation";
+  import { authService } from "$lib/services/auth"
+  import { goto } from "$app/navigation"
   import {
     User,
     Lock,
@@ -10,38 +10,41 @@
     AlertCircle,
     Eye,
     EyeOff,
-  } from "lucide-svelte";
+  } from "lucide-svelte"
 
-  let username = "";
-  let password = "";
-  let errorMessage = "";
-  let loading = false;
-  let showPassword = false;
+  import { t } from "$lib/stores/i18n"
+
+  let username = ""
+  let password = ""
+  let errorMessage = ""
+  let loading = false
+  let showPassword = false
 
   async function handleLogin() {
     try {
-      loading = true;
-      errorMessage = "";
+      loading = true
+      errorMessage = ""
       authService
         .login(username, password)
         .then((res) => {
           if (res.access_token) {
-            goto("/map");
+            goto("/map")
           } else {
-            errorMessage = res.data.message;
+            errorMessage = $t("auth.invalidCredentials")
           }
         })
         .catch((error: any) => {
           errorMessage =
-            error.response?.data?.message || "Credenciales inválidas";
+            error.response?.data?.message || $t("auth.invalidCredentials")
         })
         .finally(() => {
-          loading = false;
-        });
+          loading = false
+        })
     } catch (error: any) {
-      errorMessage = error.response?.data?.message || "Credenciales inválidas";
+      errorMessage =
+        error.response?.data?.message || $t("auth.invalidCredentials")
     } finally {
-      loading = false;
+      loading = false
     }
   }
 </script>
@@ -61,14 +64,14 @@
         <Globe class="auth-brand-icon" />
         <span>TravelMap</span>
       </a>
-      <h1 class="auth-title">Bienvenido de nuevo</h1>
+      <h1 class="auth-title">{$t("auth.welcome")}</h1>
       <p class="auth-subtitle">
-        Inicia sesión para seguir explorando el mundo.
+        {$t("auth.loginSubtitle")}
       </p>
 
       <form on:submit|preventDefault={handleLogin} class="auth-form">
         <div class="auth-field">
-          <label for="username">Usuario</label>
+          <label for="username">{$t("auth.username")}</label>
           <div class="auth-input-wrap">
             <User class="auth-input-icon" />
             <input
@@ -76,12 +79,12 @@
               type="text"
               bind:value={username}
               required
-              placeholder="username"
+              placeholder={$t("auth.usernamePlaceholder")}
             />
           </div>
         </div>
         <div class="auth-field">
-          <label for="password">Contraseña</label>
+          <label for="password">{$t("auth.password")}</label>
           <div class="auth-input-wrap">
             <Lock class="auth-input-icon" />
             <input
@@ -90,16 +93,18 @@
               value={password}
               on:input={(e) => (password = e.currentTarget.value)}
               required
-              placeholder="••••••••"
+              placeholder={$t("auth.passwordPlaceholder")}
             />
             <button
               type="button"
               class="auth-input-toggle"
               on:click={() => (showPassword = !showPassword)}
               aria-label={showPassword
-                ? "Ocultar contraseña"
-                : "Mostrar contraseña"}
-              title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                ? $t("auth.hidePassword")
+                : $t("auth.showPassword")}
+              title={showPassword
+                ? $t("auth.hidePassword")
+                : $t("auth.showPassword")}
             >
               {#if showPassword}
                 <EyeOff class="auth-toggle-icon" />
@@ -118,16 +123,16 @@
         <button type="submit" disabled={loading} class="auth-submit">
           {#if loading}
             <span class="auth-spinner" />
-            <span>Entrando...</span>
+            <span>{$t("auth.loggingIn")}</span>
           {:else}
-            <span>Entrar</span>
+            <span>{$t("auth.loginBtn")}</span>
             <ArrowRight class="auth-submit-icon" />
           {/if}
         </button>
         <div class="auth-links">
-          <a href="/register">Crear cuenta</a>
-          <span class="auth-links-muted" title="Próximamente"
-            >¿Olvidaste tu contraseña?</span
+          <a href="/register">{$t("auth.registerBtn")}</a>
+          <span class="auth-links-muted" title={$t("common.demoBanner")}
+            >{$t("auth.forgotPassword")}</span
           >
         </div>
       </form>
@@ -138,10 +143,9 @@
         <Quote class="auth-quote-icon" />
       </div>
       <p class="auth-quote-text">
-        "No viajas para escapar de la vida, sino para que la vida no se te
-        escape."
+        "{$t("auth.quote")}"
       </p>
-      <p class="auth-quote-author">Anónimo</p>
+      <p class="auth-quote-author">{$t("auth.quoteAuthor")}</p>
     </div>
   </div>
 </div>

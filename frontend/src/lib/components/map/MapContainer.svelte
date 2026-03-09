@@ -1,7 +1,9 @@
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from "svelte"
   import { browser } from "$app/environment"
-  import { userProfile } from "$lib/stores/data"
+  import { toast, languageStore } from "$lib/stores/ui"
+  import { t } from "$lib/stores/i18n"
+  import { getStatusColor, userProfile } from "$lib/stores/data"
   import type { Location } from "$lib/stores/data"
   import "leaflet/dist/leaflet.css"
   import "leaflet.markercluster/dist/MarkerCluster.css"
@@ -120,8 +122,12 @@
       const popupContent = `
         <div style="text-align: center; width: 160px;">
           ${headerHtml}
-          <h3 style="margin: 0; color: #1e293b; font-size: 16px; font-weight: 600;">${loc.name}</h3>
-          <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">${loc.category} • ⭐ ${loc.rating}</p>
+          <h3 style="margin: 0; color: #1e293b; font-size: 16px; font-weight: 600;">${
+            loc.name
+          }</h3>
+          <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">${$t(
+            `category.${loc.category}`,
+          )} • ⭐ ${loc.rating}</p>
         </div>
       `
 
@@ -177,7 +183,7 @@
           weight: 3,
           dashArray: trip.status === "Planificado" ? "5, 10" : "", // Dashed line for planned
           opacity: 0.8,
-        }).bindPopup(`<strong>Viaje:</strong> ${trip.name}`)
+        }).bindPopup(`<strong>${$t("trip.tripPrefix")}:</strong> ${trip.name}`)
 
         tripLinesGroup.addLayer(polyline)
         bounds.extend(polyline.getBounds())
@@ -203,7 +209,9 @@
           className: "custom-photo-marker",
           html: `
             <div class="marker-photo-wrapper" style="border-color: ${borderColor}">
-              <img src="${url}" alt="Foto de mapa" class="marker-photo-img" />
+              <img src="${url}" alt="${$t(
+            "common.mapPhotoAlt",
+          )}" class="marker-photo-img" />
             </div>
           `,
           iconSize: [48, 48],
@@ -217,9 +225,9 @@
             ${
               photoTrip
                 ? `<div style="margin-bottom: 8px;">
-                     <span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">Viaje: ${
-                       photoTrip.name
-                     }</span>
+                     <span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${$t(
+                       "trip.tripPrefix",
+                     )}: ${photoTrip.name}</span>
                      ${
                        photoTrip.countries && photoTrip.countries.length > 0
                          ? `<div style="margin-top: 8px; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">${photoTrip.countries
@@ -238,7 +246,7 @@
             <p style="margin: 0; font-size: 12px; color: #94a3b8;">${
               photo.metadata?.exif?.dateTimeOriginal
                 ? formatDate(photo.metadata.exif.dateTimeOriginal)
-                : "Desconocido"
+                : $t("common.unknown")
             }</p>
           </div>
         `
@@ -361,7 +369,7 @@
         zIndexOffset: 1000, // Ensure it's on top
       }).addTo(map).bindPopup(`
           <div style="text-align: center;">
-            <h3 style="margin: 0;">🏠 Casa</h3>
+            <h3 style="margin: 0;">🏠 ${$t("common.home")}</h3>
             <p>${home.name}</p>
           </div>
         `)
@@ -401,8 +409,7 @@
       currentTileLayer = L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
         {
-          attribution:
-            "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+          attribution: $t("map.satelliteAttribution"),
           maxZoom: 19,
         },
       )
@@ -410,8 +417,7 @@
       currentTileLayer = L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
         {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          attribution: $t("map.defaultAttribution"),
           subdomains: "abcd",
           maxZoom: 20,
         },
@@ -516,11 +522,12 @@
       const result = await geocode(searchQuery)
       if (result) {
         map.setView([result.lat, result.lng], 12)
+        dispatch("locationSelect", { lat: result.lat, lng: result.lng })
       } else {
-        searchError = "No se encontró la ubicación."
+        searchError = $t("common.noLocationFound")
       }
     } catch (e) {
-      searchError = "Error al buscar."
+      searchError = $t("common.searchError")
     } finally {
       searchLoading = false
     }
@@ -538,7 +545,7 @@
     <input
       type="text"
       class="map-search-input"
-      placeholder="Buscar ciudad o lugar..."
+      placeholder={$t("common.searchPlaceholderMap")}
       bind:value={searchQuery}
       on:keydown={(e) => e.key === "Enter" && handleSearch()}
     />
@@ -547,10 +554,10 @@
       class="map-search-btn"
       disabled={searchLoading || !searchQuery.trim()}
       on:click={handleSearch}
-      title="Buscar en el mapa"
+      title={$t("common.searchTitleMap")}
     >
       <Search size={18} />
-      <span>{searchLoading ? "..." : "Buscar"}</span>
+      <span>{searchLoading ? "..." : $t("common.searchBtn")}</span>
     </button>
   </div>
   {#if searchError}

@@ -3,7 +3,9 @@
   import { trips, locations, getStatusColor } from "$lib/stores/data"
   import { goto } from "$app/navigation"
   import { formatDate } from "$lib/utils/formatters"
-  import { getCountryFlag } from "$lib/utils/countries"
+  import { getCountryFlag, getCountryName } from "$lib/utils/countries"
+  import { languageStore } from "$lib/stores/ui"
+  import { t } from "$lib/stores/i18n"
   import { API_URL } from "$lib/services/auth"
   import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
 
@@ -32,22 +34,22 @@
 </script>
 
 <svelte:head>
-  <title>TravelMap - Mis Viajes</title>
+  <title>TravelMap - {$t("dashboard.title")}</title>
   <meta name="description" content="Gestiona y visualiza todos tus viajes" />
 </svelte:head>
 
 <main class="trips-page">
   <section class="trips-header">
     <div class="header-content">
-      <h1>🧭 Mis Viajes</h1>
+      <h1>🧭 {$t("dashboard.title")}</h1>
       <div class="header-actions">
         <a href="/trips/new" class="btn btn-primary">
           <Plus size={20} />
-          Nuevo Viaje
+          {$t("dashboard.newTrip")}
         </a>
         <a href="/map" class="btn btn-secondary">
           <Map size={20} />
-          Mapa Completo
+          {$t("nav.map")}
         </a>
       </div>
     </div>
@@ -78,7 +80,7 @@
               style="background-color: {getStatusColor(trip.status)}"
             >
               {getStatusIcon(trip.status)}
-              {trip.status}
+              {$t(`status.${trip.status}`)}
             </div>
           </div>
 
@@ -92,7 +94,7 @@
                 <span>{formatDate(trip.startDate)}</span>
               </div>
               <div class="date-item">
-                <span>hasta {formatDate(trip.endDate)}</span>
+                <span>{$t("dashboard.until")} {formatDate(trip.endDate)}</span>
               </div>
             </div>
 
@@ -100,16 +102,22 @@
               <div class="stat">
                 <span class="stat-icon">📍</span>
                 <span
-                  >{$locations.filter(
-                    (l) =>
-                      l.tripId === trip.id ||
-                      (trip.locations && trip.locations.includes(l.id)),
-                  ).length} lugares</span
+                  >{$t("dashboard.placesCount", {
+                    count: $locations.filter(
+                      (l) =>
+                        l.tripId === trip.id ||
+                        (trip.locations && trip.locations.includes(l.id)),
+                    ).length,
+                  })}</span
                 >
               </div>
               <div class="stat">
                 <span class="stat-icon">🗺️</span>
-                <span>{trip.countries.length} países</span>
+                <span
+                  >{$t("dashboard.countriesCount", {
+                    count: trip.countries.length,
+                  })}</span
+                >
               </div>
             </div>
 
@@ -117,7 +125,8 @@
               <div class="country-list">
                 {#each trip.countries as country}
                   <span class="country-tag"
-                    >{getCountryFlag(country)} {country}</span
+                    >{getCountryFlag(country)}
+                    {getCountryName(country, $languageStore)}</span
                   >
                 {/each}
               </div>
@@ -125,16 +134,16 @@
 
             <div class="trip-actions">
               <a href="/trips/{trip.id}" class="btn btn-small btn-primary">
-                Ver Detalles
+                {$t("dashboard.viewDetails")}
               </a>
             </div>
           </div>
         </div>
       {:else}
         <div class="empty-state">
-          <p>No tienes viajes registrados aún. ¡Empieza creando uno nuevo!</p>
+          <p>{$t("dashboard.emptyState")}</p>
           <a href="/trips/new" class="btn btn-primary mt-4"
-            >Crear Primer Viaje</a
+            >{$t("dashboard.createFirst")}</a
           >
         </div>
       {/each}
@@ -143,27 +152,27 @@
 
   <section class="trips-summary">
     <div class="summary-content">
-      <h2>📊 Resumen de Viajes</h2>
+      <h2>📊 {$t("dashboard.title")}</h2>
       <div class="summary-stats">
         <div class="card p-6 text-center border-border">
           <div class="summary-number">{stats.total}</div>
-          <div class="summary-label">Viajes Totales</div>
+          <div class="summary-label">{$t("map.totalTrips")}</div>
         </div>
         <div class="card p-6 text-center border-border">
           <div class="summary-number">{stats.completed}</div>
-          <div class="summary-label">Completados</div>
+          <div class="summary-label">{$t("status.Completado")}</div>
         </div>
         <div class="card p-6 text-center border-border">
           <div class="summary-number">{stats.ongoing}</div>
-          <div class="summary-label">En Curso</div>
+          <div class="summary-label">{$t("status.En curso")}</div>
         </div>
         <div class="card p-6 text-center border-border">
           <div class="summary-number">{stats.locations}</div>
-          <div class="summary-label">Ubicaciones</div>
+          <div class="summary-label">{$t("map.totalLocations")}</div>
         </div>
         <div class="card p-6 text-center border-border">
           <div class="summary-number">{stats.countries}</div>
-          <div class="summary-label">Países Visitados</div>
+          <div class="summary-label">{$t("profile.countriesVisited")}</div>
         </div>
       </div>
     </div>

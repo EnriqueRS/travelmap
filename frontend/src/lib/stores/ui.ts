@@ -56,3 +56,27 @@ function createThemeStore() {
 }
 
 export const themeStore = createThemeStore();
+
+export type LangType = "es" | "en";
+
+function createLanguageStore() {
+  const isBrowser = typeof window !== "undefined";
+  // Default to Spanish to match the original application behavior, 
+  // but allow restoring from saved preference.
+  const storedLang = isBrowser ? localStorage.getItem("travelmapLang") as LangType : "es";
+  
+  const { subscribe, set, update } = writable<LangType>(storedLang || "es");
+
+  return {
+    subscribe,
+    set: (value: LangType) => {
+      if (isBrowser) {
+        localStorage.setItem("travelmapLang", value);
+      }
+      set(value);
+    },
+    update
+  };
+}
+
+export const languageStore = createLanguageStore();

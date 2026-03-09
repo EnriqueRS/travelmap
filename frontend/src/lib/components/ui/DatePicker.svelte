@@ -1,39 +1,47 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
-  import flatpickr from "flatpickr";
-  import "flatpickr/dist/flatpickr.min.css";
-  import "flatpickr/dist/themes/dark.css";
-  import { Spanish } from "flatpickr/dist/l10n/es.js";
+  import { onMount, onDestroy } from "svelte"
+  import flatpickr from "flatpickr"
+  import "flatpickr/dist/flatpickr.min.css"
+  import "flatpickr/dist/themes/dark.css"
+  import { Spanish } from "flatpickr/dist/l10n/es.js"
+  import { languageStore } from "$lib/stores/ui"
+  import { t } from "$lib/stores/i18n"
 
-  export let value: string = ""; // Valor en DB siempre YYYY-MM-DD
-  export let id: string = "";
-  export let required: boolean = false;
-  export let placeholder: string = "DD/MM/AAAA";
+  export let value: string = "" // Valor en DB siempre YYYY-MM-DD
+  export let id: string = ""
+  export let required: boolean = false
+  export let placeholder: string = $t("common.datePlaceholder")
 
-  let inputElement: HTMLInputElement;
-  let fpInstance: any;
+  let inputElement: HTMLInputElement
+  let fpInstance: any
 
   onMount(() => {
     fpInstance = flatpickr(inputElement, {
-      locale: Spanish,
+      locale: $languageStore === "es" ? Spanish : "en",
       dateFormat: "Y-m-d", // Formato del valor "value"
       altInput: true,
       altFormat: "d/m/Y", // Formato visible al usuario
       defaultDate: value || undefined,
       onChange: (selectedDates, dateStr) => {
-        value = dateStr;
+        value = dateStr
       },
-    });
-  });
+    })
+  })
+
+  $: if (fpInstance) {
+    fpInstance.set("locale", $languageStore === "es" ? Spanish : "en")
+    // flatpickr sometimes needs to redraw/rebuild parts when locale changes
+    // But setting it via .set("locale", ...) is usually enough for simple stuff.
+  }
 
   onDestroy(() => {
     if (fpInstance) {
-      fpInstance.destroy();
+      fpInstance.destroy()
     }
-  });
+  })
 
   $: if (fpInstance && value) {
-    fpInstance.setDate(value, false);
+    fpInstance.setDate(value, false)
   }
 </script>
 

@@ -2,6 +2,8 @@
   import { authService } from "$lib/services/auth"
   import LocationPicker from "$lib/components/map/LocationPicker.svelte"
   import { goto } from "$app/navigation"
+  import { toast } from "$lib/stores/ui"
+  import { t } from "$lib/stores/i18n"
   import {
     UserPlus,
     MapPin,
@@ -29,7 +31,7 @@
   async function handleRegister() {
     try {
       if (!homeLocation) {
-        errorMessage = "Por favor selecciona tu ubicación en el mapa."
+        errorMessage = $t("auth.selectHomeLocation")
         return
       }
 
@@ -50,7 +52,7 @@
 
       goto("/profile")
     } catch (error: any) {
-      errorMessage = error.response?.data?.message || "Error en el registro"
+      errorMessage = error.response?.data?.message || $t("auth.registerError")
     } finally {
       loading = false
     }
@@ -77,8 +79,8 @@
         <Globe class="auth-brand-icon" />
         <span>TravelMap</span>
       </a>
-      <h1 class="auth-title">Crear cuenta</h1>
-      <p class="auth-subtitle">Únete y empieza a mapear tus aventuras.</p>
+      <h1 class="auth-title">{$t("auth.createAccount")}</h1>
+      <p class="auth-subtitle">{$t("auth.joinAndMapAdventures")}</p>
 
       <div class="scroll-content">
         <form
@@ -87,29 +89,29 @@
         >
           <div class="auth-row">
             <div class="auth-field">
-              <label for="firstName">Nombre</label>
+              <label for="firstName">{$t("auth.firstName")}</label>
               <input
                 id="firstName"
                 name="firstName"
                 type="text"
                 bind:value={firstName}
-                placeholder="John"
+                placeholder={$t("auth.firstNamePlaceholder")}
               />
             </div>
             <div class="auth-field">
-              <label for="lastName">Apellidos</label>
+              <label for="lastName">{$t("auth.lastName")}</label>
               <input
                 id="lastName"
                 name="lastName"
                 type="text"
                 bind:value={lastName}
-                placeholder="Doe"
+                placeholder={$t("auth.lastNamePlaceholder")}
               />
             </div>
           </div>
 
           <div class="auth-field">
-            <label for="username">Usuario</label>
+            <label for="username">{$t("auth.username")}</label>
             <div class="auth-input-wrap">
               <User class="auth-input-icon" />
               <input
@@ -123,7 +125,7 @@
             </div>
           </div>
           <div class="auth-field">
-            <label for="email">Correo</label>
+            <label for="email">{$t("auth.email")}</label>
             <div class="auth-input-wrap">
               <Mail class="auth-input-icon" />
               <input
@@ -137,7 +139,7 @@
             </div>
           </div>
           <div class="auth-field">
-            <label for="password">Contraseña</label>
+            <label for="password">{$t("auth.password")}</label>
             <div class="auth-input-wrap">
               <Lock class="auth-input-icon" />
               <input
@@ -147,18 +149,18 @@
                 required
                 value={password}
                 on:input={(e) => (password = e.currentTarget.value)}
-                placeholder="••••••••"
+                placeholder={$t("auth.passwordPlaceholder")}
               />
               <button
                 type="button"
                 class="auth-input-toggle"
                 on:click={() => (showPassword = !showPassword)}
                 aria-label={showPassword
-                  ? "Ocultar contraseña"
-                  : "Mostrar contraseña"}
+                  ? $t("auth.hidePassword")
+                  : $t("auth.showPassword")}
                 title={showPassword
-                  ? "Ocultar contraseña"
-                  : "Mostrar contraseña"}
+                  ? $t("auth.hidePassword")
+                  : $t("auth.showPassword")}
               >
                 {#if showPassword}
                   <EyeOff class="auth-toggle-icon" />
@@ -176,7 +178,7 @@
           >
             <span id="location-label" class="auth-label-location">
               <MapPin class="auth-label-location-icon" />
-              Ubicación de casa
+              {$t("auth.homeLocation")}
             </span>
             <div class="auth-map-wrap">
               <LocationPicker
@@ -185,7 +187,7 @@
               />
               {#if !homeLocation}
                 <div class="auth-map-overlay">
-                  <span>Haz clic en el mapa para elegir</span>
+                  <span>{$t("auth.clickToPick")}</span>
                 </div>
               {/if}
             </div>
@@ -201,17 +203,17 @@
           <button type="submit" disabled={loading} class="auth-submit">
             {#if loading}
               <span class="auth-spinner" />
-              <span>Creando cuenta...</span>
+              <span>{$t("auth.registering")}</span>
             {:else}
               <UserPlus class="auth-submit-icon" />
-              <span>Registrarse</span>
+              <span>{$t("auth.registerBtn")}</span>
               <ArrowRight class="auth-submit-icon" />
             {/if}
           </button>
 
           <p class="auth-footer-link">
-            ¿Ya tienes cuenta?
-            <a href="/login">Inicia sesión</a>
+            {$t("auth.hasAccount")}
+            <a href="/login">{$t("auth.loginInstead")}</a>
           </p>
         </form>
       </div>
@@ -221,10 +223,9 @@
       <div class="auth-visual-icon-wrap">
         <MapPin class="auth-visual-icon" />
       </div>
-      <h3 class="auth-visual-title">Descubre el mundo</h3>
+      <h3 class="auth-visual-title">{$t("auth.discoverTheWorld")}</h3>
       <p class="auth-visual-text">
-        Registra tus viajes, comparte tus lugares favoritos y conecta con otros
-        viajeros.
+        {$t("auth.discoverTheWorldDesc")}
       </p>
     </div>
   </div>

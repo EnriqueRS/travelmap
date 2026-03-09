@@ -11,9 +11,16 @@
     LogIn,
     Palette,
     Check,
+    Languages,
   } from "lucide-svelte"
   import { currentUser, authService } from "$lib/services/auth"
-  import { themeStore, type ThemeType } from "$lib/stores/ui"
+  import {
+    themeStore,
+    languageStore,
+    type ThemeType,
+    type LangType,
+  } from "$lib/stores/ui"
+  import { t } from "$lib/stores/i18n"
   import { goto } from "$app/navigation"
   import { onMount } from "svelte"
 
@@ -32,7 +39,13 @@
     showThemeMenu = false
   }
 
+  function setLanguage(l: LangType) {
+    languageStore.set(l)
+    showLangMenu = false
+  }
+
   let showThemeMenu = false
+  let showLangMenu = false
 
   onMount(async () => {
     if ($currentUser?.access_token) {
@@ -50,7 +63,7 @@
 {#if isInitializing && $currentUser}
   <div class="loading-screen">
     <div class="spinner" />
-    <p>Cargando tu mapa...</p>
+    <p>{$t("common.loading")}</p>
   </div>
 {:else}
   <nav class="navbar">
@@ -59,7 +72,7 @@
         <Globe size={24} />
         <span class="brand-text">TravelMap</span>
         {#if !$currentUser}
-          <span class="demo-badge">Modo Demo</span>
+          <span class="demo-badge">{$t("common.demoBadge")}</span>
         {/if}
       </div>
 
@@ -69,23 +82,23 @@
         {#if !$currentUser}
           <a href="/" class="nav-link">
             <Home size={18} />
-            <span>Inicio</span>
+            <span>{$t("nav.home")}</span>
           </a>
         {/if}
 
-        <a href="/map" class="nav-link">
-          <Map size={18} />
-          <span>Mapa</span>
-        </a>
-
         <a href="/trips" class="nav-link">
           <Compass size={18} />
-          <span>Viajes</span>
+          <span>{$t("nav.trips")}</span>
+        </a>
+
+        <a href="/map" class="nav-link">
+          <Map size={18} />
+          <span>{$t("nav.map")}</span>
         </a>
 
         <a href="/profile" class="nav-link">
           <User size={18} />
-          <span>Perfil</span>
+          <span>{$t("nav.profile")}</span>
         </a>
 
         <!-- Theme Switcher -->
@@ -93,7 +106,7 @@
           <button
             class="nav-link"
             on:click={() => (showThemeMenu = !showThemeMenu)}
-            title="Cambiar Tema"
+            title={$t("nav.changeTheme")}
           >
             <Palette size={18} />
           </button>
@@ -109,7 +122,7 @@
                 <span
                   class={currentTheme === "theme-sea-blue"
                     ? "text-accent-primary font-medium"
-                    : "text-text-primary"}>Deep Sea (Gris)</span
+                    : "text-text-primary"}>{$t("nav.themeSeaBlue")}</span
                 >
                 {#if currentTheme === "theme-sea-blue"}
                   <Check size={14} class="text-accent-primary" />
@@ -122,7 +135,7 @@
                 <span
                   class={currentTheme === "theme-light"
                     ? "text-accent-primary font-medium"
-                    : "text-text-primary"}>Light Mode</span
+                    : "text-text-primary"}>{$t("nav.themeLight")}</span
                 >
                 {#if currentTheme === "theme-light"}
                   <Check size={14} class="text-accent-primary" />
@@ -135,9 +148,56 @@
                 <span
                   class={currentTheme === "theme-neon-obsidian"
                     ? "text-accent-primary font-medium"
-                    : "text-text-primary"}>Neon Obsidian</span
+                    : "text-text-primary"}>{$t("nav.themeNeon")}</span
                 >
                 {#if currentTheme === "theme-neon-obsidian"}
+                  <Check size={14} class="text-accent-primary" />
+                {/if}
+              </button>
+            </div>
+          {/if}
+        </div>
+
+        <!-- Language Switcher -->
+        <div class="relative">
+          <button
+            class="nav-link"
+            on:click={() => {
+              showLangMenu = !showLangMenu
+              if (showLangMenu) showThemeMenu = false
+            }}
+            title={$t("nav.changeLanguage")}
+          >
+            <Languages size={18} />
+          </button>
+
+          {#if showLangMenu}
+            <div
+              class="absolute right-0 mt-2 w-32 bg-background-secondary border border-border rounded-lg shadow-xl py-2 z-50"
+            >
+              <button
+                class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
+                on:click={() => setLanguage("es")}
+              >
+                <span
+                  class={$languageStore === "es"
+                    ? "text-accent-primary font-medium"
+                    : "text-text-primary"}>Español</span
+                >
+                {#if $languageStore === "es"}
+                  <Check size={14} class="text-accent-primary" />
+                {/if}
+              </button>
+              <button
+                class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
+                on:click={() => setLanguage("en")}
+              >
+                <span
+                  class={$languageStore === "en"
+                    ? "text-accent-primary font-medium"
+                    : "text-text-primary"}>English</span
+                >
+                {#if $languageStore === "en"}
                   <Check size={14} class="text-accent-primary" />
                 {/if}
               </button>
@@ -148,12 +208,12 @@
         {#if $currentUser}
           <button class="nav-link logout-btn" on:click={handleLogout}>
             <LogOut size={18} />
-            <span>Salir</span>
+            <span>{$t("nav.logout")}</span>
           </button>
         {:else}
           <a href="/login" class="nav-link login-btn">
             <LogIn size={18} />
-            <span>Acceder</span>
+            <span>{$t("nav.login")}</span>
           </a>
         {/if}
       </div>
@@ -163,9 +223,8 @@
   {#if !$currentUser}
     <div class="demo-banner">
       <p>
-        👀 Estás viendo datos de demostración. <a href="/login">Inicia sesión</a
-        >
-        o <a href="/register">Regístrate</a> para guardar tus propios viajes.
+        {$t("common.demoBanner")} <a href="/login">{$t("auth.loginBtn")}</a>
+        {$t("common.or")} <a href="/register">{$t("auth.registerBtn")}</a>
       </p>
     </div>
   {/if}
@@ -176,8 +235,8 @@
 
   <footer class="footer">
     <div class="footer-content">
-      <p>&copy; 2026 TravelMap. Todos los derechos reservados.</p>
-      <p>Explora el mundo, comparte tus aventuras.</p>
+      <p>{$t("common.copyright")}</p>
+      <p>{$t("common.tagline")}</p>
     </div>
   </footer>
 {/if}
@@ -185,10 +244,6 @@
 <Toast />
 
 <style>
-  :global(body) {
-    /* Base setup handled by app.css */
-  }
-
   .navbar {
     background: var(--color-bg-secondary);
     backdrop-filter: blur(12px);
