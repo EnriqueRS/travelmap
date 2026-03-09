@@ -40,7 +40,7 @@
   }
 </script>
 
-<div class="modal-backdrop" on:click|self={close}>
+<div class="modal-backdrop scroll-content" on:click|self={close}>
   <div class="modal card">
     <header class="modal-header">
       <h3>{title}</h3>

@@ -480,7 +480,7 @@
           </button>
         </div>
 
-        <div class="modal-scroll-content">
+        <div class="scroll-content">
           <form class="edit-profile-form" on:submit|preventDefault={handleSave}>
             <div class="form-group-modern">
               <label for="name">NOMBRE A MOSTRAR</label>
@@ -1383,26 +1383,6 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-  }
-
-  /* Custom Scrollbar for Modal Content */
-  .modal-scroll-content {
-    overflow-y: auto;
-    padding: 1.5rem;
-    flex-grow: 1;
-    scrollbar-width: thin;
-    scrollbar-color: #475569 transparent;
-  }
-
-  .modal-scroll-content::-webkit-scrollbar {
-    width: 6px;
-  }
-  .modal-scroll-content::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .modal-scroll-content::-webkit-scrollbar-thumb {
-    background-color: #475569;
-    border-radius: 10px;
   }
 
   .modal-header {

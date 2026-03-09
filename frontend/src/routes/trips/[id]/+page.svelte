@@ -1295,7 +1295,7 @@
 
 {#if showLocationModal}
   <div
-    class="modal-backdrop pointer-events-auto flex items-center justify-center p-4"
+    class="scroll-content modal-backdrop pointer-events-auto flex items-center justify-center p-4"
   >
     <div
       class="modal card meta-modal w-full max-w-lg bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl overflow-y-auto max-h-[90vh] text-left"
@@ -1333,18 +1333,6 @@
             rows="2"
             placeholder="Descripción opcional"
           />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-slate-300 mb-1"
-            >{editingLocation ? "País" : "País detectado"}</label
-          >
-          <div
-            class="w-full bg-slate-900/50 border border-slate-700 rounded-md p-2 text-slate-400 min-h-[42px] content-center"
-          >
-            {modalLocationCountry ||
-              "Selecciona un punto en el mapa para detectar"}
-          </div>
         </div>
 
         <div>
@@ -1393,6 +1381,23 @@
             </p>
           {/if}
         </div>
+
+        {#if modalLocationCountry}
+          <span class="country-tag"
+            >{getCountryFlag(modalLocationCountry)} {modalLocationCountry}</span
+          >
+          <!-- <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1"
+              >{editingLocation ? "País" : "País detectado"}</label
+            >
+            <div
+              class="w-full bg-slate-900/50 border border-slate-700 rounded-md p-2 text-slate-400 min-h-[42px] content-center"
+            >
+              {modalLocationCountry ||
+                "Selecciona un punto en el mapa para detectar"}
+            </div>
+          </div> -->
+        {/if}
 
         <div>
           <label

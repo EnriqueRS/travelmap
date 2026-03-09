@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { authService } from "$lib/services/auth";
-  import LocationPicker from "$lib/components/map/LocationPicker.svelte";
-  import { goto } from "$app/navigation";
+  import { authService } from "$lib/services/auth"
+  import LocationPicker from "$lib/components/map/LocationPicker.svelte"
+  import { goto } from "$app/navigation"
   import {
     UserPlus,
     MapPin,
@@ -13,27 +13,28 @@
     ArrowRight,
     Eye,
     EyeOff,
-  } from "lucide-svelte";
+  } from "lucide-svelte"
+  import "../../app.css"
 
-  let username = "";
-  let email = "";
-  let password = "";
-  let firstName = "";
-  let lastName = "";
-  let homeLocation: { lat: number; lng: number } | null = null;
-  let errorMessage = "";
-  let loading = false;
-  let showPassword = false;
+  let username = ""
+  let email = ""
+  let password = ""
+  let firstName = ""
+  let lastName = ""
+  let homeLocation: { lat: number; lng: number } | null = null
+  let errorMessage = ""
+  let loading = false
+  let showPassword = false
 
   async function handleRegister() {
     try {
       if (!homeLocation) {
-        errorMessage = "Por favor selecciona tu ubicación en el mapa.";
-        return;
+        errorMessage = "Por favor selecciona tu ubicación en el mapa."
+        return
       }
 
-      loading = true;
-      errorMessage = "";
+      loading = true
+      errorMessage = ""
 
       await authService.register({
         username,
@@ -45,19 +46,19 @@
           type: "Point",
           coordinates: [homeLocation.lat, homeLocation.lng],
         },
-      });
+      })
 
-      goto("/profile");
+      goto("/profile")
     } catch (error: any) {
-      errorMessage = error.response?.data?.message || "Error en el registro";
+      errorMessage = error.response?.data?.message || "Error en el registro"
     } finally {
-      loading = false;
+      loading = false
     }
   }
 
   function handleLocationSelect(event: CustomEvent) {
-    homeLocation = event.detail;
-    errorMessage = "";
+    homeLocation = event.detail
+    errorMessage = ""
   }
 </script>
 
@@ -79,137 +80,141 @@
       <h1 class="auth-title">Crear cuenta</h1>
       <p class="auth-subtitle">Únete y empieza a mapear tus aventuras.</p>
 
-      <form
-        on:submit|preventDefault={handleRegister}
-        class="auth-form auth-form-register"
-      >
-        <div class="auth-row">
-          <div class="auth-field">
-            <label for="firstName">Nombre</label>
-            <input
-              id="firstName"
-              name="firstName"
-              type="text"
-              bind:value={firstName}
-              placeholder="John"
-            />
-          </div>
-          <div class="auth-field">
-            <label for="lastName">Apellidos</label>
-            <input
-              id="lastName"
-              name="lastName"
-              type="text"
-              bind:value={lastName}
-              placeholder="Doe"
-            />
-          </div>
-        </div>
-
-        <div class="auth-field">
-          <label for="username">Usuario</label>
-          <div class="auth-input-wrap">
-            <User class="auth-input-icon" />
-            <input
-              id="username"
-              name="username"
-              type="text"
-              required
-              bind:value={username}
-              placeholder="username"
-            />
-          </div>
-        </div>
-        <div class="auth-field">
-          <label for="email">Correo</label>
-          <div class="auth-input-wrap">
-            <Mail class="auth-input-icon" />
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              bind:value={email}
-              placeholder="tu@email.com"
-            />
-          </div>
-        </div>
-        <div class="auth-field">
-          <label for="password">Contraseña</label>
-          <div class="auth-input-wrap">
-            <Lock class="auth-input-icon" />
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              required
-              value={password}
-              on:input={(e) => (password = e.currentTarget.value)}
-              placeholder="••••••••"
-            />
-            <button
-              type="button"
-              class="auth-input-toggle"
-              on:click={() => (showPassword = !showPassword)}
-              aria-label={showPassword
-                ? "Ocultar contraseña"
-                : "Mostrar contraseña"}
-              title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-            >
-              {#if showPassword}
-                <EyeOff class="auth-toggle-icon" />
-              {:else}
-                <Eye class="auth-toggle-icon" />
-              {/if}
-            </button>
-          </div>
-        </div>
-
-        <div
-          class="auth-field auth-field-location"
-          role="group"
-          aria-labelledby="location-label"
+      <div class="scroll-content">
+        <form
+          on:submit|preventDefault={handleRegister}
+          class="auth-form auth-form-register"
         >
-          <span id="location-label" class="auth-label-location">
-            <MapPin class="auth-label-location-icon" />
-            Ubicación de casa
-          </span>
-          <div class="auth-map-wrap">
-            <LocationPicker
-              on:locationSelect={handleLocationSelect}
-              height="200px"
-            />
-            {#if !homeLocation}
-              <div class="auth-map-overlay">
-                <span>Haz clic en el mapa para elegir</span>
-              </div>
-            {/if}
+          <div class="auth-row">
+            <div class="auth-field">
+              <label for="firstName">Nombre</label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                bind:value={firstName}
+                placeholder="John"
+              />
+            </div>
+            <div class="auth-field">
+              <label for="lastName">Apellidos</label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                bind:value={lastName}
+                placeholder="Doe"
+              />
+            </div>
           </div>
-        </div>
 
-        {#if errorMessage}
-          <div class="auth-error" role="alert">
-            <AlertCircle class="auth-error-icon" />
-            <span>{errorMessage}</span>
+          <div class="auth-field">
+            <label for="username">Usuario</label>
+            <div class="auth-input-wrap">
+              <User class="auth-input-icon" />
+              <input
+                id="username"
+                name="username"
+                type="text"
+                required
+                bind:value={username}
+                placeholder="username"
+              />
+            </div>
           </div>
-        {/if}
+          <div class="auth-field">
+            <label for="email">Correo</label>
+            <div class="auth-input-wrap">
+              <Mail class="auth-input-icon" />
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                bind:value={email}
+                placeholder="tu@email.com"
+              />
+            </div>
+          </div>
+          <div class="auth-field">
+            <label for="password">Contraseña</label>
+            <div class="auth-input-wrap">
+              <Lock class="auth-input-icon" />
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                on:input={(e) => (password = e.currentTarget.value)}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                class="auth-input-toggle"
+                on:click={() => (showPassword = !showPassword)}
+                aria-label={showPassword
+                  ? "Ocultar contraseña"
+                  : "Mostrar contraseña"}
+                title={showPassword
+                  ? "Ocultar contraseña"
+                  : "Mostrar contraseña"}
+              >
+                {#if showPassword}
+                  <EyeOff class="auth-toggle-icon" />
+                {:else}
+                  <Eye class="auth-toggle-icon" />
+                {/if}
+              </button>
+            </div>
+          </div>
 
-        <button type="submit" disabled={loading} class="auth-submit">
-          {#if loading}
-            <span class="auth-spinner" />
-            <span>Creando cuenta...</span>
-          {:else}
-            <UserPlus class="auth-submit-icon" />
-            <span>Registrarse</span>
-            <ArrowRight class="auth-submit-icon" />
+          <div
+            class="auth-field auth-field-location"
+            role="group"
+            aria-labelledby="location-label"
+          >
+            <span id="location-label" class="auth-label-location">
+              <MapPin class="auth-label-location-icon" />
+              Ubicación de casa
+            </span>
+            <div class="auth-map-wrap">
+              <LocationPicker
+                on:locationSelect={handleLocationSelect}
+                height="200px"
+              />
+              {#if !homeLocation}
+                <div class="auth-map-overlay">
+                  <span>Haz clic en el mapa para elegir</span>
+                </div>
+              {/if}
+            </div>
+          </div>
+
+          {#if errorMessage}
+            <div class="auth-error" role="alert">
+              <AlertCircle class="auth-error-icon" />
+              <span>{errorMessage}</span>
+            </div>
           {/if}
-        </button>
 
-        <p class="auth-footer-link">
-          ¿Ya tienes cuenta?
-          <a href="/login">Inicia sesión</a>
-        </p>
-      </form>
+          <button type="submit" disabled={loading} class="auth-submit">
+            {#if loading}
+              <span class="auth-spinner" />
+              <span>Creando cuenta...</span>
+            {:else}
+              <UserPlus class="auth-submit-icon" />
+              <span>Registrarse</span>
+              <ArrowRight class="auth-submit-icon" />
+            {/if}
+          </button>
+
+          <p class="auth-footer-link">
+            ¿Ya tienes cuenta?
+            <a href="/login">Inicia sesión</a>
+          </p>
+        </form>
+      </div>
     </div>
 
     <div class="auth-panel auth-panel-visual">
