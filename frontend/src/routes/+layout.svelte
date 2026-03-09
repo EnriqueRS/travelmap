@@ -22,6 +22,7 @@
   } from "$lib/stores/ui"
   import { t } from "$lib/stores/i18n"
   import { goto } from "$app/navigation"
+  import { page } from "$app/stores"
   import { onMount } from "svelte"
 
   let isInitializing = true
@@ -69,7 +70,9 @@
   <nav class="navbar">
     <div class="nav-container">
       <div class="nav-brand">
-        <Globe size={24} />
+        <div class="brand-icon-box">
+          <Globe size={20} />
+        </div>
         <span class="brand-text">TravelMap</span>
         {#if !$currentUser}
           <span class="demo-badge">{$t("common.demoBadge")}</span>
@@ -79,143 +82,165 @@
       <!-- Demo Banner for Mobile/Desktop if needed, or just keep it subtle in header -->
 
       <div class="nav-links">
-        {#if !$currentUser}
-          <a href="/" class="nav-link">
-            <Home size={18} />
-            <span>{$t("nav.home")}</span>
-          </a>
-        {/if}
-
-        <a href="/trips" class="nav-link">
-          <Compass size={18} />
-          <span>{$t("nav.trips")}</span>
-        </a>
-
-        <a href="/map" class="nav-link">
-          <Map size={18} />
-          <span>{$t("nav.map")}</span>
-        </a>
-
-        <a href="/profile" class="nav-link">
-          <User size={18} />
-          <span>{$t("nav.profile")}</span>
-        </a>
-
-        <!-- Theme Switcher -->
-        <div class="relative">
-          <button
-            class="nav-link"
-            on:click={() => (showThemeMenu = !showThemeMenu)}
-            title={$t("nav.changeTheme")}
-          >
-            <Palette size={18} />
-          </button>
-
-          {#if showThemeMenu}
-            <div
-              class="absolute right-0 mt-2 w-48 bg-background-secondary border border-border rounded-lg shadow-xl py-2 z-50"
+        <!-- Center navigation links -->
+        <div class="nav-center-links">
+          {#if !$currentUser}
+            <a
+              href="/"
+              class="nav-link"
+              class:active={$page.url.pathname === "/"}
             >
-              <button
-                class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
-                on:click={() => setTheme("theme-sea-blue")}
-              >
-                <span
-                  class={currentTheme === "theme-sea-blue"
-                    ? "text-accent-primary font-medium"
-                    : "text-text-primary"}>{$t("nav.themeSeaBlue")}</span
-                >
-                {#if currentTheme === "theme-sea-blue"}
-                  <Check size={14} class="text-accent-primary" />
-                {/if}
-              </button>
-              <button
-                class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
-                on:click={() => setTheme("theme-light")}
-              >
-                <span
-                  class={currentTheme === "theme-light"
-                    ? "text-accent-primary font-medium"
-                    : "text-text-primary"}>{$t("nav.themeLight")}</span
-                >
-                {#if currentTheme === "theme-light"}
-                  <Check size={14} class="text-accent-primary" />
-                {/if}
-              </button>
-              <button
-                class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
-                on:click={() => setTheme("theme-neon-obsidian")}
-              >
-                <span
-                  class={currentTheme === "theme-neon-obsidian"
-                    ? "text-accent-primary font-medium"
-                    : "text-text-primary"}>{$t("nav.themeNeon")}</span
-                >
-                {#if currentTheme === "theme-neon-obsidian"}
-                  <Check size={14} class="text-accent-primary" />
-                {/if}
-              </button>
-            </div>
+              <Home size={18} />
+              <span>{$t("nav.home")}</span>
+            </a>
           {/if}
+
+          <a
+            href="/trips"
+            class="nav-link"
+            class:active={$page.url.pathname.startsWith("/trips")}
+          >
+            <Compass size={18} />
+            <span>{$t("nav.trips")}</span>
+          </a>
+
+          <a
+            href="/map"
+            class="nav-link"
+            class:active={$page.url.pathname.startsWith("/map")}
+          >
+            <Map size={18} />
+            <span>{$t("nav.map")}</span>
+          </a>
+
+          <a
+            href="/profile"
+            class="nav-link"
+            class:active={$page.url.pathname.startsWith("/profile")}
+          >
+            <User size={18} />
+            <span>{$t("nav.profile")}</span>
+          </a>
         </div>
 
-        <!-- Language Switcher -->
-        <div class="relative">
-          <button
-            class="nav-link"
-            on:click={() => {
-              showLangMenu = !showLangMenu
-              if (showLangMenu) showThemeMenu = false
-            }}
-            title={$t("nav.changeLanguage")}
-          >
-            <Languages size={18} />
-          </button>
-
-          {#if showLangMenu}
-            <div
-              class="absolute right-0 mt-2 w-32 bg-background-secondary border border-border rounded-lg shadow-xl py-2 z-50"
+        <!-- Right side icons / actions -->
+        <div class="nav-actions">
+          <!-- Theme Switcher -->
+          <div class="relative">
+            <button
+              class="nav-link"
+              on:click={() => (showThemeMenu = !showThemeMenu)}
+              title={$t("nav.changeTheme")}
             >
-              <button
-                class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
-                on:click={() => setLanguage("es")}
+              <Palette size={18} />
+            </button>
+
+            {#if showThemeMenu}
+              <div
+                class="absolute right-0 mt-2 w-48 bg-background-secondary border border-border rounded-lg shadow-xl py-2 z-50"
               >
-                <span
-                  class={$languageStore === "es"
-                    ? "text-accent-primary font-medium"
-                    : "text-text-primary"}>Español</span
+                <button
+                  class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
+                  on:click={() => setTheme("theme-sea-blue")}
                 >
-                {#if $languageStore === "es"}
-                  <Check size={14} class="text-accent-primary" />
-                {/if}
-              </button>
-              <button
-                class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
-                on:click={() => setLanguage("en")}
+                  <span
+                    class={currentTheme === "theme-sea-blue"
+                      ? "text-accent-primary font-medium"
+                      : "text-text-primary"}>{$t("nav.themeSeaBlue")}</span
+                  >
+                  {#if currentTheme === "theme-sea-blue"}
+                    <Check size={14} class="text-accent-primary" />
+                  {/if}
+                </button>
+                <button
+                  class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
+                  on:click={() => setTheme("theme-light")}
+                >
+                  <span
+                    class={currentTheme === "theme-light"
+                      ? "text-accent-primary font-medium"
+                      : "text-text-primary"}>{$t("nav.themeLight")}</span
+                  >
+                  {#if currentTheme === "theme-light"}
+                    <Check size={14} class="text-accent-primary" />
+                  {/if}
+                </button>
+                <button
+                  class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
+                  on:click={() => setTheme("theme-neon-obsidian")}
+                >
+                  <span
+                    class={currentTheme === "theme-neon-obsidian"
+                      ? "text-accent-primary font-medium"
+                      : "text-text-primary"}>{$t("nav.themeNeon")}</span
+                  >
+                  {#if currentTheme === "theme-neon-obsidian"}
+                    <Check size={14} class="text-accent-primary" />
+                  {/if}
+                </button>
+              </div>
+            {/if}
+          </div>
+
+          <!-- Language Switcher -->
+          <div class="relative">
+            <button
+              class="nav-link"
+              on:click={() => {
+                showLangMenu = !showLangMenu
+                if (showLangMenu) showThemeMenu = false
+              }}
+              title={$t("nav.changeLanguage")}
+            >
+              <Languages size={18} />
+            </button>
+
+            {#if showLangMenu}
+              <div
+                class="absolute right-0 mt-2 w-32 bg-background-secondary border border-border rounded-lg shadow-xl py-2 z-50"
               >
-                <span
-                  class={$languageStore === "en"
-                    ? "text-accent-primary font-medium"
-                    : "text-text-primary"}>English</span
+                <button
+                  class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
+                  on:click={() => setLanguage("es")}
                 >
-                {#if $languageStore === "en"}
-                  <Check size={14} class="text-accent-primary" />
-                {/if}
-              </button>
-            </div>
+                  <span
+                    class={$languageStore === "es"
+                      ? "text-accent-primary font-medium"
+                      : "text-text-primary"}>Español</span
+                  >
+                  {#if $languageStore === "es"}
+                    <Check size={14} class="text-accent-primary" />
+                  {/if}
+                </button>
+                <button
+                  class="w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-bg-tertiary transition-colors"
+                  on:click={() => setLanguage("en")}
+                >
+                  <span
+                    class={$languageStore === "en"
+                      ? "text-accent-primary font-medium"
+                      : "text-text-primary"}>English</span
+                  >
+                  {#if $languageStore === "en"}
+                    <Check size={14} class="text-accent-primary" />
+                  {/if}
+                </button>
+              </div>
+            {/if}
+          </div>
+
+          {#if $currentUser}
+            <button class="nav-link logout-btn" on:click={handleLogout}>
+              <LogOut size={16} />
+              <span>{$t("nav.logout")}</span>
+            </button>
+          {:else}
+            <a href="/login" class="nav-link login-btn">
+              <LogIn size={16} />
+              <span>{$t("nav.login")}</span>
+            </a>
           {/if}
         </div>
-
-        {#if $currentUser}
-          <button class="nav-link logout-btn" on:click={handleLogout}>
-            <LogOut size={18} />
-            <span>{$t("nav.logout")}</span>
-          </button>
-        {:else}
-          <a href="/login" class="nav-link login-btn">
-            <LogIn size={18} />
-            <span>{$t("nav.login")}</span>
-          </a>
-        {/if}
       </div>
     </div>
   </nav>
@@ -245,11 +270,10 @@
 
 <style>
   .navbar {
-    background: var(--color-bg-secondary);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--color-border);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: color-mix(in srgb, var(--color-bg-secondary) 50%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05); /* very subtle border */
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -258,46 +282,76 @@
   .nav-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 4rem;
+    height: 4.5rem;
   }
 
   .nav-brand {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-accent-primary);
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
     text-decoration: none;
+  }
+
+  .brand-icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    background-color: #3b82f6; /* bright blue accent */
+    border-radius: 10px;
+    color: white;
   }
 
   .nav-links {
     display: flex;
-    gap: 1rem;
     align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    margin-left: 2rem;
+  }
+
+  .nav-center-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .nav-link {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-radius: var(--border-radius-base);
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
     text-decoration: none;
     color: var(--color-text-secondary);
-    transition: all 0.3s ease;
-    border: 1px solid transparent;
+    transition: all 0.2s ease;
     cursor: pointer;
+    background: transparent;
+    border: none;
   }
 
   .nav-link:hover {
-    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+  }
+
+  .nav-link.active {
     color: var(--color-accent-primary);
-    transform: translateY(-2px);
   }
 
   main {
@@ -382,27 +436,16 @@
   }
 
   .logout-btn {
-    background: transparent;
-    border: 1px solid rgba(239, 68, 68, 0.5);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid transparent;
     color: #ef4444;
     cursor: pointer;
+    margin-left: 0.5rem;
   }
 
   .logout-btn:hover {
-    background: rgba(239, 68, 68, 0.1);
+    background: rgba(239, 68, 68, 0.15);
     color: #ef4444;
-    border-color: #ef4444;
-  }
-
-  .login-btn {
-    background: rgba(var(--color-accent-primary), 0.1);
-    border: 1px solid var(--color-accent-primary);
-    color: var(--color-accent-primary);
-  }
-
-  .login-btn:hover {
-    background: rgba(var(--color-accent-primary), 0.2);
-    color: var(--color-accent-hover);
   }
 
   .loading-screen {

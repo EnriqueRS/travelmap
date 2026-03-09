@@ -379,9 +379,9 @@ export const getCategoryEmoji = (category: string) => {
 
 export const getStatusColor = (status: string) => {
   const map: Record<string, string> = {
-    Planificado: "blue",
-    "En curso": "green",
-    Completado: "gray",
+    Planificado: "#8babf1",
+    "En curso": "#f59e0b",
+    Completado: "#4ade80",
   };
-  return map[status] || "gray";
+  return map[status] || "#94a3b8";
 };
