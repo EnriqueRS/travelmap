@@ -68,6 +68,10 @@ export const translations = {
       emptyState: "Aún no tienes viajes. ¡Empieza tu próxima aventura!",
       createFirst: "Crear mi primer viaje",
       viewDetails: "Ver detalles",
+      until: "hasta",
+      placesCount: "{count} lugares",
+      countriesCount: "{count} países",
+      planAventure: "Planifica tu próxima aventura",
     },
     // Trip Details
     trip: {
