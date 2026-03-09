@@ -245,7 +245,11 @@
         </p>
         <div class="profile-meta">
           <span class="meta-item"
-            >{$t("profile.joinedPrefix")} Octubre 2023</span
+            >{$t("profile.joinedPrefix")}
+            {new Date($userProfile.createdAt).toLocaleDateString(
+              $t("common.locale"),
+              { year: "numeric", month: "long" },
+            )}</span
           >
           <span class="meta-separator">•</span>
           <span class="meta-item"

@@ -351,7 +351,7 @@
   }
 
   .demo-badge {
-    background: var(--color-accent-hover);
+    background: var(--color-third);
     color: var(--color-bg-main);
     font-size: 0.75rem;
     padding: 0.1rem 0.5rem;

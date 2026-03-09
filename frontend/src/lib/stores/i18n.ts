@@ -13,7 +13,7 @@ export const translations = {
       home: "Inicio",
       changeTheme: "Cambiar Tema",
       changeLanguage: "Cambiar Idioma",
-      themeSeaBlue: "Deep Sea (Gris)",
+      themeSeaBlue: "Deep Sea",
       themeLight: "Modo Claro",
       themeNeon: "Neon Obsidian",
     },
@@ -200,7 +200,7 @@ export const translations = {
     profile: {
       proMember: "MIEMBRO PRO",
       defaultBio: "Apasionado por descubrir nuevos lugares y culturas. Fotógrafo aficionado recorriendo el mundo un click a la vez.",
-      joinedPrefix: "Unido en",
+      joinedPrefix: "Registrado en",
       followersCount: "{count} seguidores",
       editProfile: "Editar Perfil",
       addTrip: "Añadir Viaje",
@@ -317,6 +317,9 @@ export const translations = {
       login: "Login",
       logout: "Log out",
       home: "Home",
+      themeSeaBlue: "Deep Sea",
+      themeLight: "Light Mode",
+      themeNeon: "Neon Obsidian",
     },
     // Login & Register
     auth: {
