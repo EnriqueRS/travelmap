@@ -989,7 +989,6 @@
 
         <div class="explorer-controls">
           <div class="explorer-search">
-            <Search size={18} class="search-icon-inside" />
             <input
               type="text"
               placeholder={$t("map.searchCountryPlaceholder")}
@@ -1546,12 +1545,11 @@
     background: #0f172a;
     width: 100%;
     max-width: 900px;
-    height: 80vh;
+    max-height: 90vh;
     border-radius: 20px;
     border: 1px solid #1e293b;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     display: flex;
-    overflow: hidden;
   }
 
   /* Sidebar */
@@ -1813,7 +1811,7 @@
   .countries-grid {
     flex: 1;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 1rem;
     overflow-y: auto;
     padding-right: 0.5rem;
@@ -1922,20 +1920,23 @@
     background: #f1f5f9;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 1200px) {
     .progress-modal-glass {
       flex-direction: column;
       height: 90vh;
       max-width: 95%;
+    }
+    /* On small screens show explorer (flags + filters) first, stats below */
+    .progress-main {
+      padding: 1.5rem;
+      order: 1;
     }
     .progress-sidebar {
       width: 100%;
       border-right: none;
       border-bottom: 1px solid #1e293b;
       padding: 1.5rem;
-    }
-    .progress-main {
-      padding: 1.5rem;
+      order: 2;
     }
     .explorer-controls {
       flex-direction: column;
