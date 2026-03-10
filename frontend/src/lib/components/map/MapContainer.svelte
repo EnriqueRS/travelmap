@@ -287,9 +287,7 @@
         // Gather isos
         const visitedIsos = new Set<string>()
         const plannedIsos = new Set<string>()
-        console.log("trips", trips)
         trips.forEach((t) => {
-          console.log("t", t)
           if (t.countries && Array.isArray(t.countries)) {
             t.countries.forEach((alpha2: string) => {
               if (alpha2) {
@@ -368,7 +366,7 @@
 
       homeMarker = L.marker([home.coordinates[0], home.coordinates[1]], {
         icon: customIcon,
-        zIndexOffset: 1000, // Ensure it's on top
+        zIndexOffset: -1000,
       }).addTo(map).bindPopup(`
           <div style="text-align: center;">
             <h3 style="margin: 0;">🏠 ${$t("common.home")}</h3>
