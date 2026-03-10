@@ -42,6 +42,7 @@ export interface UserProfile {
   bio: string;
   avatar: string;
   coverImage: string;
+  createdAt: string;
   stats: {
     countriesVisited: number;
     tripsCompleted: number;
@@ -199,6 +200,7 @@ const initialProfile: UserProfile = {
   bio: "Apasionado por descubrir nuevos lugares y culturas. Fotógrafo aficionado.",
   avatar: "avatar-1",
   coverImage: "profile-cover",
+  createdAt: "2024-01-01",
   stats: {
     countriesVisited: 12,
     tripsCompleted: 8,
@@ -353,6 +355,7 @@ export const updateStores = (userData: any) => {
     name: userData.username, // or firstName + lastName
     avatar: userData.avatarUrl || profile.avatar,
     bio: userData.bio || profile.bio,
+    createdAt: userData.createdAt || "2024-01-01",
     homeLocation:
       userData.homeLocationLat && userData.homeLocationLng
         ? {

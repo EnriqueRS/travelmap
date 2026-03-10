@@ -21,6 +21,7 @@
     ChevronRight,
     X,
     Eye,
+    Globe,
   } from "lucide-svelte"
   import { COUNTRIES, getCountryName } from "$lib/utils/countries"
   import { normalizeString } from "$lib/utils/string"
@@ -269,6 +270,171 @@
   $: regions = uniqueCountries // We use regions for styling compatibility
 
   let showProgressModal = false
+
+  // Continent-based statistics logic
+  $: continentStats = (() => {
+    let stats = {
+      Europa: { total: 0, visited: 0 },
+      América: { total: 0, visited: 0 },
+      Asia: { total: 0, visited: 0 },
+      África: { total: 0, visited: 0 },
+      Oceanía: { total: 0, visited: 0 },
+    }
+
+    COUNTRIES.forEach((c) => {
+      // Map continents based on basic geographical knowledge or custom field
+      let cont = "América" // Default
+      if (["EU", "AS"].includes(c.id)) cont = "Europa" // Simplified mapping for example
+      // In production, an exact region map is better, here we'll do our best with existing data
+      // To keep it simple, we categorize roughly or assume COUNTRIES has a region prop.
+      // Assuming COUNTRIES has a 'region' field (we will fall back to Europa if missing for the demo)
+      const region = (c as any).region || "Europa"
+
+      let mappedCont = "Europa"
+      if (region.includes("Americas")) mappedCont = "América"
+      else if (region.includes("Asia")) mappedCont = "Asia"
+      else if (region.includes("Africa")) mappedCont = "África"
+      else if (region.includes("Oceania")) mappedCont = "Oceanía"
+
+      stats[mappedCont as keyof typeof stats].total += 1
+      if (visitedCountryNames.includes(c.id)) {
+        stats[mappedCont as keyof typeof stats].visited += 1
+      }
+    })
+
+    return stats
+  })()
+
+  // Explorer inner state
+  let explorerSearch = ""
+  let explorerContinent = "Todos"
+
+  const AMERICAS = [
+    "US",
+    "CA",
+    "MX",
+    "AR",
+    "BR",
+    "CL",
+    "CO",
+    "PE",
+    "UY",
+    "VE",
+    "CU",
+    "DO",
+    "PA",
+    "CR",
+    "GT",
+    "HN",
+    "SV",
+    "NI",
+    "BO",
+    "PY",
+    "EC",
+  ]
+  const ASIA = [
+    "CN",
+    "JP",
+    "KR",
+    "IN",
+    "ID",
+    "TH",
+    "VN",
+    "PH",
+    "MY",
+    "SG",
+    "QA",
+    "AE",
+    "SA",
+    "IL",
+    "TR",
+    "IR",
+    "IQ",
+    "AF",
+    "PK",
+    "BD",
+    "KZ",
+    "UZ",
+    "AM",
+    "AZ",
+    "GE",
+    "KG",
+    "TJ",
+    "TM",
+    "NP",
+    "BT",
+  ]
+  const AFRICA = [
+    "EG",
+    "ZA",
+    "NG",
+    "MA",
+    "DZ",
+    "TN",
+    "KE",
+    "ET",
+    "GH",
+    "SN",
+    "AO",
+    "TZ",
+    "UG",
+    "RW",
+    "MZ",
+    "ZW",
+    "NA",
+    "BW",
+    "SY",
+    "LB",
+    "JO",
+    "PS",
+  ]
+  const OCEANIA = [
+    "AU",
+    "NZ",
+    "FJ",
+    "PG",
+    "VU",
+    "SB",
+    "MH",
+    "FM",
+    "PW",
+    "NR",
+    "KI",
+    "TO",
+    "WS",
+    "TV",
+  ]
+
+  $: filteredExplorerCountries = [...COUNTRIES]
+    .map((c) => {
+      let mappedCont = "Europa"
+      if (AMERICAS.includes(c.id)) mappedCont = "América"
+      else if (ASIA.includes(c.id)) mappedCont = "Asia"
+      else if (AFRICA.includes(c.id)) mappedCont = "África"
+      else if (OCEANIA.includes(c.id)) mappedCont = "Oceanía"
+
+      return {
+        ...c,
+        mappedCont,
+        isVisited: visitedCountryNames.includes(c.id),
+        localizedName: getCountryName(c.id, $languageStore),
+      }
+    })
+    .filter((c) => {
+      const matchesContinent =
+        explorerContinent === "Todos" || c.mappedCont === explorerContinent
+      const matchesSearch = c.localizedName
+        .toLowerCase()
+        .includes(explorerSearch.toLowerCase())
+      return matchesContinent && matchesSearch
+    })
+    .sort((a, b) => {
+      const aVisited = a.isVisited ? -1 : 1
+      const bVisited = b.isVisited ? -1 : 1
+      return aVisited === bVisited
+        ? a.localizedName.localeCompare(b.localizedName)
+        : aVisited - bVisited
+    })
 
   // Filter Logic
   $: filteredTrips = $trips.filter((trip) => {
@@ -739,55 +905,146 @@
 {/if}
 
 {#if showProgressModal}
+  {@const globalPerc = Math.round((regions / 195) * 100)}
   <div class="modal-overlay" on:click|self={() => (showProgressModal = false)}>
-    <div
-      class="modal-content"
-      style="max-width: 800px; width: 90%; max-height: 85vh; display: flex; flex-direction: column;"
-    >
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h3
-            style="margin: 0; color: #f8fafc; font-size: 1.5rem; display: flex; items-center; gap: 0.5rem;"
-          >
-            🌎 {$t("map.worldCountries")}
-          </h3>
-          <p class="text-slate-400 text-sm mt-1 mb-0">
-            {$t("map.visitedCountriesAmount", {
-              count: regions,
-              percentage: completion,
-            })}
-          </p>
+    <div class="progress-modal-glass">
+      <!-- Left Sidebar (Stats) -->
+      <div class="progress-sidebar">
+        <div class="progress-header">
+          <div class="header-icon-box">
+            <Globe size={24} color="#60a5fa" />
+          </div>
+          <h2>{$t("map.countries")}</h2>
         </div>
+
+        <div class="global-progress-card">
+          <span class="progress-subtitle">{$t("map.globalProgress")}</span>
+          <div class="progress-big-number">
+            <span>{completion}%</span>
+            <span class="muted">{$t("map.ofTheWorld")}</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" style="width: {completion}%" />
+          </div>
+          <div class="progress-footer-text">
+            <span
+              ><svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#10b981"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                ><polyline points="20 6 9 17 4 12" /></svg
+              ></span
+            >
+            <span
+              >{$t("map.visitedCountriesAmount", {
+                count: regions,
+                total: 195,
+                percentage: globalPerc,
+              })}</span
+            >
+          </div>
+        </div>
+
+        <div class="continent-breakdown">
+          <span class="breakdown-title">{$t("map.byContinent")}</span>
+
+          {#each Object.entries(continentStats) as [continent, data]}
+            {@const perc =
+              data.total > 0
+                ? Math.round((data.visited / data.total) * 100)
+                : 0}
+            <div class="continent-row">
+              <div class="continent-labels">
+                <span class="continent-name"
+                  >{$t("continents." + continent)}</span
+                >
+                <span class="continent-pct">{perc}%</span>
+              </div>
+              <div class="continent-bar-bg">
+                <div class="continent-bar-fill" style="width: {perc}%" />
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+
+      <!-- Right Main Area (Explorer) -->
+      <div class="progress-main">
         <button
-          class="bg-slate-800 hover:bg-slate-700 p-2 rounded-full text-slate-300 transition-colors"
+          class="modal-close-btn"
           on:click={() => (showProgressModal = false)}
         >
           <X size={20} />
         </button>
-      </div>
 
-      <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-        <div
-          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"
-        >
-          {#each [...COUNTRIES].sort((a, b) => {
-            const aName = getCountryName(a.id, $languageStore)
-            const bName = getCountryName(b.id, $languageStore)
-            const aVisited = visitedCountryNames.includes(a.id) ? -1 : 1
-            const bVisited = visitedCountryNames.includes(b.id) ? -1 : 1
-            return aVisited === bVisited ? aName.localeCompare(bName) : aVisited - bVisited
-          }) as country}
-            {@const isVisited = visitedCountryNames.includes(country.id)}
-            <div class="country-flag-card" class:visited={isVisited}>
-              <span class="text-3xl mb-2 filter-flag">{country.flag}</span>
-              <span
-                class="text-xs text-center leading-tight font-medium"
-                class:text-slate-300={isVisited}
-                class:text-slate-500={!isVisited}
-                >{getCountryName(country.id, $languageStore)}</span
+        <div class="main-header">
+          <h2>{$t("map.explorerTitle")}</h2>
+          <p>{$t("map.explorerSubtitle")}</p>
+        </div>
+
+        <div class="explorer-controls">
+          <div class="explorer-search">
+            <Search size={18} class="search-icon-inside" />
+            <input
+              type="text"
+              placeholder={$t("map.searchCountryPlaceholder")}
+              bind:value={explorerSearch}
+            />
+          </div>
+
+          <div class="continent-toggles custom-scrollbar">
+            {#each ["Todos", "Europa", "América", "Asia", "África", "Oceanía"] as opt}
+              <button
+                class="toggle-btn"
+                class:active={explorerContinent === opt}
+                on:click={() => (explorerContinent = opt)}
+              >
+                {$t(`continents.${opt}`)}
+              </button>
+            {/each}
+          </div>
+        </div>
+
+        <div class="countries-grid custom-scrollbar">
+          {#each filteredExplorerCountries as country}
+            <div class="modern-country-card" class:visited={country.isVisited}>
+              {#if country.isVisited}
+                <div class="visited-check">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    ><polyline points="20 6 9 17 4 12" /></svg
+                  >
+                </div>
+              {/if}
+              <span class="flag-emoji" class:grayscale={!country.isVisited}
+                >{country.flag}</span
+              >
+              <span class="country-name" class:muted={!country.isVisited}
+                >{country.localizedName}</span
+              >
+              <span class="country-continent"
+                >{$t("continents." + country.mappedCont).toUpperCase()}</span
               >
             </div>
           {/each}
+        </div>
+
+        <div class="explorer-footer">
+          <button class="btn-done" on:click={() => (showProgressModal = false)}
+            >{$t("map.doneBtn")}</button
+          >
         </div>
       </div>
     </div>
@@ -1282,5 +1539,410 @@
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(100, 116, 139, 1);
+  }
+
+  /* --- Country Progress Modal Redesign --- */
+  .progress-modal-glass {
+    background: #0f172a;
+    width: 100%;
+    max-width: 900px;
+    height: 80vh;
+    border-radius: 20px;
+    border: 1px solid #1e293b;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+  .progress-sidebar {
+    width: 280px;
+    background: #141c2f;
+    border-right: 1px solid #1e293b;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+  }
+
+  .progress-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .header-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(59, 130, 246, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .progress-header h2 {
+    margin: 0;
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .global-progress-card {
+    background: rgba(30, 41, 59, 0.5);
+    border-radius: 16px;
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .progress-subtitle {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .progress-big-number {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0.5rem 0 1rem;
+  }
+
+  .progress-big-number span:first-child {
+    font-size: 2rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+  }
+
+  .progress-big-number .muted {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .progress-bar-container {
+    height: 6px;
+    background: #1e293b;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: #3b82f6; /* Blue */
+    border-radius: 3px;
+    transition: width 1s ease-out;
+  }
+
+  .progress-footer-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #94a3b8;
+  }
+
+  /* Continent Breakdown */
+  .continent-breakdown {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .breakdown-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .continent-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .continent-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+  }
+
+  .continent-name {
+    color: #f1f5f9;
+    font-weight: 600;
+  }
+
+  .continent-pct {
+    color: #94a3b8;
+  }
+
+  .continent-bar-bg {
+    height: 4px;
+    background: #1e293b;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .continent-bar-fill {
+    height: 100%;
+    background: #64748b;
+    border-radius: 2px;
+    transition: width 1s ease-out;
+  }
+
+  /* Explorer Main Area */
+  .progress-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 2.5rem;
+    position: relative;
+    background: #0f172a;
+  }
+
+  .modal-close-btn {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .modal-close-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .main-header {
+    margin-bottom: 2rem;
+  }
+
+  .main-header h2 {
+    margin: 0 0 0.5rem 0;
+    color: white;
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+
+  .main-header p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 0.9rem;
+  }
+
+  .explorer-controls {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .explorer-search {
+    position: relative;
+    width: 260px;
+  }
+
+  .explorer-search input {
+    width: 100%;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    color: white;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+  }
+
+  .explorer-search input:focus {
+    outline: none;
+    border-color: #3b82f6;
+  }
+
+  .search-icon-inside {
+    position: absolute;
+    left: 0.875rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+  }
+
+  .continent-toggles {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 4px; /* Scrollbar space */
+  }
+
+  .toggle-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .toggle-btn.active {
+    background: #3b82f6;
+    color: white;
+  }
+
+  .toggle-btn:hover:not(.active) {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .countries-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    margin-right: -0.5rem;
+  }
+
+  .modern-country-card {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    border-radius: 16px;
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .modern-country-card:hover {
+    background: rgba(30, 41, 59, 0.8);
+    transform: translateY(-2px);
+  }
+
+  .modern-country-card.visited {
+    border-color: rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.05);
+  }
+
+  .modern-country-card.visited:hover {
+    background: rgba(16, 185, 129, 0.1);
+  }
+
+  .visited-check {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 20px;
+    height: 20px;
+    background: #10b981;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.4);
+  }
+
+  .flag-emoji {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+    transition: filter 0.3s;
+  }
+
+  .flag-emoji.grayscale {
+    filter: grayscale(0.8) opacity(0.5)
+      drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+  }
+
+  .country-name {
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-align: center;
+    margin-bottom: 0.25rem;
+  }
+
+  .country-name.muted {
+    color: #94a3b8;
+  }
+
+  .country-continent {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.05em;
+  }
+
+  .explorer-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #1e293b;
+  }
+
+  .footer-note {
+    font-size: 0.8rem;
+    color: #475569;
+    font-style: italic;
+  }
+
+  .btn-done {
+    background: white;
+    color: #0f172a;
+    border: none;
+    padding: 0.6rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-done:hover {
+    background: #f1f5f9;
+  }
+
+  @media (max-width: 768px) {
+    .progress-modal-glass {
+      flex-direction: column;
+      height: 90vh;
+      max-width: 95%;
+    }
+    .progress-sidebar {
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid #1e293b;
+      padding: 1.5rem;
+    }
+    .progress-main {
+      padding: 1.5rem;
+    }
+    .explorer-controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .explorer-search {
+      width: 100%;
+    }
   }
 </style>

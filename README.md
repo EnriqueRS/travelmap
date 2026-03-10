@@ -459,11 +459,20 @@ npm run format      # Prettier format
 - Enhanced initial demo data to provide a richer experience for unlogged users, including more trips and locations.
 - **Full Internationalization (i18n)**: Implemented a robust translation system supporting English and Spanish. All major views (Dashboard, Map, Trip Details, Profile) and shared components are now fully localized.
 
+- **Country Explorer Redesign**: Fully redesigned the Country Explorer modal with a modern dark theme, smooth animations, and a progress sidebar.
+- **Fixed Map Page Errors**: Resolved a critical "Unexpected token" syntax error that was preventing the map page from compiling.
+- **Improved Region Mapping**: Implemented a more accurate country-to-continent mapping in the explorer using ID-based heuristics.
+- **Enhanced Accessibility (A11y)**: Fixed several accessibility warnings across the application, including missing alt text and keyboard listeners.
+- **Date Format Standardization**: Ensured all dates follow the `DD/MM/YYYY` format as requested.
+- **Bug Fixes**: Corrected duplicate translation keys and fixed property errors in the User Profile interface.
+
 **🇪🇸 Español:**
-- Se reemplazaron las alertas nativas del navegador por notificaciones tipo toast modernas y visualmente atractivas en la página del mapa.
-- Se añadió la capacidad de filtrar localizaciones y fotos en el mapa seleccionando uno o más viajes individuales desde una nueva lista en la barra lateral.
-- Las fotos del carrusel en el detalle del viaje ahora se ordenan priorizando la foto de portada, seguida por las fotos visibles en el mapa, y finalmente el resto.
-- Se ha añadido un indicador de mapa visual a las miniaturas del carrusel de fotos para aquellas que se muestran en el mapa.
-- Se añadió el filtro "Mis viajes" en la vista del mapa para mostrar únicamente los viajes del usuario autenticado.
-- Se mejoraron los datos iniciales de demostración para ofrecer una experiencia más rica a los usuarios no logueados, incluyendo más viajes y localizaciones.
-- **Internacionalización Completa (i18n)**: Se implementó un sistema de traducción robusto con soporte para Inglés y Español. Todas las vistas principales (Dashboard, Mapa, Detalle de Viaje, Perfil) y componentes compartidos están ahora totalmente localizados.
+- **Notificaciones Toast**: Se reemplazaron las alertas nativas del navegador por notificaciones tipo toast modernas y visualmente atractivas en la página del mapa.
+- **Filtros Avanzados**: Se añadió la capacidad de filtrar localizaciones y fotos en el mapa seleccionando viajes individuales.
+- **Ordenación del Carrusel**: Las fotos en el detalle del viaje ahora se ordenan priorizando la portada y las fotos del mapa.
+- **Diseño del Explorador de Países**: Rediseño completo del modal de explorador con un tema oscuro moderno, animaciones fluidas y barra lateral de progreso.
+- **Corrección de Errores en el Mapa**: Se resolvió un error crítico de sintaxis ("Unexpected token") que impedía la compilación de la página del mapa.
+- **Mapeo de Continentes Mejorado**: Implementación de una clasificación por continentes más precisa basada en identificadores ISO.
+- **Mejora de Accesibilidad (A11y)**: Se corrigieron múltiples advertencias de accesibilidad, incluyendo textos alternativos y oyentes de teclado.
+- **Estandarización de Fechas**: Se aseguró que todas las fechas sigan el formato `DD/MM/AAAA`.
+- **Corrección de Errores**: Se eliminaron claves de traducción duplicadas y se corrigieron errores en la interfaz de perfil de usuario.

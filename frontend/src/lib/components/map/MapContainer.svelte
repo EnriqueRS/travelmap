@@ -43,7 +43,7 @@
 
   const dispatch = createEventDispatcher()
   let tripLinesGroup: any
-  let photoMarkersGroup: any
+  let photoClusterGroup: any
   let countryHighlightsGroup: any
   let geoJsonData: any = null
 
@@ -68,15 +68,13 @@
 
     // Clear existing layer
     markerClusterGroup.clearLayers()
+    if (photoClusterGroup) {
+      photoClusterGroup.clearLayers()
+    }
     if (tripLinesGroup) {
       tripLinesGroup.clearLayers()
     } else {
       tripLinesGroup = L.layerGroup().addTo(map)
-    }
-    if (photoMarkersGroup) {
-      photoMarkersGroup.clearLayers()
-    } else {
-      photoMarkersGroup = L.layerGroup().addTo(map)
     }
 
     if (countryHighlightsGroup) {
@@ -260,7 +258,9 @@
           className: "dark-popup",
         })
 
-        photoMarkersGroup.addLayer(marker)
+        if (photoClusterGroup) {
+          photoClusterGroup.addLayer(marker)
+        }
         bounds.extend([
           photo.metadata.exif.latitude,
           photo.metadata.exif.longitude,
@@ -268,9 +268,12 @@
       }
     })
 
-    // Ensure the layer is added to map
+    // Ensure the layers are added to map
     if (!map.hasLayer(markerClusterGroup)) {
       map.addLayer(markerClusterGroup)
+    }
+    if (photoClusterGroup && !map.hasLayer(photoClusterGroup)) {
+      map.addLayer(photoClusterGroup)
     }
 
     // --- Country Highlights Logic ---
@@ -284,23 +287,22 @@
         // Gather isos
         const visitedIsos = new Set<string>()
         const plannedIsos = new Set<string>()
-
+        console.log("trips", trips)
         trips.forEach((t) => {
+          console.log("t", t)
           if (t.countries && Array.isArray(t.countries)) {
-            t.countries.forEach((c) => {
-              // The frontend is in Spanish, so we extract the ISO Alpha-3 from "es" name
-              const alpha3 = countriesInfo.getAlpha3Code(c, "es")
-              if (alpha3) {
+            t.countries.forEach((alpha2: string) => {
+              if (alpha2) {
                 if (t.status === "Completado" || t.status === "En curso") {
-                  visitedIsos.add(alpha3)
+                  const iso = countriesInfo.toAlpha3(alpha2)
+                  visitedIsos.add(countriesInfo.toAlpha3(alpha2))
                 } else if (t.status === "Planificado") {
-                  plannedIsos.add(alpha3)
+                  plannedIsos.add(countriesInfo.toAlpha3(alpha2))
                 }
               }
             })
           }
         })
-
         const geoLayer = L.geoJSON(geoJsonData, {
           style: function (feature: any) {
             const iso = feature.id // ISO Alpha-3 is exactly the generic geojson ID
@@ -477,7 +479,7 @@
       })
 
       if (L.markerClusterGroup) {
-        // Initialize Cluster Group with custom styles
+        // Initialize Cluster Group with custom styles for Location Markers
         markerClusterGroup = L.markerClusterGroup({
           showCoverageOnHover: false,
           zoomToBoundsOnClick: true,
@@ -503,6 +505,71 @@
         })
 
         map.addLayer(markerClusterGroup)
+
+        // Initialize Cluster Group specific for Photos
+        photoClusterGroup = L.markerClusterGroup({
+          showCoverageOnHover: false,
+          zoomToBoundsOnClick: true,
+          spiderfyOnMaxZoom: true,
+          removeOutsideVisibleBounds: true,
+          maxClusterRadius: 60,
+          iconCreateFunction: function (cluster: any) {
+            const childCount = cluster.getChildCount()
+            // We use the first photo as the cluster icon background if possible, or just a generic style
+            const markers = cluster.getAllChildMarkers()
+            // Try to extract image src from custom icon html
+            let bgImage = ""
+            if (markers.length > 0 && markers[0].options.icon.options.html) {
+              const html = markers[0].options.icon.options.html
+              const match = html.match(/src="([^"]+)"/)
+              if (match && match[1]) {
+                bgImage = match[1]
+              }
+            }
+
+            return L.divIcon({
+              html: `
+                <div style="
+                  width: 48px;
+                  height: 48px;
+                  border-radius: 8px;
+                  background-color: #1e293b;
+                  background-image: url('${bgImage || ""}');
+                  background-size: cover;
+                  background-position: center;
+                  border: 3px solid white;
+                  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  position: relative;
+                ">
+                  <div style="
+                    position: absolute;
+                    top: -8px;
+                    right: -8px;
+                    background: #ef4444;
+                    color: white;
+                    font-size: 11px;
+                    font-weight: 700;
+                    width: 20px;
+                    height: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    border: 2px solid white;
+                  ">${childCount}</div>
+                  ${!bgImage ? `<span style="font-size: 20px;">🖼️</span>` : ""}
+                </div>
+              `,
+              className: "custom-photo-cluster",
+              iconSize: [48, 48],
+            })
+          },
+        })
+
+        map.addLayer(photoClusterGroup)
       } else {
         console.error("Leaflet MarkerClusterGroup not found!")
       }

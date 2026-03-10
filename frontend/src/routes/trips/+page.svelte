@@ -253,12 +253,14 @@
             on:click={() => goto(`/trips/${trip.id}`)}
             on:keydown={(e) => e.key === "Enter" && goto(`/trips/${trip.id}`)}
             tabindex="0"
+            role="button"
+            aria-label={$t("dashboard.viewDetails") + ": " + trip.name}
           >
             <div class="trip-image">
               {#if trip.coverImage && trip.coverImage.length > 5 && trip.coverImage !== trip.name}
                 <img
                   src={`${API_URL}/media/photos/${trip.coverImage}/image`}
-                  alt="Cover"
+                  alt={$t("trip.coverAlt", { name: trip.name })}
                 />
               {:else}
                 <ImagePlaceholder text={trip.name} type="trip" />
@@ -299,16 +301,22 @@
                 <div class="stat-pill">
                   <MapPin size={14} class="text-accent-primary" />
                   <span
-                    >{$locations.filter(
-                      (l) =>
-                        l.tripId === trip.id ||
-                        (trip.locations && trip.locations.includes(l.id)),
-                    ).length} Lugares</span
+                    >{$t("trip.locationsCount", {
+                      count: $locations.filter(
+                        (l) =>
+                          l.tripId === trip.id ||
+                          (trip.locations && trip.locations.includes(l.id)),
+                      ).length,
+                    })}</span
                   >
                 </div>
                 <div class="stat-pill">
                   <Globe size={14} class="text-green-400" />
-                  <span>{trip.countries.length} Países</span>
+                  <span
+                    >{$t("dashboard.countriesCount", {
+                      count: trip.countries.length,
+                    })}</span
+                  >
                 </div>
               </div>
 
@@ -325,7 +333,7 @@
 
               <!-- Sleek Details Button -->
               <button class="details-btn">
-                Ver detalles
+                {$t("dashboard.viewDetails")}
                 <ChevronRight size={16} />
               </button>
             </div>
