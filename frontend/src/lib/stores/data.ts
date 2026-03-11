@@ -355,7 +355,7 @@ export const updateStores = (userData: any) => {
     name: userData.username, // or firstName + lastName
     avatar: userData.avatarUrl || profile.avatar,
     bio: userData.bio || profile.bio,
-    createdAt: userData.createdAt || "2024-01-01",
+    createdAt: userData.created_at,
     homeLocation:
       userData.homeLocationLat && userData.homeLocationLng
         ? {

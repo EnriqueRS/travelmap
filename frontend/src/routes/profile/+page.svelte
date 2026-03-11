@@ -238,7 +238,7 @@
       <div class="profile-info">
         <div class="profile-name-row">
           <h1>{$userProfile.name}</h1>
-          <span class="pro-badge">{$t("profile.proMember")}</span>
+          <!-- <span class="pro-badge">{$t("profile.proMember")}</span> -->
         </div>
         <p class="profile-bio">
           {$userProfile.bio || $t("profile.defaultBio")}
@@ -251,10 +251,10 @@
               { year: "numeric", month: "long" },
             )}</span
           >
-          <span class="meta-separator">•</span>
+          <!-- <span class="meta-separator">•</span>
           <span class="meta-item"
             >{$t("profile.followersCount", { count: 124 })}</span
-          >
+          > -->
         </div>
       </div>
 

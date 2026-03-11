@@ -314,6 +314,7 @@ export const translations = {
       demoBanner: "Estás viendo datos de demostración. Inicia sesión o regístrate para guardar tus propios viajes.",
       demoBadge: "Demo",
       or: "o",
+      locale: "es-ES",
     },
     status: {
       Planificado: "Planificado",
@@ -651,6 +652,7 @@ export const translations = {
       demoBanner: "You are viewing demo data. Log in or register to save your own trips.",
       demoBadge: "Demo",
       or: "or",
+      locale: "en-US",
     },
     status: {
       Planificado: "Planned",
