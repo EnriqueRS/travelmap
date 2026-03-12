@@ -241,7 +241,7 @@
           <!-- <span class="pro-badge">{$t("profile.proMember")}</span> -->
         </div>
         <p class="profile-bio">
-          {$userProfile.bio || $t("profile.defaultBio")}
+          {$userProfile.bio || ""}
         </p>
         <div class="profile-meta">
           <span class="meta-item"
@@ -599,7 +599,7 @@
             </div>
 
             {#if editData.homeLocation}
-              <div class="form-group-modern">
+              <!-- <div class="form-group-modern">
                 <label for="homeName">{$t("profile.homeLocationLabel")}</label>
                 <input
                   id="homeName"
@@ -607,7 +607,7 @@
                   bind:value={editData.homeLocation.name}
                   placeholder={$t("profile.homeLocationPlaceholder")}
                 />
-              </div>
+              </div> -->
 
               <div class="form-group-modern map-wrapper-modern">
                 <label for="map-picker">{$t("profile.mapMarkerLabel")}</label>
