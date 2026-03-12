@@ -15,6 +15,7 @@ export class UsersService {
     // passwordHash is expected to be already set by AuthService (hashed there)
     return User.query().insert(data);
   }
+
   async findByIdWithData(id: number): Promise<User | undefined> {
     const { Location } = await import('../locations/entities/location.entity');
 
@@ -28,5 +29,46 @@ export class UsersService {
         },
         countryStatuses: true
       });
+  }
+
+  async updateProfile(
+    userId: number,
+    payload: {
+      name?: string;
+      bio?: string;
+      avatar?: string;
+      homeLocationLat?: number;
+      homeLocationLng?: number;
+    },
+  ): Promise<User> {
+    const patch: Partial<User> = {};
+
+    if (typeof payload.name === 'string' && payload.name.trim()) {
+      // Use the single display name as username for now
+      patch.username = payload.name.trim();
+    }
+
+    if (typeof payload.bio === 'string') {
+      patch.bio = payload.bio;
+    }
+
+    if (typeof payload.avatar === 'string') {
+      patch.avatarUrl = payload.avatar;
+    }
+
+    if (typeof payload.homeLocationLat === 'number') {
+      patch.homeLocationLat = payload.homeLocationLat;
+    }
+
+    if (typeof payload.homeLocationLng === 'number') {
+      patch.homeLocationLng = payload.homeLocationLng;
+    }
+
+    if (Object.keys(patch).length === 0) {
+      // Nothing to update, return current user as-is
+      return User.query().findById(userId);
+    }
+
+    return User.query().patchAndFetchById(userId, patch);
   }
 }

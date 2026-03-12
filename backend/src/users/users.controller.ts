@@ -1,4 +1,4 @@
-import { Controller, Get, Request, UseGuards, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Request, UseGuards, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from './users.service';
 
@@ -30,6 +30,47 @@ export class UsersController {
         placesVisited: basicStats.locationsCount,
         photosUploaded: 0
       }
+    };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('me')
+  async updateMe(
+    @Request() req,
+    @Body()
+    body: {
+      name?: string;
+      bio?: string;
+      avatar?: string;
+      homeLocationLat?: number;
+      homeLocationLng?: number;
+    },
+  ) {
+    if (!req.user || !req.user.userId) {
+      throw new UnauthorizedException();
+    }
+
+    const updatedUser = await this.usersService.updateProfile(
+      req.user.userId,
+      body,
+    );
+
+    if (!updatedUser) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const basicStats = await updatedUser.getBasicStats();
+
+    const { passwordHash, ...result } = updatedUser;
+
+    return {
+      ...result,
+      statistics: {
+        countriesVisited: basicStats.countriesVisited,
+        tripsCompleted: basicStats.tripsCount,
+        placesVisited: basicStats.locationsCount,
+        photosUploaded: 0,
+      },
     };
   }
 }
