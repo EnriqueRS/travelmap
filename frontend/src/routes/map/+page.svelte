@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte"
+  import { fade, scale, slide } from "svelte/transition"
   import MapContainer from "$lib/components/map/MapContainer.svelte"
 
   import { toast, languageStore } from "$lib/stores/ui"
@@ -28,6 +29,8 @@
     CheckCircle2,
     Calendar,
     Activity,
+    Info,
+    Camera,
   } from "lucide-svelte"
   import { COUNTRIES, getCountryName } from "$lib/utils/countries"
   import { normalizeString } from "$lib/utils/string"
@@ -55,18 +58,29 @@
   let newLocationName = ""
   let newLocationCountry = ""
   let newLocationCategory:
+    | "Monumento"
     | "Naturaleza"
     | "Ciudad"
     | "Ciudad de escala"
     | "Playa"
     | "Montaña"
     | "Cultura"
-    | "Otro" = "Naturaleza"
+    | "Otro" = "Ciudad"
   let newLocationTripId = ""
   let newTripName = ""
 
   let newLocationPhotoFiles: FileList | null = null
   let isSavingLocation = false
+
+  // Modal Search State
+  let modalSearchQuery = ""
+  let locationPickerRef: any
+
+  async function handleModalSearch() {
+    if (locationPickerRef) {
+      await locationPickerRef.handleSearch(modalSearchQuery)
+    }
+  }
 
   let addingMode = false
   let isSidebarMinimized = false
@@ -91,8 +105,8 @@
     newLocationLng = e.detail.lng
     newLocationName = ""
     newLocationCountry = ""
-    newLocationCategory = "Naturaleza"
-    newLocationTripId = "new"
+    newLocationCategory = "Ciudad"
+    newLocationTripId = ""
     newTripName = ""
     newLocationPhotoFiles = null
     showAddLocationModal = true
@@ -534,7 +548,9 @@
   <!-- Sidebar -->
   <aside class="sidebar" class:collapsed={isSidebarMinimized}>
     <button
-      class="sidebar-toggle bg-slate-800 hover:bg-slate-700 p-1.5 rounded-full text-slate-300 border border-slate-600 absolute z-50 transition-all {isSidebarMinimized ? 'top-4 left-1/2 -translate-x-1/2' : 'top-4 right-4'}"
+      class="sidebar-toggle bg-slate-800 hover:bg-slate-700 p-1.5 rounded-full text-slate-300 border border-slate-600 absolute z-50 transition-all {isSidebarMinimized
+        ? 'top-4 left-1/2 -translate-x-1/2'
+        : 'top-4 right-4'}"
       on:click={toggleSidebar}
       title={isSidebarMinimized
         ? $t("map.maximizeSidebar")
@@ -866,115 +882,165 @@
 </main>
 
 {#if showAddLocationModal}
-  <div class="modal-overlay">
-    <div class="modal-content">
-      <h3
-        style="margin-top: 0; color: #f8fafc; margin-bottom: 0.5rem; font-size: 1.25rem;"
-      >
-        {$t("map.addLocationHeader")}
-      </h3>
-      <div class="form-group" style="margin-bottom: 1.5rem;">
-        <LocationPicker
-          height="200px"
-          initialLocation={newLocationLat && newLocationLng
-            ? { lat: newLocationLat, lng: newLocationLng }
-            : null}
-          on:locationSelect={handleLocationModalSelect}
-        />
-        {#if newLocationCountry}
-          <div style="color: #10b981; font-size: 0.85rem; margin-top: 0.5rem;">
-            {$t("map.detectedCountry")}
-            <strong>{getCountryName(newLocationCountry, $languageStore)}</strong
-            >
+  <div
+    class="modal-overlay"
+    on:click|self={() => (showAddLocationModal = false)}
+    transition:fade={{ duration: 200 }}
+  >
+    <div class="premium-modal" transition:scale={{ duration: 200, start: 0.95 }}>
+      <!-- Header -->
+      <header class="modal-header-premium">
+        <div class="header-main">
+          <div class="header-icon">
+            <Plus size={24} />
           </div>
-        {/if}
-      </div>
+          <div class="header-text">
+            <h3>{$t("map.addLocationHeader")}</h3>
+            <p class="subheader">{$t("map.addLocationSubheader")}</p>
+          </div>
+        </div>
+        <button
+          class="btn-close-modal"
+          on:click={() => (showAddLocationModal = false)}
+          aria-label="Close"
+        >
+          <X size={20} />
+        </button>
+      </header>
 
-      <div class="form-group">
-        <label>
-          {$t("map.placeName")}
+      <div class="modal-body-scroll custom-scrollbar">
+        <!-- Integrated Search -->
+        <div class="integrated-search">
           <input
             type="text"
-            bind:value={newLocationName}
-            placeholder={$t("map.placeNamePlaceholder")}
+            bind:value={modalSearchQuery}
+            on:keydown={(e) => e.key === "Enter" && handleModalSearch()}
+            placeholder={$t("map.searchLocationPlaceholder")}
           />
-        </label>
-      </div>
-
-      <div class="form-group">
-        <label>
-          {$t("form.category")}
-          <select bind:value={newLocationCategory}>
-            <option value="Monumento">{$t("categories.Monumento")} 🏛️</option>
-            <option value="Naturaleza">{$t("categories.Naturaleza")} 🌲</option>
-            <option value="Ciudad">{$t("categories.Ciudad")} 🏙️</option>
-            <option value="Ciudad de escala"
-              >{$t("categories.Ciudad de escala")} ✈️</option
-            >
-            <option value="Playa">{$t("categories.Playa")} 🏖️</option>
-            <option value="Montaña">{$t("categories.Montaña")} 🏔️</option>
-            <option value="Cultura">{$t("categories.Cultura")} 🏛️</option>
-            <option value="Otro">{$t("categories.Otro")} 📍</option>
-          </select>
-        </label>
-      </div>
-
-      <div class="form-group">
-        <label>
-          {$t("map.tripLabel")}
-          <select bind:value={newLocationTripId}>
-            <option value="">{$t("map.noTrip")}</option>
-            <option value="new">{$t("map.newTripOption")}</option>
-            {#each $trips as trip}
-              <option value={trip.id}>{trip.name}</option>
-            {/each}
-          </select>
-        </label>
-      </div>
-
-      {#if newLocationTripId === "new"}
-        <div class="form-group">
-          <label>
-            {$t("map.newTripNameLabel")}
-            <input
-              type="text"
-              bind:value={newTripName}
-              placeholder={$t("map.newTripNamePlaceholder")}
-            />
-          </label>
+          <button class="btn-integrated-search" on:click={handleModalSearch}>
+            {$t("map.searchBtnShort")}
+          </button>
         </div>
-      {/if}
 
-      <div class="form-group">
-        <label>
-          {$t("map.uploadingPhoto")}
-          <input
-            type="file"
-            accept="image/*"
-            bind:files={newLocationPhotoFiles}
-            disabled={newLocationTripId === "new" || newLocationTripId === ""}
-            class="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 bg-slate-800 border-slate-700 text-slate-300 w-full"
+        <!-- Map Preview -->
+        <div class="map-preview-container">
+          <LocationPicker
+            bind:this={locationPickerRef}
+            height="200px"
+            hideSearch={true}
+            initialLocation={newLocationLat && newLocationLng ? { lat: newLocationLat, lng: newLocationLng } : null}
+            on:locationSelect={handleLocationModalSelect}
           />
-        </label>
-        {#if newLocationTripId === "new" || newLocationTripId === ""}
-          <span style="font-size: 0.75rem; color: #f59e0b; margin-top: 0.25rem;"
-            >{$t("map.uploadPhotoNote")}</span
-          >
-        {/if}
+          <div class="country-badge-floating">
+            <div class="dot"></div>
+            <span class="label">{$t("map.detectedCountryLabel")}</span>
+            <span class="value">{getCountryName(newLocationCountry, $languageStore) || $t("map.unknownCountry")}</span>
+          </div>
+        </div>
+        <p class="map-help-text">{$t("map.clickMapPrompt")}</p>
+
+        <!-- Form Fields -->
+        <div class="form-grid">
+          <div class="form-field-group">
+            <label class="field-label" for="loc-name">{$t("map.locationNameLabel")}</label>
+            <input
+              id="loc-name"
+              class="premium-input"
+              type="text"
+              bind:value={newLocationName}
+              placeholder={$t("map.placeNamePlaceholder")}
+            />
+          </div>
+          <div class="form-field-group">
+            <label class="field-label" for="loc-cat">{$t("map.categoryLabel")}</label>
+            <select id="loc-cat" class="premium-select" bind:value={newLocationCategory}>
+              <option value="Monumento">{$t("categories.Monumento")}</option>
+              <option value="Naturaleza">{$t("categories.Naturaleza")}</option>
+              <option value="Ciudad">{$t("categories.Ciudad")}</option>
+              <option value="Ciudad de escala">{$t("categories.Ciudad de escala")}</option>
+              <option value="Playa">{$t("categories.Playa")}</option>
+              <option value="Montaña">{$t("categories.Montaña")}</option>
+              <option value="Cultura">{$t("categories.Cultura")}</option>
+              <option value="Otro">{$t("categories.Otro")}</option>
+            </select>
+          </div>
+
+          <div class="form-field-group full-width-field">
+            <label class="field-label" for="loc-trip">{$t("map.tripLabel")}</label>
+            <select id="loc-trip" class="premium-select" bind:value={newLocationTripId}>
+              <option value="">{$t("map.selectTrip")}</option>
+              <option value="new">{$t("map.newTripOption")}</option>
+              {#each $trips as trip}
+                <option value={trip.id}>{trip.name}</option>
+              {/each}
+            </select>
+          </div>
+
+          {#if newLocationTripId === "new"}
+            <div class="form-field-group full-width-field" transition:slide>
+              <label class="field-label" for="new-trip-name">{$t("map.newTripNameLabel")}</label>
+              <input
+                id="new-trip-name"
+                class="premium-input"
+                type="text"
+                bind:value={newTripName}
+                placeholder={$t("map.newTripNamePlaceholder")}
+              />
+            </div>
+          {/if}
+        </div>
+
+        <!-- Photo Upload Area -->
+        <div class="form-field-group">
+          <label class="field-label">{$t("map.uploadPhotoOptional")}</label>
+          <label class="dashed-upload-box">
+            <input
+              type="file"
+              class="hidden"
+              accept="image/*"
+              bind:files={newLocationPhotoFiles}
+              disabled={newLocationTripId === "new" || newLocationTripId === ""}
+            />
+            <div class="upload-icon-circle">
+              <Camera size={20} />
+            </div>
+            <div class="upload-text-main">
+              {newLocationPhotoFiles && newLocationPhotoFiles.length > 0
+                ? newLocationPhotoFiles[0].name
+                : $t("map.uploadPhotoPrompt")}
+            </div>
+            <div class="upload-text-sub">{$t("map.uploadPhotoFormats")}</div>
+          </label>
+
+          {#if !newLocationTripId || newLocationTripId === "new"}
+            <div class="upload-warning-box" transition:fade>
+              <div class="text-amber-500">
+                <Info size={16} />
+              </div>
+              <p class="text">{$t("map.uploadWarning")}</p>
+            </div>
+          {/if}
+        </div>
       </div>
 
-      <div class="modal-actions">
+      <!-- Actions -->
+      <footer class="premium-modal-footer">
+        <button class="btn-cancel-premium" on:click={() => (showAddLocationModal = false)}>
+          {$t("form.cancel")}
+        </button>
         <button
-          class="btn-cancel"
-          on:click={() => (showAddLocationModal = false)}
-          >{$t("form.cancel")}</button
+          class="btn-save-premium"
+          disabled={isSavingLocation || !newLocationName || (newLocationTripId === "new" && !newTripName)}
+          on:click={saveNewLocation}
         >
-        <button
-          class="btn-sidebar-action"
-          style="width: auto; padding: 0.5rem 1.5rem;"
-          on:click={saveNewLocation}>{$t("form.save")}</button
-        >
-      </div>
+          {#if isSavingLocation}
+            <div
+              class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+            ></div>
+          {/if}
+          {$t("map.saveLocationBtn")}
+        </button>
+      </footer>
     </div>
   </div>
 {/if}
@@ -1686,79 +1752,342 @@
     }
   }
 
-  /* Modal Styles */
+  /* Modal Styles Redesign (Phase 14) */
   .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(2, 6, 23, 0.85); /* Deep slate backdrop */
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
+    padding: 1rem;
   }
 
-  .modal-content {
-    background: #1e293b;
-    padding: 2rem;
-    border-radius: 12px;
-    width: 400px;
-    max-width: 90%;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-    border: 1px solid #334155;
-    color: #e2e8f0;
-  }
-
-  .form-group {
-    margin-bottom: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .form-group label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    color: #cbd5e1;
-  }
-
-  .form-group input,
-  .form-group select {
+  .premium-modal {
     background: #0f172a;
-    border: 1px solid #334155;
-    padding: 0.75rem;
-    border-radius: 6px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 95vh;
+    border-radius: 24px;
+    border: 1px solid #1e293b;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    color: #f8fafc;
+  }
+
+  .modal-header-premium {
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #1e293b;
+  }
+
+  .header-main {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .header-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(37, 99, 235, 0.1);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3b82f6;
+  }
+
+  .header-text h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .header-text .subheader {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .btn-close-modal {
+    color: #64748b;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+
+  .btn-close-modal:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #f8fafc;
+  }
+
+  .modal-body-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 2rem;
+  }
+
+  .integrated-search {
+    display: flex;
+    align-items: center;
+    background: #141c2f;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.2s;
+  }
+
+  .integrated-search:focus-within {
+    border-color: #3b82f6;
+  }
+
+  .integrated-search input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 0.75rem 1rem;
     color: white;
-    font-size: 1rem;
-  }
-
-  .form-group input:focus,
-  .form-group select:focus {
+    font-size: 0.95rem;
     outline: none;
-    border-color: #6366f1;
   }
 
-  .modal-actions {
+  .btn-integrated-search {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-integrated-search:hover {
+    background: #1d4ed8;
+  }
+
+  .map-preview-container {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #1e293b;
+    margin-bottom: 0.75rem;
+  }
+
+  .country-badge-floating {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    padding: 0.4rem 0.75rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .country-badge-floating .dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+  }
+
+  .country-badge-floating .label {
+    color: #64748b;
+    text-transform: uppercase;
+  }
+
+  .country-badge-floating .value {
+    color: #10b981;
+  }
+
+  .map-help-text {
+    font-size: 0.8rem;
+    color: #64748b;
+    text-align: center;
+    font-style: italic;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .form-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .field-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .premium-input, .premium-select {
+    background: #141c2f;
+    border: 1px solid #1e293b;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    color: #f1f5f9;
+    font-size: 0.95rem;
+    width: 100%;
+    transition: all 0.2s;
+  }
+
+  .premium-input:focus, .premium-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+  }
+
+  .full-width-field {
+    grid-column: span 2;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Photo Upload Component */
+  .dashed-upload-box {
+    border: 2px dashed #1e293b;
+    border-radius: 16px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(15, 23, 42, 0.3);
+    position: relative;
+  }
+
+  .dashed-upload-box:hover {
+    border-color: #3b82f6;
+    background: rgba(37, 99, 235, 0.05);
+  }
+
+  .upload-icon-circle {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+  }
+
+  .upload-text-main {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #94a3b8;
+  }
+
+  .upload-text-sub {
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  .upload-warning-box {
+    background: rgba(245, 158, 11, 0.05);
+    border: 1px solid rgba(245, 158, 11, 0.1);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
+  .upload-warning-box .text {
+    font-size: 0.75rem;
+    color: #d97706;
+    line-height: 1.4;
+  }
+
+  .premium-modal-footer {
+    padding: 1.5rem 2rem;
+    background: #0f172a;
+    border-top: 1px solid #1e293b;
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    margin-top: 2rem;
   }
 
-  .btn-cancel {
+  .btn-cancel-premium {
     background: transparent;
-    border: none;
+    border: 1px solid #1e293b;
     color: #94a3b8;
+    padding: 0.6rem 1.5rem;
+    border-radius: 10px;
     font-size: 0.9rem;
+    font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s;
   }
 
-  .btn-cancel:hover {
+  .btn-cancel-premium:hover {
+    background: rgba(255, 255, 255, 0.03);
     color: #f1f5f9;
+  }
+
+  .btn-save-premium {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.6rem 2rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+    transition: all 0.2s;
+  }
+
+  .btn-save-premium:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+  }
+
+  .btn-save-premium:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
   }
 
   .custom-scrollbar::-webkit-scrollbar {

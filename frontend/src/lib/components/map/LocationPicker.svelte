@@ -11,6 +11,7 @@
 
   export let height = "300px"
   export let initialLocation: { lat: number; lng: number } | null = null
+  export let hideSearch = false
 
   const dispatch = createEventDispatcher()
   let mapContainer: HTMLDivElement
@@ -90,21 +91,25 @@
     marker = L.marker([lat, lng]).addTo(map)
   }
 
-  async function handleSearch() {
-    if (!searchQuery.trim() || !map) return
+  export async function handleSearch(query?: string) {
+    const q = query ?? searchQuery
+    if (!q.trim() || !map) return
     searchError = ""
     searchLoading = true
     try {
-      const result = await geocode(searchQuery)
+      const result = await geocode(q)
       if (result) {
         map.setView([result.lat, result.lng], 14)
         addMarker(result.lat, result.lng)
         dispatch("locationSelect", { lat: result.lat, lng: result.lng })
+        return true
       } else {
         searchError = $t("common.noLocationFound")
+        return false
       }
     } catch (e) {
       searchError = $t("common.searchError")
+      return false
     } finally {
       searchLoading = false
     }
@@ -118,27 +123,29 @@
 </script>
 
 <div class="location-picker-wrapper">
-  <div class="search-row">
-    <input
-      type="text"
-      bind:value={searchQuery}
-      on:keydown={(e) => e.key === "Enter" && handleSearch()}
-      placeholder={$t("common.searchPlaceholderMap")}
-      class="input-box pr-10"
-    />
-    <button
-      type="button"
-      class="btn btn-primary"
-      disabled={searchLoading || !searchQuery.trim()}
-      on:click={handleSearch}
-      title={$t("common.searchBtn")}
-    >
-      <Search size={18} />
-      <span
-        >{searchLoading ? $t("common.searching") : $t("common.searchBtn")}</span
+  {#if !hideSearch}
+    <div class="search-row">
+      <input
+        type="text"
+        bind:value={searchQuery}
+        on:keydown={(e) => e.key === "Enter" && handleSearch()}
+        placeholder={$t("common.searchPlaceholderMap")}
+        class="input-box pr-10"
+      />
+      <button
+        type="button"
+        class="btn btn-primary"
+        disabled={searchLoading || !searchQuery.trim()}
+        on:click={() => handleSearch()}
+        title={$t("common.searchBtn")}
       >
-    </button>
-  </div>
+        <Search size={18} />
+        <span
+          >{searchLoading ? $t("common.searching") : $t("common.searchBtn")}</span
+        >
+      </button>
+    </div>
+  {/if}
   {#if searchError}
     <p class="search-error">{searchError}</p>
   {/if}

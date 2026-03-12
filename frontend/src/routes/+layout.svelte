@@ -96,21 +96,21 @@
           {/if}
 
           <a
-            href="/trips"
-            class="nav-link"
-            class:active={$page.url.pathname.startsWith("/trips")}
-          >
-            <Compass size={18} />
-            <span>{$t("nav.trips")}</span>
-          </a>
-
-          <a
             href="/map"
             class="nav-link"
             class:active={$page.url.pathname.startsWith("/map")}
           >
             <Map size={18} />
             <span>{$t("nav.map")}</span>
+          </a>
+
+          <a
+            href="/trips"
+            class="nav-link"
+            class:active={$page.url.pathname.startsWith("/trips")}
+          >
+            <Compass size={18} />
+            <span>{$t("nav.trips")}</span>
           </a>
 
           <a
