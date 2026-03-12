@@ -459,7 +459,10 @@ npm run format      # Prettier format
 - Enhanced initial demo data to provide a richer experience for unlogged users, including more trips and locations.
 - **Full Internationalization (i18n)**: Implemented a robust translation system supporting English and Spanish. All major views (Dashboard, Map, Trip Details, Profile) and shared components are now fully localized.
 
+- **Map Sidebar Redesign**: Completely overhauled the `/map` sidebar with a premium, icon-driven layout, adventure statistics, and advanced visualization filters.
+- **Minimized Sidebar Enhancements**: Added an interactive minimized state with filter icons and a clickable progress indicator.
 - **Country Explorer Redesign**: Fully redesigned the Country Explorer modal with a modern dark theme, smooth animations, and a progress sidebar.
+- **Full Internationalization (i18n)**: Implemented a robust translation system supporting English and Spanish. All major views (Dashboard, Map, Trip Details, Profile) and shared components are now fully localized.
 - **Fixed Map Page Errors**: Resolved a critical "Unexpected token" syntax error that was preventing the map page from compiling.
 - **Improved Region Mapping**: Implemented a more accurate country-to-continent mapping in the explorer using ID-based heuristics.
 - **Enhanced Accessibility (A11y)**: Fixed several accessibility warnings across the application, including missing alt text and keyboard listeners.
@@ -470,6 +473,7 @@ npm run format      # Prettier format
 - **Notificaciones Toast**: Se reemplazaron las alertas nativas del navegador por notificaciones tipo toast modernas y visualmente atractivas en la página del mapa.
 - **Filtros Avanzados**: Se añadió la capacidad de filtrar localizaciones y fotos en el mapa seleccionando viajes individuales.
 - **Ordenación del Carrusel**: Las fotos en el detalle del viaje ahora se ordenan priorizando la portada y las fotos del mapa.
+- **Rediseño de Barra Lateral del Mapa**: Nueva barra lateral en `/map` con un diseño premium basado en iconos, estadísticas de aventura y filtros de visualización avanzados. Se añadió un estado minimizado interactivo con iconos de filtro y un indicador de progreso clickable.
 - **Diseño del Explorador de Países**: Rediseño completo del modal de explorador con un tema oscuro moderno, animaciones fluidas y barra lateral de progreso.
 - **Corrección de Errores en el Mapa**: Se resolvió un error crítico de sintaxis ("Unexpected token") que impedía la compilación de la página del mapa.
 - **Mapeo de Continentes Mejorado**: Implementación de una clasificación por continentes más precisa basada en identificadores ISO.

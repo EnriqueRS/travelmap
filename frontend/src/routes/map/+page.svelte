@@ -22,6 +22,12 @@
     X,
     Eye,
     Globe,
+    Compass,
+    Filter,
+    Home,
+    CheckCircle2,
+    Calendar,
+    Activity,
   } from "lucide-svelte"
   import { COUNTRIES, getCountryName } from "$lib/utils/countries"
   import { normalizeString } from "$lib/utils/string"
@@ -521,14 +527,14 @@
 </script>
 
 <svelte:head>
-  <title>TravelMap - Dashboard</title>
+  <title>TravelMap</title>
 </svelte:head>
 
 <main class="dashboard-page" class:sidebar-minimized={isSidebarMinimized}>
   <!-- Sidebar -->
   <aside class="sidebar" class:collapsed={isSidebarMinimized}>
     <button
-      class="sidebar-toggle bg-slate-800 hover:bg-slate-700 p-1.5 rounded-full text-slate-300 border border-slate-600 absolute z-50 transition-all"
+      class="sidebar-toggle bg-slate-800 hover:bg-slate-700 p-1.5 rounded-full text-slate-300 border border-slate-600 absolute z-50 transition-all {isSidebarMinimized ? 'top-4 left-1/2 -translate-x-1/2' : 'top-4 right-4'}"
       on:click={toggleSidebar}
       title={isSidebarMinimized
         ? $t("map.maximizeSidebar")
@@ -541,164 +547,233 @@
       {/if}
     </button>
 
-    <div class="sidebar-header">
-      <h2 class="section-title">
-        <BarChart3 size={18} />
-        {$t("map.statsAventura")}
-      </h2>
-    </div>
-
-    <div class="stats-container">
-      <div class="stat-main">
-        <span class="stat-label">{$t("map.totalTrips")}</span>
-        <span class="stat-value big">{totalTrips}</span>
-      </div>
-
-      <div class="stats-row">
-        <div class="stat-item">
-          <span class="stat-label">{$t("map.totalLocations")}</span>
-          <span class="stat-value text-blue">{totalLocations}</span>
-        </div>
-      </div>
-
-      <div class="stats-row mt-4">
-        <div class="stat-item">
-          <span class="stat-label">{$t("status.Completado")}</span>
-          <span class="stat-value text-green">{visitedCount}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">{$t("status.Planificado")}</span>
-          <span class="stat-value text-blue">{plannedCount}</span>
-        </div>
-      </div>
-
-      <div class="stat-item mt-4">
-        <span class="stat-label">{$t("status.En curso")}</span>
-        <span class="stat-value text-teal">{onGoingCount}</span>
-      </div>
-
-      <div
-        class="progress-section mt-4 cursor-pointer hover:scale-[1.02] hover:bg-slate-800/50 p-2 -mx-2 rounded-lg transition-all border border-transparent hover:border-slate-700"
-        on:click={() => (showProgressModal = true)}
-        on:keydown={(e) => e.key === "Enter" && (showProgressModal = true)}
-        tabindex="0"
-        role="button"
-        title={$t("map.viewAllCountries")}
-      >
-        <div class="progress-labels">
-          <span>{$t("map.progress")}</span>
-          <span>{$t("map.countriesCount", { count: regions })}</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: {completion}%" />
-        </div>
-      </div>
-    </div>
-
-    <div class="sidebar-section mt-6">
-      <h2 class="section-title">
-        <Eye size={18} />
-        {$t("map.displayOptions")}
-      </h2>
-
-      <div class="options-list">
-        <label class="option-item">
-          <input type="checkbox" bind:checked={showHome} />
-          <span class="checkmark checked-red" />
-          <span class="option-text">{$t("map.home")}</span>
-        </label>
-
-        <label class="option-item">
-          <input type="checkbox" bind:checked={showCompleted} />
-          <span class="checkmark checked-green" />
-          <span class="option-text"
-            >{$t("map.completedCount", { count: visitedCount })}</span
+    {#if isSidebarMinimized}
+      <div class="minimized-sidebar-content">
+        <div class="minimized-filters">
+          <div
+            class="mini-filter-item casa"
+            class:inactive={!showHome}
+            title={$t("map.home")}
+            on:click={() => (showHome = !showHome)}
+            on:keydown={(e) =>
+              (e.key === "Enter" || e.key === " ") && (showHome = !showHome)}
+            role="button"
+            tabindex="0"
           >
-        </label>
-
-        <label class="option-item">
-          <input type="checkbox" bind:checked={showPlanned} />
-          <span class="checkmark checked-blue" />
-          <span class="option-text"
-            >{$t("map.plannedCount", { count: plannedCount })}</span
+            <Home size={20} />
+          </div>
+          <div
+            class="mini-filter-item completado"
+            class:inactive={!showCompleted}
+            title={$t("status.Completado")}
+            on:click={() => (showCompleted = !showCompleted)}
+            on:keydown={(e) =>
+              (e.key === "Enter" || e.key === " ") &&
+              (showCompleted = !showCompleted)}
+            role="button"
+            tabindex="0"
           >
-        </label>
-
-        <label class="option-item">
-          <input type="checkbox" bind:checked={showOngoing} />
-          <span class="checkmark checked-teal" />
-          <span class="option-text"
-            >{$t("map.ongoingCount", { count: onGoingCount })}</span
+            <CheckCircle2 size={20} />
+          </div>
+          <div
+            class="mini-filter-item planificado"
+            class:inactive={!showPlanned}
+            title={$t("status.Planificado")}
+            on:click={() => (showPlanned = !showPlanned)}
+            on:keydown={(e) =>
+              (e.key === "Enter" || e.key === " ") &&
+              (showPlanned = !showPlanned)}
+            role="button"
+            tabindex="0"
           >
-        </label>
-      </div>
-    </div>
-
-    <!-- Filtros de Viajes Específicos -->
-    <div class="sidebar-section mt-6">
-      <h2 class="section-title">
-        <MapIcon size={18} />
-        {$t("map.filterByTrip")}
-      </h2>
-      <div
-        class="options-list mt-2"
-        style="max-height: 200px; overflow-y: auto;"
-      >
-        {#each $trips as trip}
-          <label
-            class="option-item"
-            style:opacity={hiddenTrips.includes(String(trip.id)) ? "0.5" : "1"}
+            <Calendar size={20} />
+          </div>
+          <div
+            class="mini-filter-item en-curso"
+            class:inactive={!showOngoing}
+            title={$t("status.En curso")}
+            on:click={() => (showOngoing = !showOngoing)}
+            on:keydown={(e) =>
+              (e.key === "Enter" || e.key === " ") &&
+              (showOngoing = !showOngoing)}
+            role="button"
+            tabindex="0"
           >
-            <input
-              type="checkbox"
-              checked={!hiddenTrips.includes(String(trip.id))}
-              on:change={() => toggleTripSelection(trip.id)}
-            />
-            <span
-              class="checkmark"
-              style="border-color: {tripColorMap[trip.id] ||
-                '#64748b'}; {!hiddenTrips.includes(String(trip.id))
-                ? `background: ${tripColorMap[trip.id] || '#64748b'};`
-                : ''}"
-            />
-            <span class="option-text"
-              >{trip.name}
-              {trip.userId !== $userProfile.id
-                ? $t("map.othersTrip")
-                : ""}</span
-            >
-          </label>
-        {/each}
-      </div>
-      {#if hiddenTrips.length > 0}
-        <button
-          class="text-xs text-blue-400 hover:text-blue-300 mt-2 block"
-          on:click={() => (hiddenTrips = [])}
+            <Activity size={20} />
+          </div>
+        </div>
+
+        <div
+          class="mini-progress-indicator"
+          on:click={() => (showProgressModal = true)}
+          role="button"
+          tabindex="0"
+          on:keydown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault()
+              showProgressModal = true
+            }
+          }}
+          title={$t("map.progresoLabel")}
         >
-          {$t("map.showAllTrips")}
-        </button>
-      {/if}
-    </div>
+          <div class="mini-circle-box">
+            <Globe size={18} />
+            <div class="mini-progress-dot" />
+          </div>
+          <span class="mini-stats-text">{regions}</span>
+        </div>
+      </div>
+    {/if}
 
-    <div class="sidebar-footer">
-      <h2 class="section-title"><Plus size={18} /> {$t("map.newLocation")}</h2>
-      <button
-        class="btn-sidebar-action"
-        class:btn-active={addingMode}
-        on:click={toggleAddingMode}
+    {#if !isSidebarMinimized}
+      <div
+        class="sidebar-nav-container scroll-content"
+        class:hidden={isSidebarMinimized}
       >
-        {#if addingMode}
-          <span>{$t("form.cancel")}</span>
-        {:else}
-          <Plus size={16} /> {$t("map.addToMapBtn")}
-        {/if}
-      </button>
-      {#if addingMode}
-        <p class="help-text mt-2 text-center text-blue-400">
-          {$t("map.clickPrompt")}
-        </p>
-      {/if}
-    </div>
+        <!-- Section: Estadísticas de Aventura -->
+        <div class="nav-section">
+          <h3 class="nav-section-header">
+            <!-- <Compass size={18} />
+          {$t("map.statsAventura")} -->
+          </h3>
+
+          <div class="adventure-stats-content">
+            <div class="main-stat-card">
+              <span class="main-stat-label">{$t("map.totalTripsLabel")}</span>
+              <span class="main-stat-value">{totalTrips}</span>
+            </div>
+
+            <div class="stats-list-vertical">
+              <div class="stats-list-item">
+                <span class="item-label">{$t("map.totalLocations")}</span>
+                <span class="item-value text-blue-400">{totalLocations}</span>
+              </div>
+              <div class="stats-list-item">
+                <span class="item-label">{$t("status.Completado")}</span>
+                <span class="item-value text-emerald-400">{visitedCount}</span>
+              </div>
+              <div class="stats-list-item">
+                <span class="item-label">{$t("status.Planificado")}</span>
+                <span class="item-value text-blue-500">{plannedCount}</span>
+              </div>
+              <div class="stats-list-item">
+                <span class="item-label">{$t("status.En curso")}</span>
+                <span class="item-value text-slate-400">{onGoingCount}</span>
+              </div>
+            </div>
+
+            <div
+              class="global-progress-mini mt-6 cursor-pointer"
+              on:click={() => (showProgressModal = true)}
+              on:keydown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  showProgressModal = true
+                }
+              }}
+              tabindex="0"
+              role="button"
+              aria-label={$t("map.viewAllCountries")}
+            >
+              <div class="progress-info-row">
+                <span class="progress-label">{$t("map.progresoLabel")}</span>
+                <span class="progress-count"
+                  >{regions} / 195 {$t("map.paisesLabel")}</span
+                >
+              </div>
+              <div class="minimal-progress-bar">
+                <div class="progress-bar-fill" style="width: {completion}%" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Opciones de Visualización -->
+        <div class="nav-section">
+          <h3 class="nav-section-header">
+            <Eye size={18} />
+            {$t("map.displayOptions")}
+          </h3>
+
+          <div class="visualization-options">
+            <label class="custom-pill-toggle">
+              <input type="checkbox" bind:checked={showHome} />
+              <span class="pill-dot bg-red-500" />
+              <span class="pill-label">{$t("map.home")}</span>
+              <span class="pill-count">1</span>
+            </label>
+
+            <label class="custom-pill-toggle">
+              <input type="checkbox" bind:checked={showCompleted} />
+              <span class="pill-dot bg-emerald-500" />
+              <span class="pill-label">{$t("status.Completado")}</span>
+              <span class="pill-count">{visitedCount}</span>
+            </label>
+
+            <label class="custom-pill-toggle">
+              <input type="checkbox" bind:checked={showPlanned} />
+              <span class="pill-dot bg-blue-500" />
+              <span class="pill-label">{$t("status.Planificado")}</span>
+              <span class="pill-count">{plannedCount}</span>
+            </label>
+
+            <label class="custom-pill-toggle">
+              <input type="checkbox" bind:checked={showOngoing} />
+              <span class="pill-dot bg-slate-400" />
+              <span class="pill-label">{$t("status.En curso")}</span>
+              <span class="pill-count">{onGoingCount}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Section: Filtrar por Viaje -->
+        <div class="nav-section">
+          <h3 class="nav-section-header">
+            <Filter size={18} />
+            {$t("map.filterByTrip")}
+          </h3>
+
+          <div class="trip-filter-list custom-scrollbar">
+            {#each $trips as trip}
+              <button
+                class="trip-filter-item"
+                class:hidden-trip={hiddenTrips.includes(String(trip.id))}
+                on:click={() => toggleTripSelection(trip.id)}
+              >
+                <span
+                  class="trip-dot"
+                  style="background-color: {tripColorMap[trip.id] || '#64748b'}"
+                />
+                <span class="trip-name">{trip.name}</span>
+              </button>
+            {/each}
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <h2 class="section-title">
+            <Plus size={18} />
+            {$t("map.newLocation")}
+          </h2>
+          <button
+            class="btn-sidebar-action"
+            class:btn-active={addingMode}
+            on:click={toggleAddingMode}
+          >
+            {#if addingMode}
+              <span>{$t("form.cancel")}</span>
+            {:else}
+              <Plus size={16} /> {$t("map.addToMapBtn")}
+            {/if}
+          </button>
+          {#if addingMode}
+            <p class="help-text mt-2 text-center text-blue-400">
+              {$t("map.clickPrompt")}
+            </p>
+          {/if}
+        </div>
+      </div>
+    {/if}
   </aside>
 
   <!-- Main Content -->
@@ -906,7 +981,16 @@
 
 {#if showProgressModal}
   {@const globalPerc = Math.round((regions / 195) * 100)}
-  <div class="modal-overlay" on:click|self={() => (showProgressModal = false)}>
+  <div
+    class="modal-overlay"
+    on:click|self={() => (showProgressModal = false)}
+    on:keydown={(e) => {
+      if (e.key === "Escape") showProgressModal = false
+    }}
+    tabindex="-1"
+    role="button"
+    aria-label="Cerrar modal"
+  >
     <div class="progress-modal-glass">
       <!-- Left Sidebar (Stats) -->
       <div class="progress-sidebar">
@@ -1062,205 +1146,384 @@
   }
 
   .dashboard-page.sidebar-minimized {
-    grid-template-columns: 60px 1fr;
+    grid-template-columns: 80px 1fr;
+  }
+
+  /* Minimized Sidebar Styles */
+  .minimized-sidebar-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    height: 100%;
+    padding-top: 5rem;
+    z-index: 10;
+  }
+
+  .minimized-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .mini-filter-item {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    opacity: 1;
+    color: white;
+  }
+
+  .mini-filter-item:hover {
+    transform: scale(1.05);
+  }
+
+  .mini-filter-item.inactive {
+    opacity: 0.3;
+    filter: grayscale(1);
+  }
+
+  .mini-filter-item.casa {
+    color: #ef4444;
+  }
+  .mini-filter-item.completado {
+    color: #10b981;
+  }
+  .mini-filter-item.planificado {
+    color: #3b82f6;
+  }
+  .mini-filter-item.en-curso {
+    color: #94a3b8;
+  }
+
+  .mini-progress-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.75rem 0.5rem;
+    border-radius: 12px;
+    transition: background 0.2s;
+  }
+
+  .mini-progress-indicator:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .mini-circle-box {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3b82f6;
+  }
+
+  .mini-progress-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    background: #3b82f6;
+    border: 2px solid var(--color-bg-secondary);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+  }
+
+  .mini-stats-text {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
   }
 
   /* Sidebar styles */
   .sidebar {
-    background: #111827;
-    padding: 1.5rem;
+    background: var(--color-bg-secondary);
+    padding: 2rem 1.5rem;
     display: flex;
     flex-direction: column;
-    border-right: 1px solid #1f2937;
+    gap: 2.5rem;
+    border-right: 1px solid var(--color-border);
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
-    transition: padding 0.3s ease;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
-  .sidebar.collapsed {
-    padding: 1.5rem 0.5rem;
-  }
-
-  .sidebar.collapsed > :not(.sidebar-toggle) {
-    display: none !important;
-  }
-
-  .sidebar-toggle {
-    top: 1rem;
-    right: 1rem;
-  }
-
-  .sidebar.collapsed .sidebar-toggle {
-    right: 50%;
-    transform: translateX(50%);
-  }
-
-  .section-title {
+  .sidebar-top-logo {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #94a3b8;
-    margin-bottom: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .stat-main {
-    margin-bottom: 1.5rem;
-  }
-
-  .stat-value {
-    display: block;
-    font-weight: 700;
-  }
-
-  .stat-value.big {
-    font-size: 2.5rem;
-    line-height: 1;
-    color: #f8fafc;
-    margin-top: 0.25rem;
-  }
-
-  .stats-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 1rem;
-  }
-
-  .text-green {
-    color: #10b981;
-  }
-  .text-blue {
-    color: #3b82f6;
-  }
-  .text-teal {
-    color: #14b8a6;
-  }
-
-  .progress-section {
-    margin-top: 1.5rem;
-  }
-
-  .progress-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
-    color: #64748b;
     margin-bottom: 0.5rem;
   }
 
-  .progress-bar {
-    height: 6px;
-    background: #374151;
-    border-radius: 3px;
-    overflow: hidden;
+  .logo-box {
+    width: 40px;
+    height: 40px;
+    background: #2563eb;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
   }
 
-  .progress-fill {
-    height: 100%;
-    background: #6366f1;
-    border-radius: 3px;
+  .logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    letter-spacing: -0.02em;
   }
 
-  /* Options List */
-  .options-list {
+  .sidebar-nav-container {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 2.5rem;
   }
 
-  .option-item {
+  .nav-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .nav-section-header {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    cursor: pointer;
-    font-size: 0.9rem;
-    color: #cbd5e1;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
   }
 
-  .option-item input {
+  /* Adventure Stats Cards */
+  .main-stat-card {
+    background: var(--color-bg-tertiary);
+    opacity: 0.8;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .main-stat-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+  }
+
+  .main-stat-value {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    line-height: 1;
+  }
+
+  .stats-list-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 0.5rem;
+  }
+
+  .stats-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .item-label {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+  }
+
+  .item-value {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .global-progress-mini {
+    padding: 0.5rem;
+    border-radius: 12px;
+    transition: background 0.2s;
+    border: 1px solid var(--color-border);
+  }
+
+  .global-progress-mini:hover {
+    background: var(--color-bg-tertiary);
+    opacity: 0.8;
+  }
+
+  .progress-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+  }
+
+  .progress-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+  }
+
+  .progress-count {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  .minimal-progress-bar {
+    height: 4px;
+    background: var(--color-bg-tertiary);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: #2563eb;
+    border-radius: 2px;
+    transition: width 0.5s ease-out;
+  }
+
+  /* Visualization Options - Pills */
+  .visualization-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .custom-pill-toggle {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    background: var(--color-bg-tertiary);
+    opacity: 0.7;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--color-border);
+  }
+
+  .custom-pill-toggle:hover {
+    background: var(--color-bg-tertiary);
+    opacity: 1;
+  }
+
+  .custom-pill-toggle:has(input:checked) {
+    background: rgba(37, 99, 235, 0.1);
+    border-color: #2563eb;
+    opacity: 1;
+  }
+
+  .custom-pill-toggle input {
     display: none;
   }
 
-  .checkmark {
-    width: 18px;
-    height: 18px;
-    border: 2px solid #475569;
+  .pill-dot {
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
-  .option-item input:checked + .checkmark::after {
-    content: "";
+  .pill-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    flex: 1;
+  }
+
+  .pill-count {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .custom-pill-toggle:has(input:checked) .pill-count {
+    color: white;
+    background: #2563eb;
+  }
+
+  /* Trip Filter List */
+  .trip-filter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+  }
+
+  .trip-filter-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 10px;
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+  }
+
+  .trip-filter-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-primary);
+  }
+
+  .trip-filter-item.hidden-trip {
+    opacity: 0.4;
+    filter: grayscale(1);
+  }
+
+  .trip-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: white;
+    flex-shrink: 0;
   }
 
-  .checkmark.checked-green {
-    border-color: #10b981;
-  }
-  .option-item input:checked + .checkmark.checked-green {
-    background: #10b981;
-  }
-
-  .checkmark.checked-blue {
-    border-color: #3b82f6;
-  }
-  .option-item input:checked + .checkmark.checked-blue {
-    background: #3b82f6;
+  .trip-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .checkmark.checked-red {
-    border-color: #ef4444;
-  }
-  .option-item input:checked + .checkmark.checked-red {
-    background: #ef4444;
-  }
-
-  /* Sidebar Footer */
+  /* Footer */
   .sidebar-footer {
-    margin-top: auto;
-    padding-top: 2rem;
-  }
-
-  .help-text {
-    font-size: 0.85rem;
-    color: #64748b;
-    margin-bottom: 1rem;
-  }
-
-  .btn-sidebar-action {
-    width: 100%;
-    padding: 0.75rem;
-    background: #6366f1;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-sidebar-action:hover {
-    background: #4f46e5;
-  }
-
-  .btn-sidebar-action.btn-active,
-  .btn-top-action.btn-active {
-    background: #ef4444 !important;
-    animation: pulse 2s infinite;
+    display: none; /* Moved functionality or redesigning below */
   }
 
   @keyframes pulse {
@@ -1498,46 +1761,19 @@
     color: #f1f5f9;
   }
 
-  .country-flag-card {
-    background: rgba(30, 41, 59, 0.5);
-    border: 1px solid rgba(71, 85, 105, 0.4);
-    border-radius: 12px;
-    padding: 1rem 0.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-  }
-
-  .country-flag-card:not(.visited) {
-    opacity: 0.4;
-    filter: grayscale(100%);
-  }
-
-  .country-flag-card.visited {
-    background: rgba(30, 41, 59, 0.9);
-    border-color: rgba(96, 165, 250, 0.5);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  .country-flag-card.visited .filter-flag {
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-  }
-
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(15, 23, 42, 0.5);
+    background: transparent;
     border-radius: 4px;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(71, 85, 105, 0.8);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(100, 116, 139, 1);
+    background: rgba(255, 255, 255, 0.2);
   }
 
   /* --- Country Progress Modal Redesign --- */
@@ -1770,14 +2006,6 @@
     border-color: #3b82f6;
   }
 
-  .search-icon-inside {
-    position: absolute;
-    left: 0.875rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #64748b;
-  }
-
   .continent-toggles {
     display: flex;
     gap: 0.5rem;
@@ -1896,12 +2124,6 @@
     margin-top: 1.5rem;
     padding-top: 1.5rem;
     border-top: 1px solid #1e293b;
-  }
-
-  .footer-note {
-    font-size: 0.8rem;
-    color: #475569;
-    font-style: italic;
   }
 
   .btn-done {

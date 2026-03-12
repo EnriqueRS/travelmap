@@ -17,16 +17,16 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig*.json ./
 
-    # Development stage
-    FROM base AS development
-    RUN npm install --legacy-peer-deps
-    COPY . .
+# Development stage
+FROM base AS development
+RUN npm install --legacy-peer-deps
+COPY . .
 EXPOSE 3001
 CMD ["npm", "run", "start:dev"]
 
 # Build stage
 FROM base AS build
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci && npm cache clean --force
 COPY . .
 RUN npm run build
 
