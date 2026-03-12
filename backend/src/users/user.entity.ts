@@ -58,7 +58,7 @@ export class User extends Model implements UserProperties {
         passwordHash: { type: 'string', minLength: 60 }, // bcrypt hash
         firstName: { type: 'string', maxLength: 100 },
         lastName: { type: 'string', maxLength: 100 },
-        avatarUrl: { type: 'string', maxLength: 500 },
+        avatarUrl: { type: 'string' },
         bio: { type: 'string', maxLength: 1000 },
         isPublic: { type: 'boolean', default: false },
         themePreference: {

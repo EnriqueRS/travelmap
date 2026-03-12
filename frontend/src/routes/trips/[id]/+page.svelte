@@ -31,8 +31,10 @@
     Info,
     AlertTriangle,
     Star,
+    X,
   } from "lucide-svelte"
   import { onMount, tick } from "svelte"
+  import { fade, slide } from "svelte/transition"
   import { mediaService, type AppPhoto } from "$lib/services/media"
   import { integrationsService } from "$lib/services/integrations"
   import { API_URL } from "$lib/services/auth"
@@ -1313,144 +1315,194 @@
 {/if}
 
 {#if showLocationModal}
-  <div
-    class="scroll-content modal-backdrop pointer-events-auto flex items-center justify-center p-4"
-  >
+  <div class="modal-backdrop flex items-center justify-center p-4">
     <div
-      class="modal card meta-modal w-full max-w-lg bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl overflow-y-auto max-h-[90vh] text-left"
+      class="premium-modal"
+      class:is-adding={!editingLocation}
+      in:fade={{ duration: 200 }}
     >
-      <header class="modal-header flex justify-between items-center mb-6">
-        <h3 class="text-xl font-bold text-white m-0">
-          {editingLocation ? $t("trip.editLocation") : $t("trip.addLocation")}
-        </h3>
+      <!-- Header -->
+      <header class="modal-header-premium">
+        <div class="header-main">
+          <div class="header-icon" class:edit-icon={editingLocation}>
+            {#if editingLocation}
+              <MapPin size={24} />
+            {:else}
+              <Plus size={24} />
+            {/if}
+          </div>
+          <div class="header-text">
+            <h3>
+              {editingLocation
+                ? $t("trip.editLocationHeader")
+                : $t("trip.addLocationHeader")}
+            </h3>
+            <p class="subheader text-blue-400">
+              {editingLocation
+                ? $t("trip.editLocationSubheader")
+                : $t("trip.addLocationSubheader")}
+            </p>
+          </div>
+        </div>
         <button
-          class="text-slate-400 hover:text-white"
-          on:click={() => (showLocationModal = false)}>&times;</button
+          class="btn-close-modal"
+          on:click={() => (showLocationModal = false)}
         >
+          <X size={20} />
+        </button>
       </header>
 
-      <div class="flex flex-col gap-4">
-        <div>
-          <label class="block text-sm font-medium text-slate-300 mb-1"
-            >{$t("form.name")}</label
-          >
-          <input
-            type="text"
-            bind:value={modalLocationName}
-            placeholder="..."
-            class="input-box"
-          />
+      <!-- Body -->
+      <div class="modal-body-scroll">
+        <div class="form-grid">
+          <!-- Name -->
+          <div class="form-field-group full-width-field">
+            <span class="field-label">{$t("form.name")}</span>
+            <input
+              type="text"
+              bind:value={modalLocationName}
+              placeholder={$t("form.namePlaceholder")}
+              class="premium-input"
+            />
+          </div>
+
+          <!-- Category (Select) -->
+          <div class="form-field-group">
+            <span class="field-label">{$t("form.category")}</span>
+            <select bind:value={modalLocationCategory} class="premium-select">
+              <option value="Monumento">{$t("categories.Monumento")}</option>
+              <option value="Naturaleza">{$t("categories.Naturaleza")}</option>
+              <option value="Ciudad">{$t("categories.Ciudad")}</option>
+              <option value="Ciudad de escala"
+                >{$t("categories.Ciudad de escala")}</option
+              >
+              <option value="Cultura">{$t("categories.Cultura")}</option>
+              <option value="Playa">{$t("categories.Playa")}</option>
+              <option value="Montaña">{$t("categories.Montaña")}</option>
+              <option value="Otro">{$t("categories.Otro")}</option>
+            </select>
+          </div>
+
+          <!-- Rating (Simple Star selector or just field) -->
+          <div class="form-field-group">
+            <span class="field-label">{"Rating"}</span>
+            <select bind:value={modalLocationRating} class="premium-select">
+              {#each [1, 2, 3, 4, 5] as r}
+                <option value={r}>{r} {$t("trip.stars", { count: r }) || '★'}</option>
+              {/each}
+            </select>
+          </div>
+
+          <!-- Description -->
+          <div class="form-field-group full-width-field">
+            <span class="field-label">{$t("form.description")}</span>
+            <textarea
+              bind:value={modalLocationDescription}
+              class="premium-textarea"
+              rows="3"
+              placeholder={$t("form.descPlaceholder")}
+            />
+          </div>
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-slate-300 mb-1"
-            >{$t("form.description")}</label
-          >
-          <textarea
-            bind:value={modalLocationDescription}
-            class="input-box"
-            rows="2"
-            placeholder="..."
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-slate-300 mb-1"
-            >{$t("form.category")}</label
-          >
-          <select bind:value={modalLocationCategory} class="input-box">
-            <option value="Monumento">{$t("categories.Monumento")}</option>
-            <option value="Naturaleza">{$t("categories.Naturaleza")}</option>
-            <option value="Ciudad">{$t("categories.Ciudad")}</option>
-            <option value="Ciudad de escala"
-              >{$t("categories.Ciudad de escala")}</option
-            >
-            <option value="Cultura">{$t("categories.Cultura")}</option>
-            <option value="Playa">{$t("categories.Playa")}</option>
-            <option value="Montaña">{$t("categories.Montaña")}</option>
-            <option value="Otro">{$t("categories.Otro")}</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-slate-300 mb-2"
-            >{$t("trip.linkPhotoOptional")}</label
+        <!-- Photo Selection Scroller -->
+        <div class="photo-scroller-container">
+          <span class="field-label mb-2 block"
+            >{$t("trip.linkPhotoOptional")}</span
           >
           {#if displayedPhotos.length > 0}
-            <div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+            <div class="photo-scroller custom-scrollbar">
               {#each displayedPhotos as photo}
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
                 <div
-                  class="flex-shrink-0 relative rounded-md overflow-hidden border-2 cursor-pointer transition-all hover:scale-105 {selectedPhotoForLocation?.id ===
-                  photo.id
-                    ? 'border-blue-500 opacity-100'
-                    : 'border-transparent opacity-60 hover:opacity-100'}"
-                  style="width: 60px; height: 60px;"
+                  class="photo-scroller-item"
+                  class:selected={selectedPhotoForLocation?.id === photo.id}
                   on:click={() => handleLinkPhotoToLocation(photo)}
                 >
-                  <img
-                    src={getImageUrl(photo)}
-                    alt="Miniatura"
-                    class="w-full h-full object-cover"
-                  />
+                  <img src={getImageUrl(photo)} alt="Miniatura" />
+                  {#if selectedPhotoForLocation?.id === photo.id}
+                    <div
+                      class="absolute inset-0 flex items-center justify-center"
+                    >
+                      <CheckCircle2 size={24} class="text-white drop-shadow" />
+                    </div>
+                  {/if}
                 </div>
               {/each}
             </div>
           {:else}
-            <p class="text-xs text-slate-400">
-              No hay fotos en este viaje aún.
+            <p class="text-xs text-slate-500 italic px-2">
+              {$t("trip.emptyGallery")}
             </p>
           {/if}
         </div>
 
-        <div>
-          <label
-            class="flex justify-between items-center text-sm font-medium text-slate-300 mb-1"
-          >
-            <span>{$t("trip.location")}</span>
-
-            {#if modalLocationCountry}
-              <span class="country-tag"
-                >{getCountryFlag(modalLocationCountry)}
-                {getCountryName(modalLocationCountry, $languageStore)}</span
-              >
-            {/if}
+        <!-- Map Section -->
+        <div class="form-field-group">
+          <div class="flex justify-between items-center mb-1">
+            <span class="field-label">{$t("trip.location")}</span>
             {#if modalLocationLat && modalLocationLng}
-              <span
-                class="text-xs font-normal text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700"
-              >
-                {modalLocationLat.toFixed(5)}, {modalLocationLng.toFixed(5)}
+              <span class="text-[10px] text-slate-500 font-mono">
+                {modalLocationLat.toFixed(4)}, {modalLocationLng.toFixed(4)}
               </span>
             {/if}
-          </label>
-          <div class="mt-1 border border-slate-700 rounded-md overflow-hidden">
+          </div>
+
+          <div class="map-preview-container">
             <LocationPicker
               height="200px"
+              hideSearch={true}
               initialLocation={modalLocationLat !== 0
                 ? { lat: modalLocationLat, lng: modalLocationLng }
                 : null}
               on:locationSelect={handleLocationModalSelect}
             />
+
+            {#if modalLocationCountry}
+              <div class="country-badge-floating" transition:fade>
+                <div class="dot" />
+                <span class="label">{$t("map.detectedCountryLabel")}</span>
+                <span class="value"
+                  >{getCountryFlag(modalLocationCountry)} {getCountryName(
+                    modalLocationCountry,
+                    $languageStore,
+                  )}</span
+                >
+              </div>
+            {/if}
           </div>
+          <p class="text-[11px] text-slate-500 italic text-center mb-2">
+            {$t("common.mapHint")}
+          </p>
         </div>
       </div>
 
-      <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-700">
+      <!-- Footer -->
+      <footer class="premium-modal-footer">
         {#if editingLocation}
           <button
-            class="btn btn-danger mr-auto"
-            on:click={requestDeleteLocation}>{$t("form.delete")}</button
+            class="btn-delete-premium"
+            on:click={requestDeleteLocation}
+            title={$t("form.delete")}
           >
+            <Trash2 size={18} />
+            <span class="hidden sm:inline">{$t("form.delete")}</span>
+          </button>
         {/if}
+
         <button
-          class="btn btn-ghost"
+          class="btn-cancel-premium"
           on:click={() => (showLocationModal = false)}
-          >{$t("form.cancel")}</button
         >
-        <button class="btn btn-sm" on:click={saveLocation}
-          >{$t("form.save")}</button
-        >
-      </div>
+          {$t("form.cancel")}
+        </button>
+
+        <button class="btn-save-premium" on:click={saveLocation}>
+          <CheckCircle2 size={18} />
+          {editingLocation ? $t("form.save") : $t("form.save")}
+        </button>
+      </footer>
     </div>
   </div>
 {/if}
@@ -2041,26 +2093,330 @@
     background-color: rgba(255, 255, 255, 0.05);
   }
 
-  /* Modal */
+  /* Premium Modal Styles (Phase 15) */
   .modal-backdrop {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.8);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
   }
-  .modal.card {
-    background: #1e293b;
-    padding: 2rem;
-    border-radius: 12px;
-    border: 1px solid #475569;
-    max-width: 450px;
+
+  .premium-modal {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 28px;
+    width: 95%;
+    max-width: 550px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    color: #f8fafc;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-header-premium {
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #1e293b;
+  }
+
+  .header-main {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .header-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(37, 99, 235, 0.1);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3b82f6;
+  }
+
+  .header-icon.edit-icon {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+  }
+
+  .header-text h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .header-text .subheader {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .btn-close-modal {
+    color: #64748b;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+
+  .btn-close-modal:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #f8fafc;
+  }
+
+  .modal-body-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 2rem;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .form-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .field-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .premium-input, .premium-select, .premium-textarea {
+    background: #141c2f;
+    border: 1px solid #1e293b;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    color: #f1f5f9;
+    font-size: 0.95rem;
     width: 100%;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .premium-input:focus, .premium-select:focus, .premium-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: rgba(15, 23, 42, 0.8);
+  }
+
+  .full-width-field {
+    grid-column: span 2;
+  }
+
+  .map-preview-container {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #1e293b;
+    margin-bottom: 1.5rem;
+  }
+
+  .country-badge-floating {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    padding: 0.4rem 0.75rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .country-badge-floating .dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+  }
+
+  .country-badge-floating .label {
+    color: #64748b;
+    text-transform: uppercase;
+  }
+
+  .country-badge-floating .value {
+    color: #10b981;
+  }
+
+  /* Photo selection in modal */
+  .photo-scroller-container {
+    margin-bottom: 1.5rem;
+  }
+
+  .photo-scroller {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding: 0.5rem 0.25rem;
+    scrollbar-width: none;
+  }
+
+  .photo-scroller::-webkit-scrollbar {
+    display: none;
+  }
+
+  .photo-scroller-item {
+    flex-shrink: 0;
+    width: 70px;
+    height: 70px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .photo-scroller-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .photo-scroller-item:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+
+  .photo-scroller-item.selected {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
+  .photo-scroller-item.selected::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(37, 99, 235, 0.2);
+  }
+
+  .premium-modal-footer {
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(15, 23, 42, 0.5);
+    border-top: 1px solid #1e293b;
+  }
+
+  .btn-cancel-premium {
+    background: transparent;
+    border: 1px solid #1e293b;
+    color: #64748b;
+    padding: 0.6rem 1.25rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel-premium:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #f8fafc;
+    border-color: #334155;
+  }
+
+  .btn-save-premium {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.6rem 2rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+
+  .btn-save-premium:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+  }
+
+  .btn-save-premium:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-delete-premium {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 0.6rem 1.25rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: auto;
+  }
+
+  .btn-delete-premium:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+  }
+
+  @media (max-width: 768px) {
+    .premium-modal {
+      width: 100%;
+      height: 100vh;
+      max-height: 100vh;
+      border-radius: 0;
+    }
+
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .full-width-field {
+      grid-column: span 1;
+    }
   }
 
   .actions-group {

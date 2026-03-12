@@ -887,7 +887,10 @@
     on:click|self={() => (showAddLocationModal = false)}
     transition:fade={{ duration: 200 }}
   >
-    <div class="premium-modal" transition:scale={{ duration: 200, start: 0.95 }}>
+    <div
+      class="premium-modal"
+      transition:scale={{ duration: 200, start: 0.95 }}
+    >
       <!-- Header -->
       <header class="modal-header-premium">
         <div class="header-main">
@@ -928,21 +931,22 @@
             bind:this={locationPickerRef}
             height="200px"
             hideSearch={true}
-            initialLocation={newLocationLat && newLocationLng ? { lat: newLocationLat, lng: newLocationLng } : null}
+            initialLocation={newLocationLat && newLocationLng
+              ? { lat: newLocationLat, lng: newLocationLng }
+              : null}
+            countryName={getCountryName(newLocationCountry, $languageStore) ||
+              $t("map.unknownCountry")}
             on:locationSelect={handleLocationModalSelect}
           />
-          <div class="country-badge-floating">
-            <div class="dot"></div>
-            <span class="label">{$t("map.detectedCountryLabel")}</span>
-            <span class="value">{getCountryName(newLocationCountry, $languageStore) || $t("map.unknownCountry")}</span>
-          </div>
         </div>
         <p class="map-help-text">{$t("map.clickMapPrompt")}</p>
 
         <!-- Form Fields -->
         <div class="form-grid">
           <div class="form-field-group">
-            <label class="field-label" for="loc-name">{$t("map.locationNameLabel")}</label>
+            <label class="field-label" for="loc-name"
+              >{$t("map.locationNameLabel")}</label
+            >
             <input
               id="loc-name"
               class="premium-input"
@@ -952,12 +956,20 @@
             />
           </div>
           <div class="form-field-group">
-            <label class="field-label" for="loc-cat">{$t("map.categoryLabel")}</label>
-            <select id="loc-cat" class="premium-select" bind:value={newLocationCategory}>
+            <label class="field-label" for="loc-cat"
+              >{$t("map.categoryLabel")}</label
+            >
+            <select
+              id="loc-cat"
+              class="premium-select"
+              bind:value={newLocationCategory}
+            >
               <option value="Monumento">{$t("categories.Monumento")}</option>
               <option value="Naturaleza">{$t("categories.Naturaleza")}</option>
               <option value="Ciudad">{$t("categories.Ciudad")}</option>
-              <option value="Ciudad de escala">{$t("categories.Ciudad de escala")}</option>
+              <option value="Ciudad de escala"
+                >{$t("categories.Ciudad de escala")}</option
+              >
               <option value="Playa">{$t("categories.Playa")}</option>
               <option value="Montaña">{$t("categories.Montaña")}</option>
               <option value="Cultura">{$t("categories.Cultura")}</option>
@@ -966,8 +978,14 @@
           </div>
 
           <div class="form-field-group full-width-field">
-            <label class="field-label" for="loc-trip">{$t("map.tripLabel")}</label>
-            <select id="loc-trip" class="premium-select" bind:value={newLocationTripId}>
+            <label class="field-label" for="loc-trip"
+              >{$t("map.tripLabel")}</label
+            >
+            <select
+              id="loc-trip"
+              class="premium-select"
+              bind:value={newLocationTripId}
+            >
               <option value="">{$t("map.selectTrip")}</option>
               <option value="new">{$t("map.newTripOption")}</option>
               {#each $trips as trip}
@@ -978,7 +996,9 @@
 
           {#if newLocationTripId === "new"}
             <div class="form-field-group full-width-field" transition:slide>
-              <label class="field-label" for="new-trip-name">{$t("map.newTripNameLabel")}</label>
+              <label class="field-label" for="new-trip-name"
+                >{$t("map.newTripNameLabel")}</label
+              >
               <input
                 id="new-trip-name"
                 class="premium-input"
@@ -1025,18 +1045,23 @@
 
       <!-- Actions -->
       <footer class="premium-modal-footer">
-        <button class="btn-cancel-premium" on:click={() => (showAddLocationModal = false)}>
+        <button
+          class="btn-cancel-premium"
+          on:click={() => (showAddLocationModal = false)}
+        >
           {$t("form.cancel")}
         </button>
         <button
           class="btn-save-premium"
-          disabled={isSavingLocation || !newLocationName || (newLocationTripId === "new" && !newTripName)}
+          disabled={isSavingLocation ||
+            !newLocationName ||
+            (newLocationTripId === "new" && !newTripName)}
           on:click={saveNewLocation}
         >
           {#if isSavingLocation}
             <div
               class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
-            ></div>
+            />
           {/if}
           {$t("map.saveLocationBtn")}
         </button>
@@ -1894,37 +1919,6 @@
     margin-bottom: 0.75rem;
   }
 
-  .country-badge-floating {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    z-index: 1000;
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    padding: 0.4rem 0.75rem;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-  }
-
-  .country-badge-floating .dot {
-    width: 8px;
-    height: 8px;
-    background: #10b981;
-    border-radius: 50%;
-  }
-
-  .country-badge-floating .label {
-    color: #64748b;
-    text-transform: uppercase;
-  }
-
-  .country-badge-floating .value {
-    color: #10b981;
-  }
 
   .map-help-text {
     font-size: 0.8rem;
@@ -1955,7 +1949,8 @@
     text-transform: uppercase;
   }
 
-  .premium-input, .premium-select {
+  .premium-input,
+  .premium-select {
     background: #141c2f;
     border: 1px solid #1e293b;
     padding: 0.75rem 1rem;
@@ -1966,7 +1961,8 @@
     transition: all 0.2s;
   }
 
-  .premium-input:focus, .premium-select:focus {
+  .premium-input:focus,
+  .premium-select:focus {
     outline: none;
     border-color: #3b82f6;
   }

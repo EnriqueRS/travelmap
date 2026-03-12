@@ -12,6 +12,7 @@
   export let height = "300px"
   export let initialLocation: { lat: number; lng: number } | null = null
   export let hideSearch = false
+  export let countryName: string | null = null
 
   const dispatch = createEventDispatcher()
   let mapContainer: HTMLDivElement
@@ -153,7 +154,15 @@
     bind:this={mapContainer}
     class="map-container"
     style="height: {height};"
-  />
+  >
+    {#if countryName}
+      <div class="country-badge-floating">
+        <div class="dot" />
+        <span class="label">{$t("map.detectedCountryLabel")}</span>
+        <span class="value">{countryName}</span>
+      </div>
+    {/if}
+  </div>
   <p class="hint">{$t("common.mapHint")}</p>
 </div>
 
@@ -175,6 +184,35 @@
     width: 100%;
     border-radius: 8px;
     overflow: hidden;
+    position: relative;
+  }
+  .country-badge-floating {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    padding: 0.4rem 0.75rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .country-badge-floating .dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+  }
+  .country-badge-floating .label {
+    color: #64748b;
+    text-transform: uppercase;
+  }
+  .country-badge-floating .value {
+    color: #10b981;
   }
   .hint {
     margin: 0.5rem 0 0;

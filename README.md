@@ -458,6 +458,9 @@ npm run format      # Prettier format
 - Added "My Trips" (Mis viajes) filter on the map view to display only the authenticated user's trips.
 - Enhanced initial demo data to provide a richer experience for unlogged users, including more trips and locations.
 - **Full Internationalization (i18n)**: Implemented a robust translation system supporting English and Spanish. All major views (Dashboard, Map, Trip Details, Profile) and shared components are now fully localized.
+- **Location Modal Redesigns**: Extended the premium design to the Location modals (Add & Edit) within the Trip details page, featuring dynamic headers, better grid layout, and a redesigned photo scroller.
+- **Backend Performance**: Set the request body size limit to 25MB to accommodate larger photo uploads.
+- **UI Component Refactor**: Integrated the detected country badge directly into the `LocationPicker` component for better encapsulation and a cleaner UI.
 
 - **Map Sidebar Redesign**: Completely overhauled the `/map` sidebar with a premium, icon-driven layout, adventure statistics, and advanced visualization filters.
 - **Add Location Modal Redesign**: Complete visual overhaul of the "Add new location" modal with integrated search, map preview, and premium styling.
@@ -475,6 +478,9 @@ npm run format      # Prettier format
 - **Filtros Avanzados**: Se añadió la capacidad de filtrar localizaciones y fotos en el mapa seleccionando viajes individuales.
 - **Ordenación del Carrusel**: Las fotos en el detalle del viaje ahora se ordenan priorizando la portada y las fotos del mapa.
 - **Rediseño del Modal de Nueva Ubicación**: Rediseño visual completo del modal de "Añadir nueva ubicación" con búsqueda integrada, vista previa del mapa y estilo premium.
+- **Rediseño de Modales de Ubicación en Detalles**: Se extendió el diseño premium a los modales de ubicación (Añadir y Editar) dentro del detalle del viaje, con cabeceras dinámicas, mejor layout en cuadrícula y rediseño del selector de fotos.
+- **Rendimiento del Backend**: Se fijó el límite de tamaño del cuerpo de las peticiones en 25MB para permitir la subida de fotos de mayor tamaño.
+- **Refactorización de Componentes**: Se integró el badge de país detectado directamente en el componente `LocationPicker`, mejorando la encapsulación y limpiando la interfaz.
 - **Rediseño de Barra Lateral del Mapa**: Nueva barra lateral en `/map` con un diseño premium basado en iconos, estadísticas de aventura y filtros de visualización avanzados. Se añadió un estado minimizado interactivo con iconos de filtro y un indicador de progreso clickable.
 - **Diseño del Explorador de Países**: Rediseño completo del modal de explorador con un tema oscuro moderno, animaciones fluidas y barra lateral de progreso.
 - **Corrección de Errores en el Mapa**: Se resolvió un error crítico de sintaxis ("Unexpected token") que impedía la compilación de la página del mapa.
