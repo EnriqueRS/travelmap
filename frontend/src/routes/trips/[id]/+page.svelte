@@ -1388,7 +1388,9 @@
             <span class="field-label">{"Rating"}</span>
             <select bind:value={modalLocationRating} class="premium-select">
               {#each [1, 2, 3, 4, 5] as r}
-                <option value={r}>{r} {$t("trip.stars", { count: r }) || '★'}</option>
+                <option value={r}
+                  >{r} {$t("trip.stars", { count: r }) || "★"}</option
+                >
               {/each}
             </select>
           </div>
@@ -1458,19 +1460,6 @@
                 : null}
               on:locationSelect={handleLocationModalSelect}
             />
-
-            {#if modalLocationCountry}
-              <div class="country-badge-floating" transition:fade>
-                <div class="dot" />
-                <span class="label">{$t("map.detectedCountryLabel")}</span>
-                <span class="value"
-                  >{getCountryFlag(modalLocationCountry)} {getCountryName(
-                    modalLocationCountry,
-                    $languageStore,
-                  )}</span
-                >
-              </div>
-            {/if}
           </div>
           <p class="text-[11px] text-slate-500 italic text-center mb-2">
             {$t("common.mapHint")}
@@ -2213,7 +2202,9 @@
     text-transform: uppercase;
   }
 
-  .premium-input, .premium-select, .premium-textarea {
+  .premium-input,
+  .premium-select,
+  .premium-textarea {
     background: #141c2f;
     border: 1px solid #1e293b;
     padding: 0.75rem 1rem;
@@ -2225,7 +2216,9 @@
     font-family: inherit;
   }
 
-  .premium-input:focus, .premium-select:focus, .premium-textarea:focus {
+  .premium-input:focus,
+  .premium-select:focus,
+  .premium-textarea:focus {
     outline: none;
     border-color: #3b82f6;
     background: rgba(15, 23, 42, 0.8);
@@ -2241,38 +2234,6 @@
     overflow: hidden;
     border: 1px solid #1e293b;
     margin-bottom: 1.5rem;
-  }
-
-  .country-badge-floating {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    z-index: 1000;
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    padding: 0.4rem 0.75rem;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-  }
-
-  .country-badge-floating .dot {
-    width: 8px;
-    height: 8px;
-    background: #10b981;
-    border-radius: 50%;
-  }
-
-  .country-badge-floating .label {
-    color: #64748b;
-    text-transform: uppercase;
-  }
-
-  .country-badge-floating .value {
-    color: #10b981;
   }
 
   /* Photo selection in modal */
@@ -2321,7 +2282,7 @@
   }
 
   .photo-scroller-item.selected::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     background: rgba(37, 99, 235, 0.2);

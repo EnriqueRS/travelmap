@@ -8,6 +8,10 @@
   import { geocode } from "$lib/utils/geocode"
   import { Search } from "lucide-svelte"
   import { t } from "$lib/stores/i18n"
+  import { latLng } from "leaflet"
+  import { reverseGeocode } from "$lib/utils/geocode"
+  import { getCountryFlag, getCountryName } from "$lib/utils/countries"
+  import { languageStore } from "$lib/stores/ui"
 
   export let height = "300px"
   export let initialLocation: { lat: number; lng: number } | null = null
@@ -43,6 +47,12 @@
         initialLocation ? [initialLocation.lat, initialLocation.lng] : [20, 0],
         initialLocation ? 10 : 2,
       )
+      if (initialLocation) {
+        countryName = await reverseGeocode(
+          initialLocation.lat,
+          initialLocation.lng,
+        )
+      }
 
       L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
@@ -58,8 +68,9 @@
         addMarker(initialLocation.lat, initialLocation.lng)
       }
 
-      map.on("click", (e: any) => {
+      map.on("click", async (e: any) => {
         const { lat, lng } = e.latlng
+        countryName = await reverseGeocode(lat, lng)
         addMarker(lat, lng)
         dispatch("locationSelect", { lat, lng })
       })
@@ -142,7 +153,9 @@
       >
         <Search size={18} />
         <span
-          >{searchLoading ? $t("common.searching") : $t("common.searchBtn")}</span
+          >{searchLoading
+            ? $t("common.searching")
+            : $t("common.searchBtn")}</span
         >
       </button>
     </div>
@@ -150,16 +163,15 @@
   {#if searchError}
     <p class="search-error">{searchError}</p>
   {/if}
-  <div
-    bind:this={mapContainer}
-    class="map-container"
-    style="height: {height};"
-  >
+  <div bind:this={mapContainer} class="map-container" style="height: {height};">
     {#if countryName}
       <div class="country-badge-floating">
         <div class="dot" />
         <span class="label">{$t("map.detectedCountryLabel")}</span>
-        <span class="value">{countryName}</span>
+        <span class="value"
+          >{getCountryFlag(countryName)}
+          {getCountryName(countryName, $languageStore)}</span
+        >
       </div>
     {/if}
   </div>
