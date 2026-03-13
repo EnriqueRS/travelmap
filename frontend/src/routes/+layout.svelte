@@ -254,7 +254,7 @@
     </div>
   {/if}
 
-  <main>
+  <main class="main-layout">
     <slot />
   </main>
 
@@ -264,6 +264,34 @@
       <p>{$t("common.tagline")}</p>
     </div>
   </footer>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+    <a
+      href="/map"
+      class="mobile-nav-item"
+      class:active={$page.url.pathname.startsWith('/map')}
+    >
+      <Map size={20} />
+      <span>{$t('nav.map')}</span>
+    </a>
+    <a
+      href="/trips"
+      class="mobile-nav-item"
+      class:active={$page.url.pathname.startsWith('/trips')}
+    >
+      <Compass size={20} />
+      <span>{$t('nav.trips')}</span>
+    </a>
+    <a
+      href="/profile"
+      class="mobile-nav-item"
+      class:active={$page.url.pathname.startsWith('/profile')}
+    >
+      <User size={20} />
+      <span>{$t('nav.profile')}</span>
+    </a>
+  </nav>
 {/if}
 
 <Toast />
@@ -354,7 +382,7 @@
     color: var(--color-accent-primary);
   }
 
-  main {
+  main.main-layout {
     min-height: calc(100vh - 8rem);
   }
 
@@ -376,31 +404,91 @@
     margin: 0.5rem 0;
   }
 
+  /* Mobile Bottom Navigation Bar */
+  .mobile-bottom-nav {
+    display: none;
+  }
+
   @media (max-width: 768px) {
     .nav-container {
-      flex-direction: column;
-      height: auto;
-      padding: 1rem;
+      flex-direction: row;
+      height: 3.25rem;
+      padding: 0 1rem;
+    }
+
+    .nav-center-links {
+      display: none;
+    }
+
+    /* Hide theme/language switchers on mobile, keep logout/login visible */
+    .nav-actions > .relative {
+      display: none;
     }
 
     .nav-links {
-      margin-top: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
+      margin-left: auto;
+      margin-top: 0;
+      flex: unset;
     }
 
     .nav-link {
-      padding: 0.5rem 0.75rem;
-      font-size: 0.9rem;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.85rem;
     }
 
-    main {
-      padding: 1rem;
+    main.main-layout {
+      padding: 0;
+      min-height: calc(100vh - 3.25rem - 56px); /* Subtract mobile nav + bottom nav */
+      padding-bottom: 56px; /* Space for bottom nav */
+    }
+
+    .footer {
+      display: none;
     }
 
     .demo-banner {
       font-size: 0.8rem;
       padding: 0.5rem;
+    }
+
+    /* Mobile Bottom Navigation */
+    .mobile-bottom-nav {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: color-mix(in srgb, var(--color-bg-secondary) 85%, transparent);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 1000;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 1rem;
+    }
+
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 0.4rem 1rem;
+      text-decoration: none;
+      color: var(--color-text-secondary);
+      font-size: 0.7rem;
+      font-weight: 500;
+      transition: color 0.2s;
+      border-radius: 8px;
+    }
+
+    .mobile-nav-item.active {
+      color: var(--color-accent-primary);
+    }
+
+    .mobile-nav-item:hover {
+      color: var(--color-text-primary);
     }
   }
 

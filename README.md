@@ -451,6 +451,7 @@ npm run format      # Prettier format
 ### Recent Updates / Actualizaciones Recientes
 
 **🇬🇧 English:**
+- **Mobile Map Page Redesign**: Complete mobile-first redesign of the `/map` page. On screens ≤768px, the desktop sidebar is hidden and replaced with an inline stats panel (trip counts, progress bar, filter chips), a search bar, and a full-screen map. A bottom navigation bar (Map, Trips, Profile) provides easy thumb navigation. The desktop top navbar is simplified to show only the brand and logout button on mobile.
 - Replaced native browser alerts with modern, visually appealing toast notifications on the map page.
 - Added the ability to filter locations and photos on the map by selecting one or more individual trips from a new list in the sidebar.
 - Carousel photos in the trip detail view are now sorted prioritizing the cover photo first, followed by photos visible on the map, and finally the rest.
@@ -474,6 +475,7 @@ npm run format      # Prettier format
 - **Bug Fixes**: Corrected duplicate translation keys and fixed property errors in the User Profile interface.
 
 **🇪🇸 Español:**
+- **Rediseño Móvil de la Página del Mapa**: Rediseño mobile-first completo de la página `/map`. En pantallas ≤768px, la barra lateral de escritorio se oculta y se reemplaza con un panel de estadísticas inline (número de viajes, barra de progreso, chips de filtro), una barra de búsqueda y un mapa a pantalla completa. Una barra de navegación inferior (Mapa, Viajes, Perfil) facilita la navegación con el pulgar. El navbar superior se simplifica para mostrar solo la marca y el botón de cerrar sesión en móvil.
 - **Notificaciones Toast**: Se reemplazaron las alertas nativas del navegador por notificaciones tipo toast modernas y visualmente atractivas en la página del mapa.
 - **Filtros Avanzados**: Se añadió la capacidad de filtrar localizaciones y fotos en el mapa seleccionando viajes individuales.
 - **Ordenación del Carrusel**: Las fotos en el detalle del viaje ahora se ordenan priorizando la portada y las fotos del mapa.

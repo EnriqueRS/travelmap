@@ -838,4 +838,14 @@
   :global(.leaflet-popup-close-button:hover) {
     color: #f1f5f9 !important;
   }
+
+  /* Hide map search bar on mobile (mobile panel provides its own) */
+  @media (max-width: 768px) {
+    .map-search-bar {
+      display: none;
+    }
+    .map-search-error {
+      display: none;
+    }
+  }
 </style>

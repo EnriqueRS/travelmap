@@ -251,6 +251,7 @@ export const translations = {
       nameRequired: "Introduce un nombre",
       newTripNameRequired: "Introduce un nombre para el nuevo viaje",
       unknownCountry: "Desconocido",
+      viewAllCountries: "Ver todos los países",
     },
     // Profile
     profile: {
@@ -612,6 +613,7 @@ export const translations = {
       nameRequired: "Please enter a name",
       newTripNameRequired: "Please enter a name for the new trip",
       unknownCountry: "Unknown",
+      viewAllCountries: "View all countries",
     },
     // Profile
     profile: {

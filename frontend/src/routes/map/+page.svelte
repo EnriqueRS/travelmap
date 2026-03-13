@@ -20,6 +20,8 @@
     MapPin,
     ChevronLeft,
     ChevronRight,
+    ChevronUp,
+    ChevronDown,
     X,
     Eye,
     Globe,
@@ -84,6 +86,7 @@
 
   let addingMode = false
   let isSidebarMinimized = false
+  let mobileStatsCollapsed = false
 
   function toggleSidebar() {
     isSidebarMinimized = !isSidebarMinimized
@@ -545,7 +548,115 @@
 </svelte:head>
 
 <main class="dashboard-page" class:sidebar-minimized={isSidebarMinimized}>
-  <!-- Sidebar -->
+  <!-- Mobile Stats Panel (visible only on mobile ≤768px) -->
+  <div class="mobile-stats-panel" class:collapsed={mobileStatsCollapsed}>
+    {#if !mobileStatsCollapsed}
+      <div transition:slide={{ duration: 250 }}>
+        <!-- Mobile Search Bar -->
+        <div class="mobile-search-bar">
+          <Search size={14} class="mobile-search-icon" />
+          <input
+            type="text"
+            placeholder={$t('map.searchPlaceholder')}
+            bind:value={searchQuery}
+          />
+        </div>
+
+        <!-- Mobile Stats Row -->
+        <div class="mobile-stats-container">
+          <div class="mobile-stat-main">
+            <span class="mobile-stat-label">{$t('map.totalTripsLabel')}</span>
+            <span class="mobile-stat-value">{totalTrips}</span>
+          </div>
+          <div class="mobile-stat-items">
+            <div class="mobile-stat-item">
+              <span class="mobile-stat-number text-emerald-400">{visitedCount}</span>
+              <span class="mobile-stat-item-label">{$t('status.Completado')}</span>
+            </div>
+            <div class="mobile-stat-item">
+              <span class="mobile-stat-number text-blue-400">{plannedCount}</span>
+              <span class="mobile-stat-item-label">{$t('status.Planificado')}</span>
+            </div>
+            <div class="mobile-stat-item">
+              <span class="mobile-stat-number text-slate-400">{onGoingCount}</span>
+              <span class="mobile-stat-item-label">{$t('status.En curso')}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Progress Bar -->
+        <div
+          class="mobile-progress-row"
+          on:click={() => (showProgressModal = true)}
+          on:keydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              showProgressModal = true
+            }
+          }}
+          tabindex="0"
+          role="button"
+          aria-label={$t('map.viewAllCountries')}
+        >
+          <span class="mobile-progress-label">{$t('map.progresoLabel')}</span>
+          <div class="mobile-progress-bar-track">
+            <div class="mobile-progress-bar-fill" style="width: {completion}%" />
+          </div>
+          <span class="mobile-progress-count">{regions} / 195 {$t('map.paisesLabel').toLowerCase()}</span>
+        </div>
+
+        <!-- Mobile Filter Chips -->
+        <div class="mobile-filter-chips">
+          <button
+            class="mobile-chip chip-home"
+            class:active={showHome}
+            on:click={() => (showHome = !showHome)}
+          >
+            {$t('map.home')} · 1
+          </button>
+          <button
+            class="mobile-chip chip-completed"
+            class:active={showCompleted}
+            on:click={() => (showCompleted = !showCompleted)}
+          >
+            {$t('status.Completado')} · {visitedCount}
+          </button>
+          <button
+            class="mobile-chip chip-planned"
+            class:active={showPlanned}
+            on:click={() => (showPlanned = !showPlanned)}
+          >
+            {$t('status.Planificado')} · {plannedCount}
+          </button>
+          {#if onGoingCount > 0}
+            <button
+              class="mobile-chip chip-ongoing"
+              class:active={showOngoing}
+              on:click={() => (showOngoing = !showOngoing)}
+            >
+              {$t('status.En curso')} · {onGoingCount}
+            </button>
+          {/if}
+        </div>
+      </div>
+    {/if}
+
+    <!-- Collapse/Expand Toggle Handle -->
+    <button
+      class="mobile-panel-toggle"
+      on:click={() => (mobileStatsCollapsed = !mobileStatsCollapsed)}
+      aria-label={mobileStatsCollapsed ? 'Expand panel' : 'Collapse panel'}
+    >
+      <div class="toggle-handle-bar" />
+      {#if mobileStatsCollapsed}
+        <ChevronDown size={14} />
+      {:else}
+        <ChevronUp size={14} />
+      {/if}
+    </button>
+  </div>
+
+  <!-- Sidebar (hidden on mobile) -->
   <aside class="sidebar" class:collapsed={isSidebarMinimized}>
     <button
       class="sidebar-toggle bg-slate-800 hover:bg-slate-700 p-1.5 rounded-full text-slate-300 border border-slate-600 absolute z-50 transition-all {isSidebarMinimized
@@ -1748,8 +1859,13 @@
     font-size: 0.9rem;
   }
 
-  /* Responsive */
-  @media (max-width: 1024px) {
+  /* --- Mobile Stats Panel (hidden on desktop) --- */
+  .mobile-stats-panel {
+    display: none;
+  }
+
+  /* Responsive - Tablet */
+  @media (max-width: 1024px) and (min-width: 769px) {
     .dashboard-page {
       grid-template-columns: 1fr;
       overflow-y: auto;
@@ -1774,6 +1890,293 @@
 
     .topbar-center {
       order: 3;
+    }
+  }
+
+  /* Responsive - Mobile */
+  @media (max-width: 768px) {
+    .dashboard-page {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 3.25rem - 56px); /* Subtract top navbar + bottom nav */
+      overflow: hidden;
+    }
+
+    .dashboard-page.sidebar-minimized {
+      grid-template-columns: unset;
+    }
+
+    .sidebar {
+      display: none !important;
+    }
+
+    .topbar {
+      display: none !important;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .map-area {
+      flex: 1;
+      padding: 0;
+    }
+
+    /* Mobile Stats Panel */
+    .mobile-stats-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+      padding: 0.75rem 1rem;
+      background: var(--color-bg-secondary);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    /* Mobile Search */
+    .mobile-search-bar {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .mobile-search-bar :global(.mobile-search-icon) {
+      position: absolute;
+      left: 0.75rem;
+      color: #64748b;
+      pointer-events: none;
+    }
+
+    .mobile-search-bar input {
+      width: 100%;
+      background: var(--color-bg-tertiary);
+      border: 1px solid var(--color-border);
+      padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+      border-radius: 8px;
+      color: var(--color-text-primary);
+      font-size: 0.85rem;
+      line-height: normal;
+    }
+
+    .mobile-search-bar input::placeholder {
+      color: #64748b;
+    }
+
+    .mobile-search-bar input:focus {
+      outline: none;
+      border-color: var(--color-accent-primary);
+    }
+
+    /* Mobile Stats Row */
+    .mobile-stats-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--color-bg-tertiary);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+    }
+
+    .mobile-stat-main {
+      display: flex;
+      flex-direction: column;
+      margin-right: auto;
+    }
+
+    .mobile-stat-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .mobile-stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--color-text-primary);
+      line-height: 1;
+    }
+
+    .mobile-stat-items {
+      display: flex;
+      gap: 1.25rem;
+    }
+
+    .mobile-stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .mobile-stat-number {
+      font-size: 1.25rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .mobile-stat-item-label {
+      font-size: 0.6rem;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Mobile Progress Row */
+    .mobile-progress-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      padding: 0.25rem 0;
+    }
+
+    .mobile-progress-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .mobile-progress-bar-track {
+      flex: 1;
+      height: 4px;
+      background: var(--color-bg-tertiary);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .mobile-progress-bar-fill {
+      height: 100%;
+      background: #2563eb;
+      border-radius: 2px;
+      transition: width 0.5s ease-out;
+    }
+
+    .mobile-progress-count {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      white-space: nowrap;
+    }
+
+    /* Mobile Filter Chips */
+    .mobile-filter-chips {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .mobile-filter-chips::-webkit-scrollbar {
+      display: none;
+    }
+
+    .mobile-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1px solid var(--color-border);
+      background: transparent;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+      opacity: 0.5;
+    }
+
+    .mobile-chip.active {
+      opacity: 1;
+    }
+
+    .mobile-chip.chip-home.active {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    .mobile-chip.chip-completed.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: #10b981;
+      color: #10b981;
+    }
+
+    .mobile-chip.chip-planned.active {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: #3b82f6;
+      color: #3b82f6;
+    }
+
+    .mobile-chip.chip-ongoing.active {
+      background: rgba(148, 163, 184, 0.15);
+      border-color: #94a3b8;
+      color: #94a3b8;
+    }
+
+    /* Mobile Panel Toggle Handle */
+    .mobile-panel-toggle {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 0.25rem 0 0.15rem;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--color-text-secondary);
+      transition: color 0.2s;
+      width: 100%;
+    }
+
+    .mobile-panel-toggle:active {
+      color: var(--color-text-primary);
+    }
+
+    .toggle-handle-bar {
+      width: 32px;
+      height: 3px;
+      background: var(--color-border);
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+
+    .mobile-panel-toggle:active .toggle-handle-bar {
+      background: var(--color-text-secondary);
+    }
+
+    /* Collapsed mobile panel — only shows the toggle handle */
+    .mobile-stats-panel.collapsed {
+      gap: 0;
+      padding: 0.25rem 1rem 0.15rem;
+    }
+
+    /* Slide transition inner wrapper spacing */
+    .mobile-stats-panel > div:first-child {
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+      padding-bottom: 0.25rem;
+    }
+
+    /* Map Controls on Mobile */
+    .map-controls-floating {
+      top: 10px;
+      right: 10px;
+    }
+
+    .control-btn {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.75rem;
     }
   }
 
