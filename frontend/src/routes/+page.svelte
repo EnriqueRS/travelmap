@@ -13,11 +13,8 @@
 </script>
 
 <svelte:head>
-  <title>TravelMap - Explora el Mundo</title>
-  <meta
-    name="description"
-    content="Tu aplicación para explorar y compartir tus viajes por el mundo"
-  />
+  <title>TravelMap - {$t("landing.exploreTheWorld")}</title>
+  <meta name="description" content={$t("landing.heroSubtitle")} />
 </svelte:head>
 
 <main class="home">
@@ -25,10 +22,12 @@
     <div class="hero-content">
       <h1 class="hero-title">🌍 TravelMap</h1>
       <p class="hero-subtitle">
-        Explora el mundo, comparte tus aventuras y descubre nuevos destinos
+        {$t("landing.heroSubtitle")}
       </p>
       <div class="hero-buttons">
-        <a href="/map" class="btn btn-primary"> 🗺️ Explorar Mapa </a>
+        <a href="/map" class="btn btn-primary">
+          🗺️ {$t("landing.exploreMap")}
+        </a>
         <a href="/trips" class="btn btn-secondary">
           🧳 {$t("dashboard.title")}
         </a>
@@ -40,30 +39,29 @@
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">🗺️</div>
-        <h3>Mapa Interactivo</h3>
+        <h3>{$t("landing.interactiveMap")}</h3>
         <p>
-          Explora el mundo con nuestro mapa interactivo y marca tus lugares
-          favoritos
+          {$t("landing.interactiveMapDesc")}
         </p>
       </div>
 
       <div class="feature-card">
         <div class="feature-icon">📸</div>
-        <h3>Galería de Fotos</h3>
-        <p>Comparte tus mejores momentos y crea un album de tus aventuras</p>
+        <h3>{$t("landing.photoGallery")}</h3>
+        <p>{$t("landing.photoGalleryDesc")}</p>
       </div>
 
       <div class="feature-card">
         <div class="feature-icon">🧭</div>
         <h3>{$t("landing.tripPlanner")}</h3>
-        <p>Organiza tus próximos viajes y crea itinerarios detallados</p>
+        <p>{$t("landing.tripPlannerDesc")}</p>
       </div>
 
       <div class="feature-card">
         <div class="feature-icon">📊</div>
-        <h3>Estadísticas</h3>
+        <h3>{$t("landing.statistics")}</h3>
         <p>
-          Lleva registro de tus viajes y descubre tus estadísticas personales
+          {$t("landing.statisticsDesc")}
         </p>
       </div>
     </div>
@@ -71,11 +69,13 @@
 
   <section class="cta">
     <div class="cta-content">
-      <h2>¿Listo para empezar tu aventura?</h2>
+      <h2>{$t("landing.ctaTitle")}</h2>
       <p>
-        Únete a miles de viajeros que ya están explorando el mundo con TravelMap
+        {$t("landing.ctaDesc")}
       </p>
-      <a href="/map" class="btn btn-primary btn-large">Comenzar Ahora</a>
+      <a href="/map" class="btn btn-primary btn-large"
+        >{$t("landing.ctaButton")}</a
+      >
     </div>
   </section>
 </main>

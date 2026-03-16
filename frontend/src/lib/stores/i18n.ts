@@ -93,7 +93,7 @@ export const translations = {
       locationsTitle: "Lugares Visitados",
       locationsCount: "{count} lugares",
       coverAlt: "Foto de portada de {name}",
-      galleryTitle: "Muestra Fotográfica",
+      galleryTitle: "Galería de Fotos",
       noGps: "Sin Ubicación GPS",
       noGpsLegend: "Las fotos marcadas no tienen geolocalización",
       emptyLocations: "No hay lugares guardados en este viaje.",
@@ -111,7 +111,7 @@ export const translations = {
       makeCover: "Hacer portada",
       addToMap: "Añadir al mapa",
       hideFromMap: "Ocultar del mapa",
-      removeFromGallery: "Ocultar de galería",
+      removeFromGallery: "Ocultar",
       info: "Info",
       editTrip: "Editar viaje",
       deleteTrip: "Eliminar Viaje",
@@ -140,6 +140,9 @@ export const translations = {
       stars: "{count} estrellas",
       notAvailableExif: "No disponible en EXIF",
       noExifData: "No hay metadatos EXIF disponibles para esta foto.",
+      noExifDataDesc: "Esta fotografía no contiene información técnica embebida.",
+      metadata: "Metadatos EXIF",
+      selectPhotos: "Seleccionar Fotos",
       linkAlbumTitle: "Vincular Álbum de Immich",
       linkAlbumDesc: "Selecciona un álbum de tu cuenta de Immich para importar sus fotos a este viaje. Solo se enlazarán las imágenes y se extraerán sus metadatos (ubicación y fecha).",
       filterAlbums: "Filtrar álbumes...",
@@ -170,6 +173,7 @@ export const translations = {
       batchGpsError: "Error al actualizar coordenadas",
       tripUpdateError: "Error al actualizar viaje",
       uploadError: "Error al subir foto",
+      hideHidden: "No mostrar ocultas",
     },
     // Map View
     continents: {
@@ -361,6 +365,7 @@ export const translations = {
       delete: "Eliminar",
       confirm: "Confirmar",
       errorCreating: "Hubo un error al crear el viaje",
+      back: "Volver",
     },
     landing: {
       tripPlanner: "Planificador de Viajes",
@@ -473,7 +478,7 @@ export const translations = {
       makeCover: "Make cover",
       addToMap: "Add to map",
       hideFromMap: "Hide from map",
-      removeFromGallery: "Hide from gallery",
+      removeFromGallery: "Hide",
       info: "Info",
       editTrip: "Edit trip",
       deleteTrip: "Delete Trip",
@@ -502,6 +507,9 @@ export const translations = {
       stars: "{count} stars",
       notAvailableExif: "Not available in EXIF",
       noExifData: "No EXIF metadata available for this photo.",
+      noExifDataDesc: "This photograph does not contain embedded technical information.",
+      metadata: "EXIF Metadata",
+      selectPhotos: "Select Photos",
       linkAlbumTitle: "Link Immich Album",
       linkAlbumDesc: "Select an album from your Immich account to import its photos to this trip. Only images will be linked, and their metadata (location and date) will be extracted.",
       filterAlbums: "Filter albums...",
@@ -532,6 +540,7 @@ export const translations = {
       showInGallery: "Show in Gallery",
       coverBadge: "COVER",
       deleteLocation: "Delete Place",
+      hideHidden: "Hide Hidden",
     },
     // Map View
     continents: {
@@ -720,6 +729,7 @@ export const translations = {
       save: "Save",
       delete: "Delete",
       confirm: "Confirm",
+      back: "Back",
     },
     landing: {
       tripPlanner: "Trip Planner",

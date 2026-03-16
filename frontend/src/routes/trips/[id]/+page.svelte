@@ -32,6 +32,9 @@
     AlertTriangle,
     Star,
     X,
+    Camera,
+    Image,
+    Monitor,
   } from "lucide-svelte"
   import { onMount, tick } from "svelte"
   import { fade, slide } from "svelte/transition"
@@ -905,7 +908,7 @@
       class="gallery-section mt-12 bg-slate-900/40 rounded-2xl p-6 border border-slate-800/60 shadow-lg"
     >
       <div
-        class="section-header flex flex-col items-start border-b border-slate-700/50 pb-5 mb-6"
+        class="section-header sm:flex hidden flex-col items-start border-b border-slate-700/50 pb-5 mb-6"
       >
         <h2
           class="flex items-center text-2xl font-bold text-white mb-3 gap-3 w-full"
@@ -1004,6 +1007,63 @@
         </div>
       </div>
 
+      <!-- Mobile-only Gallery Header and Toolbar -->
+      <div class="sm:hidden mb-4">
+        <h2 class="text-xl font-bold flex items-center gap-2 text-white">
+          <div class="bg-blue-500/20 p-2 rounded-full">
+            <Eye class="text-blue-400" size={24} />
+          </div>
+          {$t("trip.galleryTitle")}
+        </h2>
+
+        <div
+          class="mobile-gallery-toolbar mt-4 flex items-center justify-between bg-slate-800/50 p-2 rounded-xl border border-slate-700/50"
+        >
+          <button
+            class="p-2 rounded-lg bg-blue-600 text-white shadow-lg"
+            on:click={() => fileInput.click()}
+            title={$t("trip.uploadPhoto")}
+          >
+            <Upload size={20} />
+          </button>
+
+          <button
+            class="p-2 rounded-lg text-slate-300 hover:bg-slate-700/50"
+            on:click={openImmichModal}
+            title={$t("trip.linkAlbum")}
+          >
+            <LinkIcon size={20} />
+          </button>
+
+          <button
+            class="p-2 rounded-lg text-slate-300 hover:bg-slate-700/50"
+            on:click={refreshPhotos}
+            title={$t("trip.refreshPhotos")}
+          >
+            <RefreshCcw size={20} />
+          </button>
+
+          <button
+            class="p-2 rounded-lg {isSelectionMode
+              ? 'text-blue-400 bg-blue-400/10'
+              : 'text-slate-300 hover:bg-slate-700/50'}"
+            on:click={toggleSelectionMode}
+            title={$t("trip.selectPhotos")}
+          >
+            <CheckSquare size={20} />
+          </button>
+
+          <button
+            class="p-2 rounded-lg text-red-400 hover:bg-red-400/10"
+            on:click={handleUnlinkAlbum}
+            disabled={!hasImmichPhotos}
+            title={$t("trip.unlinkAlbum")}
+          >
+            <Trash2 size={20} />
+          </button>
+        </div>
+      </div>
+
       {#if displayedPhotos.length > 0}
         <div class="gallery-container">
           {#if selectedPhoto}
@@ -1012,10 +1072,20 @@
               class:is-cover={selectedPhoto.isCover}
               class:is-hidden={selectedPhoto.isHidden}
             >
-              <div class="main-img-wrapper">
+              <div
+                class="main-img-wrapper overflow-hidden rounded-2xl md:rounded-b-none"
+              >
+                <!-- Blurred background for "full" look -->
+                {#if selectedPhoto}
+                  <div
+                    class="main-img-bg absolute inset-0 bg-cover bg-center scale-110 transition-all duration-500"
+                    style="background-image: url({getImageUrl(selectedPhoto)})"
+                  />
+                {/if}
+
                 {#key activeIndex}
-                  <div class="gallery-fade">
-                    <Carousel
+                  <div class="gallery-fade h-full w-full relative z-[1]">
+                    <!-- <Carousel
                       images={carouselImages}
                       bind:index={activeIndex}
                       slideDuration={0}
@@ -1024,31 +1094,65 @@
                       class="h-full w-full"
                       imgClass="object-contain h-full w-full"
                     >
-                      <Controls />
+                      <Controls
+                        class="opacity-0 hover:opacity-100 transition-opacity"
+                      />
                       {#if carouselImages.length <= 8}
                         <Indicators />
                       {/if}
-                    </Carousel>
+                    </Carousel>-->
                   </div>
                 {/key}
+
                 {#if selectedPhoto.isCover}
-                  <span class="cover-badge">{$t("trip.coverBadge")}</span>
+                  <span
+                    class="cover-badge absolute top-4 left-4 bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg z-[5] flex items-center gap-1"
+                  >
+                    <Star size={12} fill="white" />
+                    {$t("trip.coverBadge")}
+                  </span>
                 {/if}
-                {#if selectedPhoto.provider === "immich"}
-                  <img src="/immich.png" alt="Immich" class="provider-badge" />
-                {/if}
+
+                <!-- Top Right Badges (Map + Provider) -->
+                <div
+                  class="absolute top-4 right-4 flex items-center gap-2 z-[5]"
+                >
+                  {#if selectedPhoto.showOnMap && selectedPhoto.metadata?.exif?.latitude}
+                    <div
+                      class="bg-blue-600 text-white p-2 rounded-full shadow-lg"
+                    >
+                      <MapPin size={18} />
+                    </div>
+                  {/if}
+
+                  {#if selectedPhoto.provider === "immich"}
+                    <div class="p-1.5 rounded-lg">
+                      <img src="/immich.png" alt="Immich" class="h-8 w-8" />
+                    </div>
+                  {:else}
+                    <div
+                      class="bg-slate-800/80 backdrop-blur-md p-1.5 rounded-lg border border-slate-700 shadow-lg text-slate-300"
+                      title="Local"
+                    >
+                      <Monitor size={16} />
+                    </div>
+                  {/if}
+                </div>
               </div>
 
-              <div class="thumbnails-wrapper bg-slate-900 pb-6 pt-4 px-2">
+              <!-- Thumbnails horizontal scroll -->
+              <div
+                class="thumbnails-wrapper bg-slate-900/40 backdrop-blur-sm py-4 px-2"
+              >
                 <div
-                  class="flex flex-nowrap justify-start overflow-x-auto gap-3 p-1 snap-x gallery-thumbs-scroll"
+                  class="flex flex-nowrap justify-start overflow-x-auto gap-3 p-1 snap-x gallery-thumbs-scroll custom-scrollbar"
                 >
                   {#each carouselImages as img, i}
                     <button
-                      class="relative h-20 w-24 min-w-[96px] snap-center cursor-pointer transition-all rounded-xl overflow-hidden {activeIndex ===
+                      class="relative h-24 w-32 min-w-[128px] snap-center cursor-pointer transition-all rounded-xl overflow-hidden {activeIndex ===
                       i
-                        ? 'ring-2 ring-blue-500 shadow-lg scale-105'
-                        : 'opacity-70 hover:opacity-100 hover:scale-100'}"
+                        ? 'ring-2 ring-blue-500 shadow-xl scale-105 z-10'
+                        : 'opacity-60 grayscale-[20%] hover:opacity-100 hover:grayscale-0'}"
                       on:click={(e) => {
                         if (isSelectionMode) {
                           e.preventDefault()
@@ -1062,11 +1166,6 @@
                         src={img.src}
                         alt={img.alt}
                         class="h-full w-full object-cover"
-                      />
-
-                      <!-- Overlay gradient for better icon visibility -->
-                      <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"
                       />
 
                       {#if isSelectionMode}
@@ -1086,19 +1185,20 @@
                           {/if}
                         </div>
                       {/if}
-                      {#if !displayedPhotos[i].metadata?.exif?.latitude}
-                        <div
-                          class="absolute top-1.5 right-1.5 bg-yellow-500/90 rounded-full p-1 shadow flex items-center justify-center"
-                          title={$t("trip.noGpsTitle")}
-                        >
-                          <AlertTriangle size={12} class="text-slate-900" />
-                        </div>
-                      {/if}
+
                       {#if displayedPhotos[i].showOnMap && displayedPhotos[i].metadata?.exif?.latitude}
                         <div
-                          class="absolute bottom-1.5 right-1.5 bg-blue-500/90 rounded-full p-1 shadow flex items-center justify-center"
+                          class="absolute bottom-2 right-2 bg-blue-500 text-white rounded-full p-1 shadow-md"
                         >
-                          <MapPin size={12} class="text-white" />
+                          <MapPin size={10} />
+                        </div>
+                      {/if}
+
+                      {#if displayedPhotos[i].isCover}
+                        <div
+                          class="absolute top-2 left-2 bg-amber-500 text-white rounded-full p-1 shadow-md"
+                        >
+                          <Star size={10} fill="white" />
                         </div>
                       {/if}
                     </button>
@@ -1106,51 +1206,54 @@
                 </div>
               </div>
 
-              <!-- Footer Toolbar -->
+              <!-- Action Toolbar -->
               <div
-                class="flex justify-between items-center w-full mt-2 p-4 bg-slate-900 rounded-b-2xl border-t border-slate-800"
+                class="flex flex-wrap md:flex-nowrap justify-between items-center w-full p-4 bg-slate-900/80 backdrop-blur-md rounded-b-2xl border-t border-slate-800 gap-y-3"
               >
                 <button
-                  class="flex items-center gap-2 px-4 py-2 font-medium text-sm rounded-lg transition-colors border {selectedPhoto.showOnMap
-                    ? 'bg-blue-600/10 text-blue-400 border-blue-500/30 hover:bg-blue-600/20'
-                    : 'bg-transparent text-slate-400 border-slate-700/50 hover:bg-slate-800/50 hover:text-slate-200'}"
+                  class="flex items-center justify-center gap-2 px-6 py-2.5 font-bold text-sm rounded-xl transition-all border flex-1 md:flex-none {selectedPhoto.showOnMap
+                    ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-600/20'
+                    : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-slate-200'}"
                   on:click={() => toggleMapVisibility(selectedPhoto)}
                 >
                   {#if selectedPhoto.showOnMap}
-                    <MapPin size={16} /> {$t("trip.hideFromMap")}
+                    <MapPin size={18} /> {$t("trip.hideFromMap")}
                   {:else}
-                    <MapPinOff size={16} /> {$t("trip.addToMap")}
+                    <MapPinOff size={18} /> {$t("trip.addToMap")}
                   {/if}
                 </button>
 
-                <div class="flex items-center gap-2">
-                  {#if !selectedPhoto.isCover}
-                    <button
-                      class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-amber-400 border border-amber-500/40 hover:bg-amber-500/10 transition-colors"
-                      on:click={() => setCover(selectedPhoto)}
-                    >
-                      <Star size={16} />
-                      {$t("trip.makeCover")}
-                    </button>
-                  {/if}
-
-                  {#if selectedPhoto.metadata?.exif}
-                    <button
-                      class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-transparent text-slate-300 border border-slate-700/50 hover:bg-slate-800/50 transition-colors"
-                      on:click={() => showMetadata(selectedPhoto)}
-                    >
-                      <Info size={16} />
-                      {$t("trip.info")}
-                    </button>
-                  {/if}
-
-                  <div class="w-px h-6 bg-slate-800 mx-2" />
+                <div
+                  class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 scrollbar-none"
+                >
+                  <button
+                    class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all border {selectedPhoto.isCover
+                      ? 'bg-amber-500 text-white border-amber-400 shadow-lg shadow-amber-500/20'
+                      : 'bg-slate-800 text-amber-500 border-amber-500/30 hover:bg-slate-700'}"
+                    on:click={() => setCover(selectedPhoto)}
+                  >
+                    <Star
+                      size={18}
+                      fill={selectedPhoto.isCover ? "white" : "none"}
+                    />
+                    {$t("trip.coverBadge")}
+                  </button>
 
                   <button
-                    class="flex items-center gap-2 px-4 py-2 font-medium text-sm rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                    class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition-all"
+                    on:click={() => showMetadata(selectedPhoto)}
+                  >
+                    <Info size={18} />
+                    {$t("trip.info")}
+                  </button>
+
+                  <button
+                    class="flex items-center gap-2 px-4 py-2.5 font-bold text-sm rounded-xl transition-all {selectedPhoto.isHidden
+                      ? 'bg-emerald-600/10 text-emerald-400 border border-emerald-500/20'
+                      : 'bg-red-600/10 text-red-500 border border-red-500/20 hover:bg-red-500/20'}"
                     on:click={() => toggleHiddenVisibility(selectedPhoto)}
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={18} />
                     {selectedPhoto.isHidden
                       ? $t("trip.showInGallery")
                       : $t("trip.removeFromGallery")}
@@ -1353,7 +1456,7 @@
       </header>
 
       <!-- Body -->
-      <div class="modal-body-scroll">
+      <div class="modal-body-scroll scroll-content">
         <div class="form-grid">
           <!-- Name -->
           <div class="form-field-group full-width-field">
@@ -1384,7 +1487,7 @@
           </div>
 
           <!-- Rating (Simple Star selector or just field) -->
-          <div class="form-field-group">
+          <!-- <div class="form-field-group">
             <span class="field-label">{"Rating"}</span>
             <select bind:value={modalLocationRating} class="premium-select">
               {#each [1, 2, 3, 4, 5] as r}
@@ -1393,7 +1496,7 @@
                 >
               {/each}
             </select>
-          </div>
+          </div> -->
 
           <!-- Description -->
           <div class="form-field-group full-width-field">
@@ -1497,72 +1600,150 @@
 {/if}
 
 {#if selectedMetadataPhoto}
-  <div class="modal-backdrop" on:click|self={closeMetadata}>
-    <div class="modal card meta-modal">
+  <div
+    class="modal-backdrop flex items-end sm:items-center justify-center p-0 sm:p-4"
+    on:click|self={closeMetadata}
+  >
+    <div
+      class="modal-premium-sheet w-full max-w-lg bg-slate-900 rounded-t-[32px] sm:rounded-3xl border-t sm:border border-slate-700/50 shadow-2xl overflow-hidden"
+      transition:slide={{ duration: 300, axis: "y" }}
+    >
       <header
-        class="modal-header flex flex-row justify-between items-start border-b border-slate-700 pb-3 mb-4"
+        class="p-6 border-b border-slate-800/50 flex justify-between items-center bg-slate-800/20 backdrop-blur-xl"
       >
-        <h3 class="text-xl font-semibold flex items-center gap-2">
-          <MapPin size={20} class="text-blue-400" />
-          {$t("trip.photoInfo")}
-        </h3>
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-blue-500/10 rounded-xl text-blue-400">
+            <Info size={24} />
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-white leading-tight">
+              {$t("trip.photoInfo")}
+            </h3>
+            <p
+              class="text-xs text-slate-400 font-medium tracking-wide uppercase"
+            >
+              {$t("trip.metadata") || "METADATA EXIF"}
+            </p>
+          </div>
+        </div>
         <button
-          class="close-btn text-slate-400 hover:text-white text-2xl leading-none"
-          on:click={closeMetadata}>&times;</button
+          class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-full transition-colors"
+          on:click={closeMetadata}
         >
+          <X size={20} />
+        </button>
       </header>
-      <div class="modal-body meta-body flex flex-col gap-4">
+
+      <div
+        class="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar bg-slate-900/50"
+      >
         {#if selectedMetadataPhoto.metadata?.exif}
-          <div
-            class="meta-item flex flex-col bg-slate-800/50 p-3 rounded-lg border border-slate-700"
-          >
-            <span
-              class="meta-label text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1"
-              >{$t("trip.device")}</span
+          <div class="grid grid-cols-1 gap-4">
+            <!-- Camera Info -->
+            <div
+              class="flex items-center gap-4 p-4 bg-slate-800/40 rounded-2xl border border-slate-700/30"
             >
-            <span class="meta-val font-medium text-slate-200"
-              >{selectedMetadataPhoto.metadata.exif.make || $t("trip.unknown")}
-              {selectedMetadataPhoto.metadata.exif.model || ""}</span
-            >
-          </div>
-          <div
-            class="meta-item flex flex-col bg-slate-800/50 p-3 rounded-lg border border-slate-700"
-          >
-            <span
-              class="meta-label text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1"
-              >{$t("trip.captureDate")}</span
-            >
-            <span class="meta-val font-medium text-slate-200"
-              >{selectedMetadataPhoto.metadata.exif.dateTimeOriginal
-                ? formatDate(
-                    selectedMetadataPhoto.metadata.exif.dateTimeOriginal,
-                  )
-                : $t("trip.unknown")}</span
-            >
-          </div>
-          <div
-            class="meta-item flex flex-col bg-slate-800/50 p-3 rounded-lg border border-slate-700"
-          >
-            <div class="flex justify-between items-center mb-1">
-              <span
-                class="meta-label text-xs text-slate-400 uppercase tracking-wider font-semibold"
-                >{$t("trip.location")} (Lat/Lng)</span
-              >
-              <button
-                class="text-xs text-blue-400 hover:text-blue-300 font-medium"
-                on:click={() =>
-                  (editingMetadataLocation = !editingMetadataLocation)}
-              >
-                {editingMetadataLocation
-                  ? $t("trip.cancelEdit")
-                  : $t("trip.editLocation")}
-              </button>
+              <div class="p-3 bg-slate-700/50 rounded-xl text-slate-300">
+                <Camera size={20} />
+              </div>
+              <div class="flex flex-col">
+                <span
+                  class="text-[10px] text-slate-500 font-bold uppercase tracking-wider"
+                  >{$t("trip.device")}</span
+                >
+                <span class="text-slate-200 font-bold">
+                  {selectedMetadataPhoto.metadata.exif.make ||
+                    $t("trip.unknown")}
+                  {selectedMetadataPhoto.metadata.exif.model || ""}
+                </span>
+              </div>
             </div>
-            <span class="meta-val font-medium text-slate-200">
+
+            <!-- Date Info -->
+            <div
+              class="flex items-center gap-4 p-4 bg-slate-800/40 rounded-2xl border border-slate-700/30"
+            >
+              <div class="p-3 bg-slate-700/50 rounded-xl text-slate-300">
+                <Calendar size={20} />
+              </div>
+              <div class="flex flex-col">
+                <span
+                  class="text-[10px] text-slate-500 font-bold uppercase tracking-wider"
+                  >{$t("trip.captureDate")}</span
+                >
+                <span class="text-slate-200 font-bold">
+                  {selectedMetadataPhoto.metadata.exif.dateTimeOriginal
+                    ? formatDate(
+                        selectedMetadataPhoto.metadata.exif.dateTimeOriginal,
+                      )
+                    : $t("trip.unknown")}
+                </span>
+              </div>
+            </div>
+
+            <!-- Lens Info -->
+            <div
+              class="flex items-center gap-4 p-4 bg-slate-800/40 rounded-2xl border border-slate-700/30"
+            >
+              <div class="p-3 bg-slate-700/50 rounded-xl text-slate-300">
+                <Image size={20} />
+              </div>
+              <div class="flex flex-col">
+                <span
+                  class="text-[10px] text-slate-500 font-bold uppercase tracking-wider"
+                  >{$t("trip.lens")}</span
+                >
+                <span class="text-slate-200 font-bold">
+                  {selectedMetadataPhoto.metadata.exif.lensModel ||
+                    $t("trip.unknown")}
+                </span>
+              </div>
+            </div>
+
+            <!-- Location Info -->
+            <div
+              class="flex flex-col gap-3 p-4 bg-slate-800/40 rounded-2xl border border-slate-700/30"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <div class="p-3 bg-blue-500/10 rounded-xl text-blue-400">
+                    <MapPin size={20} />
+                  </div>
+                  <div class="flex flex-col">
+                    <span
+                      class="text-[10px] text-slate-500 font-bold uppercase tracking-wider"
+                      >{$t("trip.location")}</span
+                    >
+                    <span class="text-slate-200 font-mono text-xs font-bold">
+                      {#if selectedMetadataPhoto.metadata.exif.latitude !== null}
+                        {selectedMetadataPhoto.metadata.exif.latitude.toFixed(
+                          6,
+                        )}, {selectedMetadataPhoto.metadata.exif.longitude.toFixed(
+                          6,
+                        )}
+                      {:else}
+                        {$t("trip.notAvailableExif")}
+                      {/if}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  class="text-xs text-blue-400 font-bold hover:underline"
+                  on:click={() =>
+                    (editingMetadataLocation = !editingMetadataLocation)}
+                >
+                  {editingMetadataLocation
+                    ? $t("trip.cancelEdit")
+                    : $t("trip.editLocation")}
+                </button>
+              </div>
+
               {#if editingMetadataLocation}
-                <div class="mt-2 mb-3">
+                <div
+                  class="mt-2 rounded-xl overflow-hidden border border-slate-700"
+                >
                   <LocationPicker
-                    height="200px"
+                    height="180px"
                     initialLocation={newMetadataLat && newMetadataLng
                       ? { lat: newMetadataLat, lng: newMetadataLng }
                       : selectedMetadataPhoto.metadata.exif.latitude
@@ -1576,56 +1757,50 @@
                 </div>
                 {#if newMetadataLat && newMetadataLng}
                   <button
-                    class="btn btn-sm w-full py-2"
+                    class="btn btn-primary w-full py-3 rounded-xl font-bold shadow-lg shadow-blue-600/20"
                     on:click={saveMetadataLocation}
                   >
-                    <MapPin size={16} />
                     {$t("trip.saveLocation")}
                   </button>
                 {/if}
-              {:else if selectedMetadataPhoto.metadata.exif.latitude !== null && selectedMetadataPhoto.metadata.exif.longitude !== null}
-                {selectedMetadataPhoto.metadata.exif.latitude.toFixed(6)}, {selectedMetadataPhoto.metadata.exif.longitude.toFixed(
-                  6,
-                )}
-                {#if newMetadataLat && newMetadataLng && !editingMetadataLocation}
-                  <div class="text-xs text-green-400 mt-1">
-                    {$t("trip.locationUpdatedLocally")}
-                  </div>
-                {/if}
-                {#if !editingMetadataLocation}
-                  <div class="mt-3">
-                    <MiniStaticMap
-                      lat={selectedMetadataPhoto.metadata.exif.latitude}
-                      lng={selectedMetadataPhoto.metadata.exif.longitude}
-                      height="120px"
-                    />
-                  </div>
-                {/if}
-              {:else}
-                {$t("trip.notAvailableExif")}
+              {:else if selectedMetadataPhoto.metadata.exif.latitude !== null}
+                <div
+                  class="mt-1 rounded-xl overflow-hidden border border-slate-700/50 grayscale-[30%] opacity-80"
+                >
+                  <MiniStaticMap
+                    lat={selectedMetadataPhoto.metadata.exif.latitude}
+                    lng={selectedMetadataPhoto.metadata.exif.longitude}
+                    height="120px"
+                  />
+                </div>
               {/if}
-            </span>
-          </div>
-          <div
-            class="meta-item flex flex-col bg-slate-800/50 p-3 rounded-lg border border-slate-700"
-          >
-            <span
-              class="meta-label text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1"
-              >{$t("trip.lens")}</span
-            >
-            <span class="meta-val font-medium text-slate-200"
-              >{selectedMetadataPhoto.metadata.exif.lensModel ||
-                $t("trip.unknown")}</span
-            >
+            </div>
           </div>
         {:else}
           <div
-            class="flex flex-col items-center justify-center p-6 text-center text-slate-400"
+            class="flex flex-col items-center justify-center p-12 text-center"
           >
-            <MapPinOff size={48} class="mb-4 opacity-50" />
-            <p>{$t("trip.noExifData")}</p>
+            <div
+              class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-4 border border-slate-700"
+            >
+              <AlertTriangle size={32} class="text-slate-500" />
+            </div>
+            <p class="text-slate-300 font-bold">{$t("trip.noExifData")}</p>
+            <p class="text-slate-500 text-sm mt-1">
+              {$t("trip.noExifDataDesc") ||
+                "Esta fotografía no contiene información técnica embebida."}
+            </p>
           </div>
         {/if}
+      </div>
+
+      <div class="p-6 bg-slate-800/20 border-t border-slate-800/50 flex gap-3">
+        <button
+          class="flex-1 py-3 bg-slate-800 text-slate-300 font-bold rounded-xl border border-slate-700 hover:bg-slate-700"
+          on:click={closeMetadata}
+        >
+          {$t("form.back") || "Volver"}
+        </button>
       </div>
     </div>
   </div>
@@ -1791,13 +1966,77 @@
     border: 1px solid #334155;
   }
 
+  /* Mobile Gallery Specific Styles */
+  .mobile-gallery-toolbar button {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .mobile-gallery-toolbar button:active {
+    transform: scale(0.9);
+  }
+
+  .gallery-thumbs-scroll {
+    scrollbar-width: none; /* Firefox */
+  }
+  .gallery-thumbs-scroll::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+  }
+
+  .main-photo-card {
+    background: #0f172a;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .page-container {
+      padding: 1rem;
+    }
+
+    .trip-cover {
+      height: 200px;
+      margin-bottom: 1.5rem;
+      border-radius: 20px;
+    }
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    section {
+      padding: 1rem;
+      margin-bottom: 2rem;
+      border-radius: 20px;
+    }
+
+    .main-photo-card {
+      border-radius: 20px;
+    }
+
+    .thumbnails-wrapper {
+      padding: 1rem 0.5rem;
+    }
+
+    .mobile-gallery-toolbar {
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .scrollbar-none::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-none {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  }
+
   h2 {
     color: #60a5fa;
     margin-bottom: 1.5rem;
   }
 
   .section-header {
-    display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
@@ -1951,10 +2190,29 @@
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
-    max-height: 70vh;
-    background: #0f172a; /* slate-900 */
+    max-height: 85vh;
+    background: #0a0f1d;
     border-radius: 0.5rem;
     overflow: hidden;
+  }
+
+  .main-img-bg {
+    /* filter: blur(20px) brightness(0.6); */
+    transform: scale(1.1);
+  }
+
+  @media (min-width: 1200px) {
+    .main-img-wrapper {
+      aspect-ratio: 21 / 9;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .main-img-wrapper {
+      aspect-ratio: auto;
+      height: 400px; /* Fixed height to avoid collapsing on mobile */
+      max-height: 60vh;
+    }
   }
 
   .carousel-container {

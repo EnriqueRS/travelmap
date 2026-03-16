@@ -458,6 +458,11 @@ npm run format      # Prettier format
 - Added a visual map indicator to the thumbnails in the photo carousel for photos that are shown on the map.
 - Added "My Trips" (Mis viajes) filter on the map view to display only the authenticated user's trips.
 - Enhanced initial demo data to provide a richer experience for unlogged users, including more trips and locations.
+- **Mobile Photo Gallery Redesign**: Overhauled the photo gallery for mobile devices with a premium interface, including a top toolbar for quick actions, an enhanced carousel with "Cover" and "Map" overlays, and a horizontal navigation strip.
+- **Gallery Layout Optimization**: Implemented a double-layer view with absolute blurred backgrounds and `object-contain` to ensure full image visibility without cropping across all devices.
+- **Icon Relocation**: Moved provider badges (Immich/Local) to the top-right next to map indicators for a cleaner UI.
+- **Map Add-Trip Button**: Added a floating "+" button to the mobile map view for easy access to new trip creation.
+- **Redesigned Info Modal**: The photo metadata (EXIF) view is now a sleek mobile bottom sheet displaying camera details, capture date, and an integrated location map.
 - **Full Internationalization (i18n)**: Implemented a robust translation system supporting English and Spanish. All major views (Dashboard, Map, Trip Details, Profile) and shared components are now fully localized.
 - **Location Modal Redesigns**: Extended the premium design to the Location modals (Add & Edit) within the Trip details page, featuring dynamic headers, better grid layout, and a redesigned photo scroller.
 - **Backend Performance**: Set the request body size limit to 25MB to accommodate larger photo uploads.
@@ -475,18 +480,13 @@ npm run format      # Prettier format
 - **Bug Fixes**: Corrected duplicate translation keys and fixed property errors in the User Profile interface.
 
 **🇪🇸 Español:**
-- **Rediseño Móvil de la Página del Mapa**: Rediseño mobile-first completo de la página `/map`. En pantallas ≤768px, la barra lateral de escritorio se oculta y se reemplaza con un panel de estadísticas inline (número de viajes, barra de progreso, chips de filtro), una barra de búsqueda y un mapa a pantalla completa. Una barra de navegación inferior (Mapa, Viajes, Perfil) facilita la navegación con el pulgar. El navbar superior se simplifica para mostrar solo la marca y el botón de cerrar sesión en móvil.
-- **Notificaciones Toast**: Se reemplazaron las alertas nativas del navegador por notificaciones tipo toast modernas y visualmente atractivas en la página del mapa.
-- **Filtros Avanzados**: Se añadió la capacidad de filtrar localizaciones y fotos en el mapa seleccionando viajes individuales.
-- **Ordenación del Carrusel**: Las fotos en el detalle del viaje ahora se ordenan priorizando la portada y las fotos del mapa.
-- **Rediseño del Modal de Nueva Ubicación**: Rediseño visual completo del modal de "Añadir nueva ubicación" con búsqueda integrada, vista previa del mapa y estilo premium.
-- **Rediseño de Modales de Ubicación en Detalles**: Se extendió el diseño premium a los modales de ubicación (Añadir y Editar) dentro del detalle del viaje, con cabeceras dinámicas, mejor layout en cuadrícula y rediseño del selector de fotos.
-- **Rendimiento del Backend**: Se fijó el límite de tamaño del cuerpo de las peticiones en 25MB para permitir la subida de fotos de mayor tamaño.
-- **Refactorización de Componentes**: Se integró el badge de país detectado directamente en el componente `LocationPicker`, mejorando la encapsulación y limpiando la interfaz.
-- **Rediseño de Barra Lateral del Mapa**: Nueva barra lateral en `/map` con un diseño premium basado en iconos, estadísticas de aventura y filtros de visualización avanzados. Se añadió un estado minimizado interactivo con iconos de filtro y un indicador de progreso clickable.
-- **Diseño del Explorador de Países**: Rediseño completo del modal de explorador con un tema oscuro moderno, animaciones fluidas y barra lateral de progreso.
-- **Corrección de Errores en el Mapa**: Se resolvió un error crítico de sintaxis ("Unexpected token") que impedía la compilación de la página del mapa.
-- **Mapeo de Continentes Mejorado**: Implementación de una clasificación por continentes más precisa basada en identificadores ISO.
-- **Mejora de Accesibilidad (A11y)**: Se corrigieron múltiples advertencias de accesibilidad, incluyendo textos alternativos y oyentes de teclado.
-- **Estandarización de Fechas**: Se aseguró que todas las fechas sigan el formato `DD/MM/AAAA`.
-- **Corrección de Errores**: Se eliminaron claves de traducción duplicadas y se corrigieron errores en la interfaz de perfil de usuario.
+- **Rediseño de Galería en Móvil**: Nueva interfaz de galería premium para dispositivos móviles con barra de herramientas superior, carrusel con capas de "Portada" y "Mapa", y navegación por tira de miniaturas.
+- **Optimización de Layout de Galería**: Implementación de vista de doble capa con fondo difuminado y ajuste `object-contain` para garantizar la visibilidad completa de las imágenes sin recortes.
+- **Reubicación de Iconos**: Los distintivos de proveedor (Immich/Local) se movieron a la esquina superior derecha junto a los indicadores de mapa.
+- **Botón de Añadir Viaje en Mapa**: Nuevo botón flotante "+" en la vista de mapa móvil para facilitar la creación de nuevos viajes.
+- **Rediseño de Modal de Información**: La vista de metadatos (EXIF) es ahora un panel inferior (bottom sheet) con detalles técnicos y mapa de ubicación integrado.
+- **Internacionalización Completa (i18n)**: Sistema robusto de traducción con soporte para inglés y español en todas las vistas y componentes.
+- **Eliminación de Alertas**: Se reemplazaron las alertas del navegador por notificaciones toast interactivas.
+- **Filtros Avanzados**: Nuevos filtros por viaje individual en la barra lateral del mapa.
+- **Mejoras en Carrusel**: Ordenación inteligente de fotos (portada primero) e indicadores de mapa en miniaturas.
+- **Corrección de Errores**: Se eliminaron claves duplicadas y se corrigieron errores de sintaxis en la página del mapa.

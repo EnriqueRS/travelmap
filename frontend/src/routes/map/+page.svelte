@@ -557,7 +557,7 @@
           <Search size={14} class="mobile-search-icon" />
           <input
             type="text"
-            placeholder={$t('map.searchPlaceholder')}
+            placeholder={$t("map.searchPlaceholder")}
             bind:value={searchQuery}
           />
         </div>
@@ -565,21 +565,32 @@
         <!-- Mobile Stats Row -->
         <div class="mobile-stats-container">
           <div class="mobile-stat-main">
-            <span class="mobile-stat-label">{$t('map.totalTripsLabel')}</span>
+            <span class="mobile-stat-label">{$t("map.totalTripsLabel")}</span>
             <span class="mobile-stat-value">{totalTrips}</span>
           </div>
           <div class="mobile-stat-items">
             <div class="mobile-stat-item">
-              <span class="mobile-stat-number text-emerald-400">{visitedCount}</span>
-              <span class="mobile-stat-item-label">{$t('status.Completado')}</span>
+              <span class="mobile-stat-number text-emerald-400"
+                >{visitedCount}</span
+              >
+              <span class="mobile-stat-item-label"
+                >{$t("status.Completado")}</span
+              >
             </div>
             <div class="mobile-stat-item">
-              <span class="mobile-stat-number text-blue-400">{plannedCount}</span>
-              <span class="mobile-stat-item-label">{$t('status.Planificado')}</span>
+              <span class="mobile-stat-number text-blue-400"
+                >{plannedCount}</span
+              >
+              <span class="mobile-stat-item-label"
+                >{$t("status.Planificado")}</span
+              >
             </div>
             <div class="mobile-stat-item">
-              <span class="mobile-stat-number text-slate-400">{onGoingCount}</span>
-              <span class="mobile-stat-item-label">{$t('status.En curso')}</span>
+              <span class="mobile-stat-number text-slate-400"
+                >{onGoingCount}</span
+              >
+              <span class="mobile-stat-item-label">{$t("status.En curso")}</span
+              >
             </div>
           </div>
         </div>
@@ -589,20 +600,25 @@
           class="mobile-progress-row"
           on:click={() => (showProgressModal = true)}
           on:keydown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
+            if (e.key === "Enter" || e.key === " ") {
               e.preventDefault()
               showProgressModal = true
             }
           }}
           tabindex="0"
           role="button"
-          aria-label={$t('map.viewAllCountries')}
+          aria-label={$t("map.viewAllCountries")}
         >
-          <span class="mobile-progress-label">{$t('map.progresoLabel')}</span>
+          <span class="mobile-progress-label">{$t("map.progresoLabel")}</span>
           <div class="mobile-progress-bar-track">
-            <div class="mobile-progress-bar-fill" style="width: {completion}%" />
+            <div
+              class="mobile-progress-bar-fill"
+              style="width: {completion}%"
+            />
           </div>
-          <span class="mobile-progress-count">{regions} / 195 {$t('map.paisesLabel').toLowerCase()}</span>
+          <span class="mobile-progress-count"
+            >{regions} / 195 {$t("map.paisesLabel").toLowerCase()}</span
+          >
         </div>
 
         <!-- Mobile Filter Chips -->
@@ -612,21 +628,21 @@
             class:active={showHome}
             on:click={() => (showHome = !showHome)}
           >
-            {$t('map.home')} · 1
+            {$t("map.home")} · 1
           </button>
           <button
             class="mobile-chip chip-completed"
             class:active={showCompleted}
             on:click={() => (showCompleted = !showCompleted)}
           >
-            {$t('status.Completado')} · {visitedCount}
+            {$t("status.Completado")} · {visitedCount}
           </button>
           <button
             class="mobile-chip chip-planned"
             class:active={showPlanned}
             on:click={() => (showPlanned = !showPlanned)}
           >
-            {$t('status.Planificado')} · {plannedCount}
+            {$t("status.Planificado")} · {plannedCount}
           </button>
           {#if onGoingCount > 0}
             <button
@@ -634,7 +650,7 @@
               class:active={showOngoing}
               on:click={() => (showOngoing = !showOngoing)}
             >
-              {$t('status.En curso')} · {onGoingCount}
+              {$t("status.En curso")} · {onGoingCount}
             </button>
           {/if}
         </div>
@@ -645,7 +661,7 @@
     <button
       class="mobile-panel-toggle"
       on:click={() => (mobileStatsCollapsed = !mobileStatsCollapsed)}
-      aria-label={mobileStatsCollapsed ? 'Expand panel' : 'Collapse panel'}
+      aria-label={mobileStatsCollapsed ? "Expand panel" : "Collapse panel"}
     >
       <div class="toggle-handle-bar" />
       {#if mobileStatsCollapsed}
@@ -970,6 +986,12 @@
 
       <!-- Floating Map Controls -->
       <div class="map-controls-floating flex flex-col gap-2">
+        <!-- New Floating Add Trip Button (Mobile Only) -->
+        <a href="/trips/new" class="control-btn add-trip-floating-btn" title={$t("dashboard.newTrip")}>
+          <Plus size={20} />
+          <span class="btn-tooltip">{$t("dashboard.newTrip")}</span>
+        </a>
+
         <button class="control-btn" on:click={toggleLayer}>
           <Layers size={16} />
           {currentLayer === "default"
@@ -1193,7 +1215,7 @@
     role="button"
     aria-label="Cerrar modal"
   >
-    <div class="progress-modal-glass">
+    <div class="progress-modal-glass scroll-content">
       <!-- Left Sidebar (Stats) -->
       <div class="progress-sidebar">
         <div class="progress-header">
@@ -1898,7 +1920,9 @@
     .dashboard-page {
       display: flex;
       flex-direction: column;
-      height: calc(100vh - 3.25rem - 56px); /* Subtract top navbar + bottom nav */
+      height: calc(
+        100vh - 3.25rem - 56px
+      ); /* Subtract top navbar + bottom nav */
       overflow: hidden;
     }
 
@@ -2031,7 +2055,15 @@
       align-items: center;
       gap: 0.5rem;
       cursor: pointer;
-      padding: 0.25rem 0;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      background: var(--color-bg-tertiary);
+      transition: background 0.2s;
+    }
+
+    .mobile-progress-row:active {
+      background: rgba(37, 99, 235, 0.08);
     }
 
     .mobile-progress-label {
@@ -2172,6 +2204,24 @@
     .map-controls-floating {
       top: 10px;
       right: 10px;
+    }
+
+    .add-trip-floating-btn {
+      background: var(--color-primary, #3b82f6) !important;
+      color: white !important;
+      border: none !important;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50% !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      margin-bottom: 0.5rem;
+    }
+
+    .add-trip-floating-btn .btn-tooltip {
+      display: none;
     }
 
     .control-btn {
@@ -2321,7 +2371,6 @@
     border: 1px solid #1e293b;
     margin-bottom: 0.75rem;
   }
-
 
   .map-help-text {
     font-size: 0.8rem;
@@ -2894,6 +2943,128 @@
     }
     .explorer-search {
       width: 100%;
+    }
+  }
+
+  /* Mobile-specific country progress modal */
+  @media (max-width: 768px) {
+    .progress-modal-glass {
+      flex-direction: column;
+      height: 95vh;
+      max-width: 100%;
+      border-radius: 16px;
+    }
+
+    .progress-main {
+      padding: 1rem;
+      order: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .progress-sidebar {
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid #1e293b;
+      padding: 1rem;
+      order: 2;
+      max-height: 30vh;
+      overflow-y: auto;
+    }
+
+    .main-header {
+      margin-bottom: 1rem;
+    }
+
+    .main-header h2 {
+      font-size: 1.25rem;
+    }
+
+    .main-header p {
+      font-size: 0.8rem;
+    }
+
+    .countries-grid {
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 0.5rem;
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .modern-country-card {
+      padding: 0.75rem 0.5rem;
+      border-radius: 12px;
+    }
+
+    .flag-emoji {
+      font-size: 1.75rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .country-name {
+      font-size: 0.7rem;
+      margin-bottom: 0.15rem;
+    }
+
+    .country-continent {
+      font-size: 0.55rem;
+    }
+
+    .visited-check {
+      top: 0.4rem;
+      right: 0.4rem;
+      width: 16px;
+      height: 16px;
+    }
+
+    .visited-check svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    .explorer-controls {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .explorer-search {
+      width: 100%;
+    }
+
+    .explorer-search input {
+      padding: 0.6rem 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .continent-toggles {
+      gap: 0.35rem;
+    }
+
+    .toggle-btn {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.75rem;
+    }
+
+    .explorer-footer {
+      margin-top: 1rem;
+      padding-top: 1rem;
+    }
+
+    .global-progress-card {
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .progress-big-number span:first-child {
+      font-size: 1.5rem;
+    }
+
+    .continent-row {
+      gap: 0.35rem;
     }
   }
 </style>
