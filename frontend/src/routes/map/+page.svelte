@@ -126,8 +126,8 @@
     newLocationCounty = ""
     if (geoResult) {
       newLocationCountry = geoResult.countryCode || ""
-      if (newLocationCountry === "ES" && geoResult.state) {
-        const normalizedState = normalizeString(geoResult.state)
+      if (newLocationCountry === "ES" && geoResult.province) {
+        const normalizedState = normalizeString(geoResult.province)
         const matched = SPAIN_PROVINCES.find((p) => {
           const normalizedP = normalizeString(p.name)
           return (
@@ -137,7 +137,7 @@
         })
         if (matched) newLocationProvince = matched.name
       } else {
-        newLocationProvince = geoResult.state || ""
+        newLocationProvince = geoResult.province || ""
       }
       newLocationCounty = geoResult.county || ""
     }
