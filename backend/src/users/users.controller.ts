@@ -42,6 +42,8 @@ export class UsersController {
       name?: string;
       bio?: string;
       avatar?: string;
+      homeCountry?: string;
+      homeProvince?: string;
       homeLocationLat?: number;
       homeLocationLng?: number;
     },

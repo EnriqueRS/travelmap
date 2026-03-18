@@ -31,6 +31,8 @@ export class LocationsService {
         .first())?.id || null : null,
       latitude,
       longitude,
+      adminArea1: createData.adminArea1 || null,
+      adminArea2: createData.adminArea2 || null,
     };
 
     const location = await Location.query().insert(backendPayload);
@@ -68,6 +70,8 @@ export class LocationsService {
     if (updateData.latitude !== undefined) patchData.latitude = updateData.latitude;
     if (updateData.longitude !== undefined) patchData.longitude = updateData.longitude;
     if (updateData.country !== undefined) patchData.countryId = countryId?.id || null;
+    if (updateData.adminArea1 !== undefined) patchData.adminArea1 = updateData.adminArea1;
+    if (updateData.adminArea2 !== undefined) patchData.adminArea2 = updateData.adminArea2;
 
     const updated = await Location.query().patchAndFetchById(id, patchData);
 

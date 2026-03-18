@@ -1,4 +1,4 @@
-import { Model } from 'objection';
+import { Model, snakeCaseMappers } from 'objection';
 import { User } from './user.entity';
 
 export interface UserIntegrationProperties {
@@ -6,9 +6,9 @@ export interface UserIntegrationProperties {
   userId: number;
   provider: 'immich';
   url?: string;
-  access_token?: string;
-  created_at: Date;
-  updated_at: Date;
+  accessToken?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class UserIntegration extends Model implements UserIntegrationProperties {
@@ -16,9 +16,9 @@ export class UserIntegration extends Model implements UserIntegrationProperties 
   userId!: number;
   provider!: 'immich';
   url?: string;
-  access_token?: string;
-  created_at!: Date;
-  updated_at!: Date;
+  accessToken?: string;
+  createdAt!: Date;
+  updatedAt!: Date;
 
   static get tableName() {
     return 'user_integrations';
@@ -26,6 +26,10 @@ export class UserIntegration extends Model implements UserIntegrationProperties 
 
   static get idColumn() {
     return 'id';
+  }
+
+  static get columnNameMappers() {
+    return snakeCaseMappers();
   }
 
   static get jsonSchema() {
@@ -37,9 +41,9 @@ export class UserIntegration extends Model implements UserIntegrationProperties 
         userId: { type: 'integer' },
         provider: { type: 'string', enum: ['immich'] },
         url: { type: 'string', maxLength: 1000 },
-        access_token: { type: 'string', maxLength: 1000 },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' }
+        accessToken: { type: 'string', maxLength: 1000 },
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' }
       }
     };
   }
@@ -50,7 +54,7 @@ export class UserIntegration extends Model implements UserIntegrationProperties 
         relation: Model.BelongsToOneRelation,
         modelClass: User,
         join: {
-          from: 'user_integrations.userId',
+          from: 'user_integrations.user_id',
           to: 'users.id'
         }
       }
@@ -63,12 +67,12 @@ export class UserIntegration extends Model implements UserIntegrationProperties 
       const { v4: uuidv4 } = require('uuid');
       this.id = uuidv4();
     }
-    this.created_at = new Date();
-    this.updated_at = new Date();
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
   }
 
   async $beforeUpdate() {
     await super.$beforeUpdate({}, {} as any);
-    this.updated_at = new Date();
+    this.updatedAt = new Date();
   }
 }

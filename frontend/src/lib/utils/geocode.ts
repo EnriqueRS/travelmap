@@ -47,12 +47,21 @@ export async function geocode(query: string): Promise<GeocodeResult | null> {
   };
 }
 
-export async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+export interface ReverseGeocodeResult {
+  countryCode: string | null;
+  country: string | null;
+  state: string | null;
+  county: string | null;
+  city: string | null;
+}
+
+export async function reverseGeocode(lat: number, lng: number): Promise<ReverseGeocodeResult | null> {
   const params = new URLSearchParams({
     lat: lat.toString(),
     lon: lng.toString(),
     format: "json",
     "accept-language": "es",
+    addressdetails: "1",
   });
 
   try {
@@ -67,12 +76,15 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
 
     const data = await res.json();
     if (data && data.address) {
-      if (data.address.country_code) {
-        return data.address.country_code.toUpperCase();
-      }
-      if (data.address.country) {
-        return data.address.country;
-      }
+      const addr = data.address;
+      return {
+        countryCode: addr.country_code?.toUpperCase() || null,
+        country: addr.country || null,
+        state: addr.state || addr.province || addr.region || null,
+        county: addr.county || addr.city_district || null,
+        province: addr.province || null,
+        city: addr.city || addr.town || addr.village || null,
+      };
     }
   } catch (error) {
     console.warn("Error reverse geocoding:", error);

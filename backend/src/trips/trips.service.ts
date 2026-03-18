@@ -20,6 +20,7 @@ export class TripsService {
       endDate: createData.endDate,
       status: mappedStatus,
       countries: Array.isArray(createData.countries) ? createData.countries : [],
+      provinces: Array.isArray(createData.provinces) ? createData.provinces : [],
       currency: 'EUR',
       coverImage: createData.coverImage
     };
@@ -30,11 +31,11 @@ export class TripsService {
   }
 
   async getUserTrips(userId: number): Promise<Trip[]> {
-    return Trip.query().where('userId', userId);
+    return Trip.query().where('user_id', userId);
   }
 
   async updateTrip(userId: number, id: string, updateData: any): Promise<Trip> {
-    const trip = await Trip.query().findOne({ id, userId });
+    const trip = await Trip.query().findOne({ id, user_id: userId });
 
     if (!trip) {
       throw new Error('Trip not found or unauthorized');
@@ -47,6 +48,7 @@ export class TripsService {
       endDate: updateData.endDate,
       status: updateData.status,
       countries: updateData.countries,
+      provinces: updateData.provinces,
       coverImage: updateData.coverImage
     });
 

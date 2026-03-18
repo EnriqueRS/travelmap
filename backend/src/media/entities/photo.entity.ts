@@ -1,4 +1,4 @@
-import { Model } from 'objection';
+import { Model, snakeCaseMappers } from 'objection';
 import { User } from '../../users/user.entity';
 import { Location } from '../../locations/entities/location.entity';
 import { Trip } from '../../trips/entities/trip.entity';
@@ -22,8 +22,8 @@ export interface PhotoProperties {
   showOnMap: boolean;
   isCover: boolean;
   isHidden: boolean;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class Photo extends Model implements PhotoProperties {
@@ -45,8 +45,8 @@ export class Photo extends Model implements PhotoProperties {
   showOnMap!: boolean;
   isCover!: boolean;
   isHidden!: boolean;
-  created_at!: Date;
-  updated_at!: Date;
+  createdAt!: Date;
+  updatedAt!: Date;
 
   static get tableName() {
     return 'photos';
@@ -54,6 +54,10 @@ export class Photo extends Model implements PhotoProperties {
 
   static get idColumn() {
     return 'id';
+  }
+
+  static get columnNameMappers() {
+    return snakeCaseMappers();
   }
 
   static get jsonSchema() {
@@ -73,8 +77,8 @@ export class Photo extends Model implements PhotoProperties {
         showOnMap: { type: 'boolean', default: false },
         isCover: { type: 'boolean', default: false },
         isHidden: { type: 'boolean', default: false },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' }
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' }
       }
     };
   }
@@ -85,7 +89,7 @@ export class Photo extends Model implements PhotoProperties {
         relation: Model.BelongsToOneRelation,
         modelClass: User,
         join: {
-          from: 'photos.userId',
+          from: 'photos.user_id',
           to: 'users.id'
         }
       },
@@ -93,7 +97,7 @@ export class Photo extends Model implements PhotoProperties {
         relation: Model.BelongsToOneRelation,
         modelClass: Location,
         join: {
-          from: 'photos.locationId',
+          from: 'photos.location_id',
           to: 'locations.id'
         }
       },
@@ -101,7 +105,7 @@ export class Photo extends Model implements PhotoProperties {
         relation: Model.BelongsToOneRelation,
         modelClass: Trip,
         join: {
-          from: 'photos.tripId',
+          from: 'photos.trip_id',
           to: 'trips.id'
         }
       }
@@ -110,12 +114,12 @@ export class Photo extends Model implements PhotoProperties {
 
   async $beforeInsert() {
     await super.$beforeInsert({} as any);
-    this.created_at = new Date();
-    this.updated_at = new Date();
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
   }
 
   async $beforeUpdate() {
     await super.$beforeUpdate({}, {} as any);
-    this.updated_at = new Date();
+    this.updatedAt = new Date();
   }
 }

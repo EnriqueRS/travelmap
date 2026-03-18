@@ -1,4 +1,4 @@
-import { Model } from 'objection';
+import { Model, snakeCaseMappers } from 'objection';
 import { Trip } from '../../trips/entities/trip.entity';
 import { Location } from '../../locations/entities/location.entity';
 import { Photo } from '../../media/entities/photo.entity';
@@ -13,8 +13,8 @@ export interface ItineraryDayProperties {
   notes?: string;
   estimatedBudget?: number;
   actualBudget?: number;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class ItineraryDay extends Model implements ItineraryDayProperties {
@@ -27,8 +27,8 @@ export class ItineraryDay extends Model implements ItineraryDayProperties {
   notes?: string;
   estimatedBudget?: number;
   actualBudget?: number;
-  created_at!: Date;
-  updated_at!: Date;
+  createdAt!: Date;
+  updatedAt!: Date;
 
   static get tableName() {
     return 'itinerary_days';
@@ -36,6 +36,10 @@ export class ItineraryDay extends Model implements ItineraryDayProperties {
 
   static get idColumn() {
     return 'id';
+  }
+
+  static get columnNameMappers() {
+    return snakeCaseMappers();
   }
 
   static get jsonSchema() {
@@ -52,8 +56,8 @@ export class ItineraryDay extends Model implements ItineraryDayProperties {
         notes: { type: 'string' },
         estimatedBudget: { type: 'number', minimum: 0 },
         actualBudget: { type: 'number', minimum: 0 },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' }
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' }
       }
     };
   }
@@ -64,7 +68,7 @@ export class ItineraryDay extends Model implements ItineraryDayProperties {
         relation: Model.BelongsToOneRelation,
         modelClass: Trip,
         join: {
-          from: 'itinerary_days.tripId',
+          from: 'itinerary_days.trip_id',
           to: 'trips.id'
         }
       },
@@ -73,7 +77,7 @@ export class ItineraryDay extends Model implements ItineraryDayProperties {
         modelClass: Location,
         join: {
           from: 'itinerary_days.id',
-          to: 'locations.itineraryDayId'
+          to: 'locations.itinerary_day_id'
         }
       },
       photos: {
@@ -81,7 +85,7 @@ export class ItineraryDay extends Model implements ItineraryDayProperties {
         modelClass: Photo,
         join: {
           from: 'itinerary_days.id',
-          to: 'photos.itineraryDayId'
+          to: 'photos.itinerary_day_id'
         }
       }
     };
@@ -89,12 +93,12 @@ export class ItineraryDay extends Model implements ItineraryDayProperties {
 
   async $beforeInsert() {
     await super.$beforeInsert({} as any);
-    this.created_at = new Date();
-    this.updated_at = new Date();
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
   }
 
   async $beforeUpdate() {
     await super.$beforeUpdate({}, {} as any);
-    this.updated_at = new Date();
+    this.updatedAt = new Date();
   }
 }

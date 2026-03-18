@@ -451,6 +451,8 @@ npm run format      # Prettier format
 ### Recent Updates / Actualizaciones Recientes
 
 **🇬🇧 English:**
+- **Conditional Home Highlight**: The home province highlight and the home marker on the map can now be toggled on and off reactively using the `showHome` setting. This allows users to hide their residence for a cleaner view of their travels or for privacy during screen sharing.
+- **Province-Level Tracking**: Automatically detects the user's home country and province using GPS coordinates and reverse geocoding. Visited provinces are highlighted on the map (initially for Spain), and sub-national statistics are displayed on the user profile.
 - **Mobile Map Page Redesign**: Complete mobile-first redesign of the `/map` page. On screens ≤768px, the desktop sidebar is hidden and replaced with an inline stats panel (trip counts, progress bar, filter chips), a search bar, and a full-screen map. A bottom navigation bar (Map, Trips, Profile) provides easy thumb navigation. The desktop top navbar is simplified to show only the brand and logout button on mobile.
 - Replaced native browser alerts with modern, visually appealing toast notifications on the map page.
 - Added the ability to filter locations and photos on the map by selecting one or more individual trips from a new list in the sidebar.
@@ -465,8 +467,17 @@ npm run format      # Prettier format
 - **Redesigned Info Modal**: The photo metadata (EXIF) view is now a sleek mobile bottom sheet displaying camera details, capture date, and an integrated location map.
 - **Full Internationalization (i18n)**: Implemented a robust translation system supporting English and Spanish. All major views (Dashboard, Map, Trip Details, Profile) and shared components are now fully localized.
 - **Location Modal Redesigns**: Extended the premium design to the Location modals (Add & Edit) within the Trip details page, featuring dynamic headers, better grid layout, and a redesigned photo scroller.
-- **Backend Performance**: Set the request body size limit to 25MB to accommodate larger photo uploads.
 - **UI Component Refactor**: Integrated the detected country badge directly into the `LocationPicker` component for better encapsulation and a cleaner UI.
+- **Casing Standardization**: Standardized the entire project's casing convention. The database now exclusively uses `snake_case` for all attributes, while the application code (backend entities, services, JSON responses, and frontend stores) uses `camelCase` for consistency. Integrated Objection.js `snakeCaseMappers` to handle automatic conversion between the two layers.
+- **Zoom-Dependent Map Highlights**: Implemented an intelligent map visualization that toggles between national-level highlights and granular province-level highlights. When zoomed out (Zoom < 6), the entire country is highlighted; as you zoom in (Zoom >= 6), the focus shifts exclusively to visited/planned provinces (currently for Spain).
+- **Province Explorer & SVG Flags**: Integrated official high-quality SVG flags for Spanish Autonomous Communities and provinces. Added a premium Province Explorer modal accessible from the profile and country explorer.
+- **Robust Province Auto-Detection**: Enhanced the location detection logic to handle naming variations and specific administrative hierarchies from Nominatim, ensuring accurate province matching for Spain.
+- **Premium Trip Edit Modal**: Redesigned the "Edit Trip" interface with a premium, modern design matching the location editing experience. Includes smooth transitions, Lucide icons, and a refined grid layout.
+- **Country Multi-selection UI**: Replaced the single-select country picker with a modern multi-select dropdown that displays flags, supports search, and integrates seamlessly with province selection.
+- **Grouped Province Detail View**: Trips now display provinces organized under their respective countries in a clean, chip-based layout within the trip detail header.
+- **Province Data Persistence Fix**: Resolved a critical bug where province selection in trips was not being persisted to the backend.
+- **Improved Map Visual Hierarchy**: Refined the map visualization to show a very faint country background (opacity 0.03) when zoomed in, allowing highlighted provinces to stand out with high contrast.
+- **I18n Store Restoration**: Fixed corruption in the internationalization store and completed missing translations for form actions and alerts.
 
 - **Map Sidebar Redesign**: Completely overhauled the `/map` sidebar with a premium, icon-driven layout, adventure statistics, and advanced visualization filters.
 - **Add Location Modal Redesign**: Complete visual overhaul of the "Add new location" modal with integrated search, map preview, and premium styling.
@@ -478,8 +489,12 @@ npm run format      # Prettier format
 - **Enhanced Accessibility (A11y)**: Fixed several accessibility warnings across the application, including missing alt text and keyboard listeners.
 - **Date Format Standardization**: Ensured all dates follow the `DD/MM/YYYY` format as requested.
 - **Bug Fixes**: Corrected duplicate translation keys and fixed property errors in the User Profile interface.
+- **Province Tracking & Explorer**: Detailed tracking for visited provinces within your home country (starting with Spain). Includes a premium **Province Explorer** with flags and progress bars. 🚩
 
 **🇪🇸 Español:**
+- **Resaltado de Residencia Condicional**: El resaltado de la provincia de residencia y el marcador de hogar en el mapa ahora se pueden activar o desactivar de forma reactiva mediante el ajuste `showHome`. Esto permite a los usuarios ocultar su lugar de residencia para una vista más limpia de sus viajes o por privacidad al compartir pantalla.
+- **Seguimiento a Nivel de Provincia**: Detección automática del país y provincia de residencia del usuario mediante coordenadas GPS y geocodificación inversa. Las provincias visitadas se iluminan en el mapa (inicialmente para España) y se muestran estadísticas sub-nacionales en el perfil de usuario.
+- **Seguimiento y Explorador de Provincias**: Seguimiento detallado de las provincias visitadas dentro de tu país de origen (empezando por España). Incluye un **Explorador de Provincias** premium con banderas y barras de progreso. 🚩
 - **Rediseño de Galería en Móvil**: Nueva interfaz de galería premium para dispositivos móviles con barra de herramientas superior, carrusel con capas de "Portada" y "Mapa", y navegación por tira de miniaturas.
 - **Optimización de Layout de Galería**: Implementación de vista de doble capa con fondo difuminado y ajuste `object-contain` para garantizar la visibilidad completa de las imágenes sin recortes.
 - **Reubicación de Iconos**: Los distintivos de proveedor (Immich/Local) se movieron a la esquina superior derecha junto a los indicadores de mapa.
@@ -489,4 +504,16 @@ npm run format      # Prettier format
 - **Eliminación de Alertas**: Se reemplazaron las alertas del navegador por notificaciones toast interactivas.
 - **Filtros Avanzados**: Nuevos filtros por viaje individual en la barra lateral del mapa.
 - **Mejoras en Carrusel**: Ordenación inteligente de fotos (portada primero) e indicadores de mapa en miniaturas.
+- **Estandarización de Casing**: Se ha unificado el estilo de escritura en todo el proyecto. La base de datos ahora utiliza exclusivamente `snake_case` para todos los atributos, mientras que el código de la aplicación (entidades, servicios, JSON y frontend) utiliza `camelCase`. Se implementaron `snakeCaseMappers` en el backend para gestionar la conversión automática de forma transparente.
+- **Resaltado de Mapa DINÁMICO por Zoom**: Implementación de visualización inteligente en el mapa que alterna entre resaltado a nivel nacional y provincial. Al alejar el zoom (Zoom < 6), se ilumina el país completo; al acercarlo (Zoom >= 6), el foco cambia exclusivamente a las provincias visitadas/planificadas (actualmente para España).
+- **Explorador de Provincias y Banderas SVG**: Integración de banderas oficiales SVG de alta calidad para las Comunidades Autónomas y provincias de España. Nuevo modal de Explorador de Provincias accesible desde el perfil y el explorador de países.
+- **Detección Automática de Provincias Robusta**: Mejora en la lógica de detección de ubicaciones para manejar variaciones de nombre y jerarquías administrativas de Nominatim, asegurando un emparejamiento preciso para España.
+- **Selección de Provincias en Viajes**: Integración de selección de provincias en los formularios de creación y edición de viajes para España, permitiendo un seguimiento granular del itinerario.
+- **Auto-detección Unificada**: Centralización de la lógica de detección de provincias en el componente `LocationPicker` para una experiencia consistente al añadir puntos en el mapa o vincular fotos.
+- **Rediseño Premium de Edición de Viaje**: Rediseño completo del modal "Editar Viaje" para alinearlo con la estética premium del resto de la aplicación. Incluye iconografía Lucide, transiciones suaves y un layout optimizado.
+- **UI de Multiselección de Países**: Sustitución del selector de país único por un selector múltiple moderno con búsqueda, banderas y etiquetas dinámicas.
+- **Vista de Detalle de Provincias Agrupadas**: Los viajes ahora muestran las provincias organizadas bajo sus respectivos países mediante un sistema de chips elegante en la cabecera del viaje.
+- **Persistencia de Provincias en Viajes**: Corrección de un bug crítico que impedía el guardado correcto de las provincias seleccionadas en los viajes en el backend.
+- **Jerarquía Visual del Mapa Optimizada**: Ajuste de la opacidad de los países a un nivel muy tenue (0.03) al hacer zoom, garantizando que las provincias resaltadas destaquen con el máximo contraste.
+- **Restauración de i18n**: Reparación de errores en el almacén de traducciones y compleción de claves faltantes para acciones de formulario y avisos.
 - **Corrección de Errores**: Se eliminaron claves duplicadas y se corrigieron errores de sintaxis en la página del mapa.

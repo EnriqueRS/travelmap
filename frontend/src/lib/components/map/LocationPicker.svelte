@@ -8,15 +8,18 @@
   import { geocode } from "$lib/utils/geocode"
   import { Search } from "lucide-svelte"
   import { t } from "$lib/stores/i18n"
-  import { latLng } from "leaflet"
   import { reverseGeocode } from "$lib/utils/geocode"
   import { getCountryFlag, getCountryName } from "$lib/utils/countries"
   import { languageStore } from "$lib/stores/ui"
+  import { SPAIN_PROVINCES } from "$lib/utils/provinces"
+  import { normalizeString } from "$lib/utils/string"
 
   export let height = "300px"
   export let initialLocation: { lat: number; lng: number } | null = null
   export let hideSearch = false
   export let countryName: string | null = null
+  export let provinceName: string | null = null
+  export let countyName: string | null = null
 
   const dispatch = createEventDispatcher()
   let mapContainer: HTMLDivElement
@@ -48,10 +51,27 @@
         initialLocation ? 10 : 2,
       )
       if (initialLocation) {
-        countryName = await reverseGeocode(
+        const geoResult = await reverseGeocode(
           initialLocation.lat,
           initialLocation.lng,
         )
+        if (geoResult) {
+          countryName = geoResult.countryCode || null
+          if (countryName === "ES" && geoResult.state) {
+            const normalizedState = normalizeString(geoResult.state)
+            const matched = SPAIN_PROVINCES.find((p) => {
+              const normalizedP = normalizeString(p.name)
+              return (
+                normalizedState.includes(normalizedP) ||
+                normalizedP.includes(normalizedState)
+              )
+            })
+            provinceName = matched ? matched.name : geoResult.state
+          } else {
+            provinceName = geoResult.state || null
+          }
+          countyName = geoResult.county || null
+        }
       }
 
       L.tileLayer(
@@ -70,9 +90,36 @@
 
       map.on("click", async (e: any) => {
         const { lat, lng } = e.latlng
-        countryName = await reverseGeocode(lat, lng)
+        const geoResult = await reverseGeocode(lat, lng)
+        if (geoResult) {
+          countryName = geoResult.countryCode || null
+          if (countryName === "ES" && geoResult.province) {
+            const normalizedState = normalizeString(geoResult.province)
+            const matched = SPAIN_PROVINCES.find((p) => {
+              const normalizedP = normalizeString(p.name)
+              return (
+                normalizedState.includes(normalizedP) ||
+                normalizedP.includes(normalizedState)
+              )
+            })
+            provinceName = matched ? matched.name : geoResult.province
+          } else {
+            provinceName = geoResult.province || null
+          }
+          countyName = geoResult.county || null
+        } else {
+          countryName = null
+          provinceName = null
+          countyName = null
+        }
         addMarker(lat, lng)
-        dispatch("locationSelect", { lat, lng })
+        dispatch("locationSelect", {
+          lat,
+          lng,
+          country: countryName,
+          province: provinceName,
+          county: countyName,
+        })
       })
 
       setTimeout(() => {
@@ -113,7 +160,35 @@
       if (result) {
         map.setView([result.lat, result.lng], 14)
         addMarker(result.lat, result.lng)
-        dispatch("locationSelect", { lat: result.lat, lng: result.lng })
+        const geoResult = await reverseGeocode(result.lat, result.lng)
+        if (geoResult) {
+          countryName = geoResult.countryCode || null
+          if (countryName === "ES" && geoResult.state) {
+            const normalizedState = normalizeString(geoResult.state)
+            const matched = SPAIN_PROVINCES.find((p) => {
+              const normalizedP = normalizeString(p.name)
+              return (
+                normalizedState.includes(normalizedP) ||
+                normalizedP.includes(normalizedState)
+              )
+            })
+            provinceName = matched ? matched.name : geoResult.state
+          } else {
+            provinceName = geoResult.state || null
+          }
+          countyName = geoResult.county || null
+        } else {
+          countryName = null
+          provinceName = null
+          countyName = null
+        }
+        dispatch("locationSelect", {
+          lat: result.lat,
+          lng: result.lng,
+          country: countryName,
+          province: provinceName,
+          county: countyName,
+        })
         return true
       } else {
         searchError = $t("common.noLocationFound")

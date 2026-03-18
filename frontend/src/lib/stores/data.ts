@@ -21,6 +21,8 @@ export interface Location {
   visitedDate: string;
   images: string[];
   tripId?: string;
+  adminArea1?: string;
+  adminArea2?: string;
 }
 
 export interface Trip {
@@ -31,6 +33,7 @@ export interface Trip {
   startDate: string;
   endDate: string;
   countries: string[];
+  provinces?: string[];
   status: "Planificado" | "En curso" | "Completado";
   coverImage: string;
   locations: string[]; // IDs de ubicaciones
@@ -53,6 +56,8 @@ export interface UserProfile {
     name: string;
     coordinates: [number, number];
   };
+  homeCountry?: string;
+  homeProvince?: string;
 }
 
 // Initial demo data
@@ -297,9 +302,11 @@ export const updateStores = (userData: any) => {
         coverImage: t.coverImage || t.coverImageUrl,
         countries: t.countries || [],
         locations: t.locations ? t.locations.map((l: any) => l.id) : [],
+        provinces: t.provinces || [],
       };
     });
     trips.set(formattedTrips);
+    console.log("formattedTrips", formattedTrips);
   }
 
   if (userData.locations) {
@@ -332,6 +339,8 @@ export const updateStores = (userData: any) => {
         ? loc.photos.map((p: any) => p.id)
         : loc.images || [],
       tripId: loc.tripId,
+      adminArea1: loc.adminArea1,
+      adminArea2: loc.adminArea2,
     }));
     locations.set(formattedLocations);
   }
@@ -355,7 +364,7 @@ export const updateStores = (userData: any) => {
     name: userData.username, // or firstName + lastName
     avatar: userData.avatarUrl || profile.avatar,
     bio: userData.bio || profile.bio,
-    createdAt: userData.created_at,
+    createdAt: userData.createdAt,
     homeLocation:
       userData.homeLocationLat && userData.homeLocationLng
         ? {
@@ -363,6 +372,8 @@ export const updateStores = (userData: any) => {
           coordinates: [userData.homeLocationLat, userData.homeLocationLng],
         }
         : profile.homeLocation,
+    homeCountry: userData.homeCountry || profile.homeCountry,
+    homeProvince: userData.homeProvince || profile.homeProvince,
   }));
 };
 

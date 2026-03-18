@@ -16,8 +16,8 @@ export class MediaService {
    */
   async getMapPhotos(userId: number): Promise<Photo[]> {
     return Photo.query()
-      .where('userId', userId)
-      .andWhere('showOnMap', true)
+      .where('user_id', userId)
+      .andWhere('show_on_map', true)
       .orderBy('created_at', 'desc');
   }
 
@@ -76,7 +76,7 @@ export class MediaService {
    */
   async getTripPhotos(tripId: string, userId: number): Promise<Photo[]> {
     return Photo.query()
-      .where({ tripId, userId })
+      .where({ trip_id: tripId, user_id: userId })
       .orderBy('created_at', 'desc');
   }
 
@@ -94,7 +94,7 @@ export class MediaService {
     if (data.isCover === true && photo.tripId) {
       // 1. Quitar portada a las anteriores de ese viaje
       await Photo.query()
-        .where('tripId', photo.tripId)
+        .where('trip_id', photo.tripId)
         .patch({ isCover: false });
 
       // 2. Acoplar al Trip principal (opcional / fallback para old views)
@@ -113,7 +113,7 @@ export class MediaService {
   async batchUpdatePhotos(userId: number, photoIds: string[], data: any): Promise<Photo[]> {
     if (!photoIds || !photoIds.length) return [];
     
-    const photos = await Photo.query().whereIn('id', photoIds).andWhere('userId', userId);
+    const photos = await Photo.query().whereIn('id', photoIds).andWhere('user_id', userId);
     const updatedPhotos = [];
     
     for (const photo of photos) {
@@ -169,7 +169,7 @@ export class MediaService {
 
         const response = await axios.get(assetUrl, {
           headers: {
-            'x-api-key': integration.access_token,
+            'x-api-key': integration.accessToken,
             'Accept': 'image/*'
           },
           responseType: 'stream'

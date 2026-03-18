@@ -23,7 +23,9 @@
   import LocationPicker from "$lib/components/map/LocationPicker.svelte"
   import { authService } from "$lib/services/auth"
   import { integrationsService } from "$lib/services/integrations"
+  import { reverseGeocode } from "$lib/utils/geocode"
   import { onMount } from "svelte"
+  import ProvinceExplorer from "$lib/components/ui/ProvinceExplorer.svelte"
 
   // Estado Integraciones
   let immichStatus = { isConnected: false, url: "" }
@@ -70,6 +72,7 @@
 
   // Modal
   let showEditModal = false
+  let showProvinceExplorer = false
   let editData = { ...$userProfile }
   let isSaving = false
   let saveMessage = { type: "", text: "" }
@@ -134,18 +137,30 @@
       if (editData.homeLocation && editData.homeLocation.coordinates) {
         payload.homeLocationLat = editData.homeLocation.coordinates[0]
         payload.homeLocationLng = editData.homeLocation.coordinates[1]
+
+        // Automatic detection of home country and province
+        const geoResult = await reverseGeocode(
+          payload.homeLocationLat,
+          payload.homeLocationLng,
+        )
+        if (geoResult) {
+          payload.homeCountry = geoResult.countryCode
+          payload.homeProvince = geoResult.province
+
+          // Update local editData too so it reflects in store immediately after save
+          editData.homeCountry = geoResult.countryCode || undefined
+          editData.homeProvince = geoResult.province || undefined
+        }
       }
 
       await authService.updateProfile(payload)
 
-      saveMessage = {
-        type: "success",
-        text: $t("profile.successToast"),
-      }
       setTimeout(() => {
         showEditModal = false
         saveMessage = { type: "", text: "" }
-      }, 1500)
+        isSaving = false // Reset here after closing to avoid UI flickers
+      }, 500)
+      return // Exit to avoid double setting isSaving in finally if possible
     } catch (error: any) {
       console.error("Error saving profile:", error)
       const detail =
@@ -154,7 +169,6 @@
         type: "error",
         text: `${$t("profile.errorSaving")}: ${detail}`,
       }
-    } finally {
       isSaving = false
     }
   }
@@ -208,6 +222,24 @@
     } else {
       furthestPlace = null
     }
+  }
+
+  // Province Statistics
+  let provincesVisitedInHomeCountry = 0
+  let visitedProvinceNamesSet = new Set<string>()
+
+  $: if ($userProfile.homeCountry && $locations.length > 0) {
+    const visitedSet = new Set<string>()
+    $locations.forEach((loc) => {
+      if (loc.country === $userProfile.homeCountry && loc.adminArea1) {
+        visitedSet.add(loc.adminArea1)
+      }
+    })
+    provincesVisitedInHomeCountry = visitedSet.size
+    visitedProvinceNamesSet = visitedSet
+  } else {
+    provincesVisitedInHomeCountry = 0
+    visitedProvinceNamesSet = new Set<string>()
   }
 </script>
 
@@ -295,6 +327,28 @@
             </div>
             <div class="stats-label">{$t("profile.countriesVisited")}</div>
           </div>
+
+          {#if $userProfile.homeCountry}
+            <button
+              class="stats-item-card clickable"
+              on:click={() => (showProvinceExplorer = true)}
+              title={$t("profile.viewDetailedStats")}
+              style="text-align: left; width: 100%;"
+            >
+              <div class="stats-item-top">
+                <div class="stats-icon-box icon-purple">
+                  <MapPin size={18} />
+                </div>
+                <div class="stats-dash dash-purple" />
+              </div>
+              <div class="stats-number">{provincesVisitedInHomeCountry}</div>
+              <div class="stats-label">
+                {$t("profile.provincesVisited", {
+                  country: $userProfile.homeCountry,
+                })}
+              </div>
+            </button>
+          {/if}
 
           <div class="stats-item-card">
             <div class="stats-item-top">
@@ -471,11 +525,10 @@
   {#if showEditModal}
     <div
       class="modal-overlay"
-      role="dialog"
-      aria-modal="true"
+      role="button"
+      tabindex="-1"
       on:click|self={() => (showEditModal = false)}
       on:keydown={(e) => e.key === "Escape" && (showEditModal = false)}
-      tabindex="-1"
     >
       <div class="modal-glass">
         <div class="modal-header">
@@ -508,88 +561,86 @@
             </div>
 
             <div class="form-group-modern">
-              <label>{$t("profile.avatarTitle")}</label>
-              <div class="avatar-selection-modern">
-                <div class="modern-tabs">
-                  <button
-                    type="button"
-                    class="modern-tab-btn"
-                    class:active={avatarTab === "preset"}
-                    on:click={() => (avatarTab = "preset")}
-                  >
-                    {$t("profile.presetGallery")}
-                  </button>
-                  <button
-                    type="button"
-                    class="modern-tab-btn"
-                    class:active={avatarTab === "upload"}
-                    on:click={() => (avatarTab = "upload")}
-                  >
-                    {$t("profile.uploadImage")}
-                  </button>
-                </div>
+              <label for="modern-tab-preset">{$t("profile.avatarTitle")}</label>
+              <div class="modern-tabs" id="modern-tab-preset">
+                <button
+                  type="button"
+                  class="modern-tab-btn"
+                  class:active={avatarTab === "preset"}
+                  on:click={() => (avatarTab = "preset")}
+                >
+                  {$t("profile.presetGallery")}
+                </button>
+                <button
+                  type="button"
+                  class="modern-tab-btn"
+                  class:active={avatarTab === "upload"}
+                  on:click={() => (avatarTab = "upload")}
+                >
+                  {$t("profile.uploadImage")}
+                </button>
+              </div>
 
-                <div class="avatar-preview-container">
-                  <div class="avatar-ring-small">
-                    {#if editData.avatar && editData.avatar.startsWith("http")}
-                      <img
-                        src={editData.avatar}
-                        alt="Avatar preview"
-                        class="avatar-preview-img"
-                      />
-                    {:else if editData.avatar && editData.avatar.startsWith("data:")}
-                      <img
-                        src={editData.avatar}
-                        alt="Avatar preview"
-                        class="avatar-preview-img"
-                      />
-                    {:else}
-                      <ImagePlaceholder text={editData.name} type="profile" />
-                    {/if}
-                  </div>
-                </div>
-
-                {#if avatarTab === "preset"}
-                  <div class="presets-grid-modern">
-                    {#each avatarPresets as preset}
-                      <button
-                        type="button"
-                        class="preset-item"
-                        class:selected={editData.avatar === preset}
-                        on:click={() => selectPreset(preset)}
-                      >
-                        <img src={preset} alt="Preset avatar" />
-                      </button>
-                    {/each}
-                  </div>
-                {:else}
-                  <div class="upload-area-modern">
-                    <input
-                      type="file"
-                      id="avatar-upload"
-                      accept="image/*"
-                      on:change={handleAvatarFile}
-                      style="display: none;"
+              <div class="avatar-preview-container">
+                <div class="avatar-ring-small">
+                  {#if editData.avatar && editData.avatar.startsWith("http")}
+                    <img
+                      src={editData.avatar}
+                      alt="Avatar preview"
+                      class="avatar-preview-img"
                     />
+                  {:else if editData.avatar && editData.avatar.startsWith("data:")}
+                    <img
+                      src={editData.avatar}
+                      alt="Avatar preview"
+                      class="avatar-preview-img"
+                    />
+                  {:else}
+                    <ImagePlaceholder text={editData.name} type="profile" />
+                  {/if}
+                </div>
+              </div>
+
+              {#if avatarTab === "preset"}
+                <div class="presets-grid-modern">
+                  {#each avatarPresets as preset}
                     <button
                       type="button"
-                      class="btn btn-outline w-full"
-                      on:click={() =>
-                        document.getElementById("avatar-upload")?.click()}
+                      class="preset-item"
+                      class:selected={editData.avatar === preset}
+                      on:click={() => selectPreset(preset)}
                     >
-                      <Upload size={18} />
-                      <span
-                        >{avatarFile
-                          ? $t("profile.changeFile")
-                          : $t("profile.selectDevice")}</span
-                      >
+                      <img src={preset} alt="Preset avatar" />
                     </button>
-                    {#if avatarFile}
-                      <span class="file-name-modern">{avatarFile.name}</span>
-                    {/if}
-                  </div>
-                {/if}
-              </div>
+                  {/each}
+                </div>
+              {:else}
+                <div class="upload-area-modern">
+                  <input
+                    type="file"
+                    id="avatar-upload"
+                    accept="image/*"
+                    on:change={handleAvatarFile}
+                    style="display: none;"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-outline w-full"
+                    on:click={() =>
+                      document.getElementById("avatar-upload")?.click()}
+                  >
+                    <Upload size={18} />
+                    <span
+                      >{avatarFile
+                        ? $t("profile.changeFile")
+                        : $t("profile.selectDevice")}</span
+                    >
+                  </button>
+                  {#if avatarFile}
+                    <span class="file-name-modern">{avatarFile.name}</span>
+                  {/if}
+                </div>
+              {/if}
             </div>
 
             <div class="form-section-divider">
@@ -669,6 +720,13 @@
         </div>
       </div>
     </div>
+  {/if}
+  {#if showProvinceExplorer}
+    <ProvinceExplorer
+      countryCode={$userProfile.homeCountry || "ES"}
+      visitedProvinces={visitedProvinceNamesSet}
+      on:close={() => (showProvinceExplorer = false)}
+    />
   {/if}
 </main>
 
@@ -848,12 +906,28 @@
   }
 
   .stats-item-card {
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 12px;
+    background: #141c2f;
+    border: 1px solid #1e293b;
+    border-radius: 16px;
     padding: 1.25rem;
     display: flex;
     flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .stats-item-card.clickable {
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .stats-item-card.clickable:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(139, 92, 246, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .stats-item-card.clickable:active {
+    transform: translateY(0);
   }
 
   .stats-item-top {

@@ -49,8 +49,8 @@
   let showLangMenu = false
 
   onMount(async () => {
-    if ($currentUser?.access_token) {
-      await authService.fetchUserData($currentUser.access_token)
+    if ($currentUser?.accessToken) {
+      await authService.fetchUserData($currentUser.accessToken)
     }
     isInitializing = false
   })

@@ -27,7 +27,7 @@
       authService
         .login(username, password)
         .then((res) => {
-          if (res.access_token) {
+          if (res.accessToken) {
             goto("/map")
           } else {
             errorMessage = $t("auth.invalidCredentials")
@@ -248,14 +248,6 @@
   .auth-brand:hover {
     color: #93c5fd;
   }
-  .auth-brand-icon {
-    width: 1.75rem;
-    height: 1.75rem;
-    transition: transform 0.2s;
-  }
-  .auth-brand:hover .auth-brand-icon {
-    transform: scale(1.1);
-  }
 
   .auth-title {
     font-size: 1.875rem;
@@ -295,18 +287,6 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-  }
-  .auth-input-wrap .auth-input-icon {
-    position: absolute;
-    left: 1rem;
-    width: 1.25rem;
-    height: 1.25rem;
-    color: #64748b;
-    pointer-events: none;
-    transition: color 0.2s;
-  }
-  .auth-input-wrap:focus-within .auth-input-icon {
-    color: #60a5fa;
   }
   .auth-input-wrap input {
     width: 100%;
@@ -348,10 +328,6 @@
     outline: none;
     color: #60a5fa;
   }
-  .auth-toggle-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-  }
 
   .auth-error {
     display: flex;
@@ -363,11 +339,6 @@
     border: 1px solid rgba(239, 68, 68, 0.2);
     color: #f87171;
     font-size: 0.875rem;
-  }
-  .auth-error-icon {
-    width: 1rem;
-    height: 1rem;
-    flex-shrink: 0;
   }
 
   .auth-submit {
@@ -402,10 +373,6 @@
   .auth-submit:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-  }
-  .auth-submit-icon {
-    width: 1.25rem;
-    height: 1.25rem;
   }
   .auth-spinner {
     width: 1.25rem;
@@ -466,10 +433,6 @@
     align-items: center;
     justify-content: center;
     margin-bottom: 2rem;
-  }
-  .auth-quote-icon {
-    width: 2rem;
-    height: 2rem;
   }
   .auth-quote-text {
     font-size: 1.25rem;

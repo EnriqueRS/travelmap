@@ -18,10 +18,16 @@ export const locationsService = {
     const token = getToken();
     if (!token) throw new Error("No authentication token found");
 
-    const payload = {
+    const payload: any = {
       ...locationData,
       category: categoryToBackend[locationData.category] || "city",
     };
+
+    if (locationData.coordinates) {
+      payload.latitude = locationData.coordinates[0];
+      payload.longitude = locationData.coordinates[1];
+      delete payload.coordinates;
+    }
 
     const response = await axios.post(`${API_URL}/locations`, payload, {
       headers: { Authorization: `Bearer ${token}` },

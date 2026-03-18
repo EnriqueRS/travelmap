@@ -2,6 +2,9 @@
   import { onMount, onDestroy } from "svelte"
   import { fade, scale, slide } from "svelte/transition"
   import MapContainer from "$lib/components/map/MapContainer.svelte"
+  import ProvinceExplorer from "$lib/components/ui/ProvinceExplorer.svelte"
+  import ProvinceMultiSelect from "$lib/components/ui/ProvinceMultiSelect.svelte"
+  import { SPAIN_PROVINCES } from "$lib/utils/provinces"
 
   import { toast, languageStore } from "$lib/stores/ui"
   import { t } from "$lib/stores/i18n"
@@ -37,7 +40,6 @@
   import { COUNTRIES, getCountryName } from "$lib/utils/countries"
   import { normalizeString } from "$lib/utils/string"
   import { locationsService } from "$lib/services/locations"
-  import { tripsService } from "$lib/services/trips"
 
   // Bind to map component
   let mapComponent: any
@@ -69,7 +71,11 @@
     | "Cultura"
     | "Otro" = "Ciudad"
   let newLocationTripId = ""
+  let newLocationProvince = ""
+  let newLocationCounty = ""
   let newTripName = ""
+  let newTripProvinces: string[] = []
+  let showProvinceExplorer = false
 
   let newLocationPhotoFiles: FileList | null = null
   let isSavingLocation = false
@@ -110,13 +116,30 @@
     newLocationCountry = ""
     newLocationCategory = "Ciudad"
     newLocationTripId = ""
+    newLocationProvince = ""
     newTripName = ""
     newLocationPhotoFiles = null
     showAddLocationModal = true
 
-    const country = await reverseGeocode(e.detail.lat, e.detail.lng)
-    if (country) {
-      newLocationCountry = country
+    const geoResult = await reverseGeocode(e.detail.lat, e.detail.lng)
+    console.log("[Map] handleMapClick geoResult:", geoResult)
+    newLocationCounty = ""
+    if (geoResult) {
+      newLocationCountry = geoResult.countryCode || ""
+      if (newLocationCountry === "ES" && geoResult.state) {
+        const normalizedState = normalizeString(geoResult.state)
+        const matched = SPAIN_PROVINCES.find((p) => {
+          const normalizedP = normalizeString(p.name)
+          return (
+            normalizedState.includes(normalizedP) ||
+            normalizedP.includes(normalizedState)
+          )
+        })
+        if (matched) newLocationProvince = matched.name
+      } else {
+        newLocationProvince = geoResult.state || ""
+      }
+      newLocationCounty = geoResult.county || ""
     }
   }
 
@@ -125,9 +148,26 @@
   ) {
     newLocationLat = e.detail.lat
     newLocationLng = e.detail.lng
-    const country = await reverseGeocode(e.detail.lat, e.detail.lng)
-    if (country) {
-      newLocationCountry = country
+    const geoResult = await reverseGeocode(e.detail.lat, e.detail.lng)
+    console.log("[Map] handleLocationModalSelect geoResult:", geoResult)
+    newLocationCounty = ""
+    if (geoResult) {
+      newLocationCountry = geoResult.countryCode || ""
+      if (newLocationCountry === "ES" && geoResult.province) {
+        const normalizedState = normalizeString(geoResult.province)
+        const matched = SPAIN_PROVINCES.find((p) => {
+          const normalizedP = normalizeString(p.name)
+          return (
+            normalizedState.includes(normalizedP) ||
+            normalizedP.includes(normalizedState)
+          )
+        })
+        if (matched) newLocationProvince = matched.name
+        else newLocationProvince = ""
+      } else {
+        newLocationProvince = geoResult.province || ""
+      }
+      newLocationCounty = geoResult.county || ""
     }
   }
 
@@ -154,6 +194,7 @@
         startDate: new Date().toISOString().split("T")[0],
         endDate: new Date().toISOString().split("T")[0],
         countries: newLocationCountry ? [newLocationCountry] : [],
+        provinces: newTripProvinces,
         status: "Planificado",
         coverImage: "default-cover",
         locations: [],
@@ -174,6 +215,8 @@
       visitedDate: new Date().toISOString().split("T")[0],
       images: [],
       tripId: finalTripId || undefined,
+      adminArea1: newLocationProvince || undefined,
+      adminArea2: newLocationCounty || undefined,
     }
 
     // Photo Upload Logic
@@ -273,6 +316,43 @@
     acc[trip.id] = tripColors[index % tripColors.length]
     return acc
   }, {} as Record<string, string>)
+
+  $: statsData = {
+    totalCountries: COUNTRIES.length,
+    visitedCountries: uniqueCountries,
+    notVisitedCountries: COUNTRIES.length - uniqueCountries,
+    totalPlaces: $locations.length,
+    totalTrips: $trips.length,
+  }
+
+  // Province Progress calculation for Home Country
+  $: visitedProvinceNamesSet = $locations
+    .filter((loc) => loc.country === $userProfile.homeCountry)
+    .reduce((acc, loc) => {
+      const trip = $trips.find((t) => t.id === loc.tripId)
+      if (
+        !loc.tripId ||
+        (trip && (trip.status === "Completado" || trip.status === "En curso"))
+      ) {
+        if (loc.adminArea1) acc.add(loc.adminArea1)
+      }
+      return acc
+    }, new Set<string>())
+
+  $: plannedProvinceNamesSet = $locations
+    .filter((loc) => loc.country === $userProfile.homeCountry)
+    .reduce((acc, loc) => {
+      const trip = $trips.find((t) => t.id === loc.tripId)
+      if (trip && trip.status === "Planificado") {
+        if (loc.adminArea1) acc.add(loc.adminArea1)
+      }
+      return acc
+    }, new Set<string>())
+
+  // Ensure visited takes precedence in display set
+  $: {
+    visitedProvinceNamesSet.forEach((p) => plannedProvinceNamesSet.delete(p))
+  }
 
   // Stats derivation
   $: totalLocations = $locations.length
@@ -469,7 +549,7 @@
   })
 
   $: filteredPhotos = mapPhotos.filter((photo) => {
-    const pTripId = photo.tripId || (photo as any).trip_id
+    const pTripId = photo.tripId
     if (!pTripId) return true // Show un-tripped photos always unless user decides otherwise
 
     const trip = $trips.find((t) => t.id === pTripId)
@@ -499,7 +579,7 @@
     let isCompleted = false
     let isOngoing = false
 
-    const locTripId = loc.tripId || (loc as any).trip_id
+    const locTripId = loc.tripId
 
     if (locTripId) {
       const trip = $trips.find((t) => t.id === locTripId)
@@ -987,7 +1067,11 @@
       <!-- Floating Map Controls -->
       <div class="map-controls-floating flex flex-col gap-2">
         <!-- New Floating Add Trip Button (Mobile Only) -->
-        <a href="/trips/new" class="control-btn add-trip-floating-btn" title={$t("dashboard.newTrip")}>
+        <a
+          href="/trips/new"
+          class="control-btn add-trip-floating-btn"
+          title={$t("dashboard.newTrip")}
+        >
           <Plus size={20} />
           <span class="btn-tooltip">{$t("dashboard.newTrip")}</span>
         </a>
@@ -1110,6 +1194,24 @@
             </select>
           </div>
 
+          {#if newLocationCountry === "ES" && $userProfile?.homeCountry === "ES"}
+            <div class="form-field-group">
+              <label class="field-label" for="loc-province"
+                >{$t("map.provinceLabel")}</label
+              >
+              <select
+                id="loc-province"
+                class="premium-select"
+                bind:value={newLocationProvince}
+              >
+                <option value="">{$t("map.selectProvince")}</option>
+                {#each SPAIN_PROVINCES as province}
+                  <option value={province.name}>{province.name}</option>
+                {/each}
+              </select>
+            </div>
+          {/if}
+
           <div class="form-field-group full-width-field">
             <label class="field-label" for="loc-trip"
               >{$t("map.tripLabel")}</label
@@ -1140,6 +1242,17 @@
                 placeholder={$t("map.newTripNamePlaceholder")}
               />
             </div>
+
+            {#if newLocationCountry === "ES"}
+              <div class="form-field-group full-width-field" transition:slide>
+                <label class="field-label" for="new-trip-provinces"
+                  >{$t("map.provinces")}</label
+                >
+                <ProvinceMultiSelect
+                  bind:selectedProvinces={newTripProvinces}
+                />
+              </div>
+            {/if}
           {/if}
         </div>
 
@@ -1319,7 +1432,17 @@
 
         <div class="countries-grid custom-scrollbar">
           {#each filteredExplorerCountries as country}
-            <div class="modern-country-card" class:visited={country.isVisited}>
+            {@const isHomeCountry = country.id === $userProfile.homeCountry}
+            <div
+              class="modern-country-card"
+              class:visited={country.isVisited}
+              class:clickable-stats={isHomeCountry}
+              on:click={() => {
+                if (isHomeCountry) {
+                  showProvinceExplorer = true
+                }
+              }}
+            >
               {#if country.isVisited}
                 <div class="visited-check">
                   <svg
@@ -1341,9 +1464,20 @@
               <span class="country-name" class:muted={!country.isVisited}
                 >{country.localizedName}</span
               >
-              <span class="country-continent"
-                >{$t("continents." + country.mappedCont).toUpperCase()}</span
-              >
+              <div class="country-footer">
+                <span class="country-continent"
+                  >{$t("continents." + country.mappedCont).toUpperCase()}</span
+                >
+                {#if isHomeCountry}
+                  <div
+                    class="home-indicator"
+                    title={$t("profile.viewDetailedStats")}
+                  >
+                    <MapPin size={10} />
+                    <span>Prov.</span>
+                  </div>
+                {/if}
+              </div>
             </div>
           {/each}
         </div>
@@ -1356,6 +1490,15 @@
       </div>
     </div>
   </div>
+{/if}
+
+{#if showProvinceExplorer}
+  <ProvinceExplorer
+    countryCode={$userProfile.homeCountry || "ES"}
+    visitedProvinces={visitedProvinceNamesSet}
+    plannedProvinces={plannedProvinceNamesSet}
+    on:close={() => (showProvinceExplorer = false)}
+  />
 {/if}
 
 <style>
@@ -1884,35 +2027,6 @@
   /* --- Mobile Stats Panel (hidden on desktop) --- */
   .mobile-stats-panel {
     display: none;
-  }
-
-  /* Responsive - Tablet */
-  @media (max-width: 1024px) and (min-width: 769px) {
-    .dashboard-page {
-      grid-template-columns: 1fr;
-      overflow-y: auto;
-      height: auto;
-    }
-
-    .sidebar {
-      border-right: none;
-      border-bottom: 1px solid #1f2937;
-      height: auto;
-    }
-
-    .map-area {
-      height: 600px;
-    }
-
-    .topbar {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 1rem;
-    }
-
-    .topbar-center {
-      order: 3;
-    }
   }
 
   /* Responsive - Mobile */
@@ -3066,5 +3180,35 @@
     .continent-row {
       gap: 0.35rem;
     }
+  }
+  .modern-country-card.clickable-stats {
+    cursor: pointer;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+  }
+
+  .modern-country-card.clickable-stats:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+  }
+
+  .country-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: auto;
+  }
+
+  .home-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
   }
 </style>

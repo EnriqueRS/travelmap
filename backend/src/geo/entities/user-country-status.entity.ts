@@ -1,5 +1,4 @@
-// backend/src/geo/entities/user-country-status.entity.ts
-import { Model } from 'objection';
+import { Model, snakeCaseMappers } from 'objection';
 import { Country } from './country.entity';
 import { User } from '../../users/user.entity';
 
@@ -32,6 +31,10 @@ export class UserCountryStatus extends Model implements UserCountryStatusPropert
     return 'id';
   }
 
+  static get columnNameMappers() {
+    return snakeCaseMappers();
+  }
+
   static get jsonSchema() {
     return {
       type: 'object',
@@ -59,7 +62,7 @@ export class UserCountryStatus extends Model implements UserCountryStatusPropert
         relation: Model.BelongsToOneRelation,
         modelClass: Country,
         join: {
-          from: 'user_country_statuses.countryId',
+          from: 'user_country_statuses.country_id',
           to: 'countries.id'
         }
       },
@@ -67,7 +70,7 @@ export class UserCountryStatus extends Model implements UserCountryStatusPropert
         relation: Model.BelongsToOneRelation,
         modelClass: User,
         join: {
-          from: 'user_country_statuses.userId',
+          from: 'user_country_statuses.user_id',
           to: 'users.id'
         }
       }
@@ -89,8 +92,8 @@ export class UserCountryStatus extends Model implements UserCountryStatusPropert
   // Método estático para obtener países por estado
   static async getCountriesByStatus(userId: number, status: 'visited' | 'planned' | 'wishlist'): Promise<Country[]> {
     return await Country.query()
-      .join('user_country_statuses', 'countries.id', 'user_country_statuses.countryId')
-      .where('user_country_statuses.userId', userId)
+      .join('user_country_statuses', 'countries.id', 'user_country_statuses.country_id')
+      .where('user_country_statuses.user_id', userId)
       .where('user_country_statuses.status', status)
       .select('countries.*');
   }
@@ -102,8 +105,8 @@ export class UserCountryStatus extends Model implements UserCountryStatusPropert
         'user_country_statuses',
         builder => {
           builder
-            .on('countries.id', '=', 'user_country_statuses.countryId')
-            .andOn('user_country_statuses.userId', '=', userId.toString());
+            .on('countries.id', '=', 'user_country_statuses.country_id')
+            .andOn('user_country_statuses.user_id', '=', userId.toString());
         }
       )
       .select(
@@ -113,6 +116,4 @@ export class UserCountryStatus extends Model implements UserCountryStatusPropert
 
     return results as Array<Country & { status: string }>;
   }
-
-
 }

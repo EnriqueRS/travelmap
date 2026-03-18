@@ -1,5 +1,4 @@
-// backend/src/locations/entities/location.entity.ts
-import { Model } from 'objection';
+import { Model, snakeCaseMappers } from 'objection';
 import { User } from '../../users/user.entity';
 import { Trip } from '../../trips/entities/trip.entity';
 import { Country } from '../../geo/entities/country.entity';
@@ -19,8 +18,10 @@ export interface LocationProperties {
   category: string;
   elevation?: number; // meters
   timezone?: string;
-  created_at: Date;
-  updated_at: Date;
+  adminArea1?: string;
+  adminArea2?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class Location extends Model implements LocationProperties {
@@ -37,8 +38,10 @@ export class Location extends Model implements LocationProperties {
   category!: string;
   elevation?: number; // meters
   timezone?: string;
-  created_at!: Date;
-  updated_at!: Date;
+  adminArea1?: string;
+  adminArea2?: string;
+  createdAt!: Date;
+  updatedAt!: Date;
 
   static get tableName() {
     return 'locations';
@@ -46,6 +49,10 @@ export class Location extends Model implements LocationProperties {
 
   static get idColumn() {
     return 'id';
+  }
+
+  static get columnNameMappers() {
+    return snakeCaseMappers();
   }
 
   static get jsonSchema() {
@@ -70,8 +77,10 @@ export class Location extends Model implements LocationProperties {
         },
         elevation: { type: ['number', 'null'] },
         timezone: { type: ['string', 'null'], maxLength: 50 },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' }
+        adminArea1: { type: ['string', 'null'], maxLength: 100 },
+        adminArea2: { type: ['string', 'null'], maxLength: 100 },
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' }
       }
     };
   }
@@ -82,7 +91,7 @@ export class Location extends Model implements LocationProperties {
         relation: Model.BelongsToOneRelation,
         modelClass: User,
         join: {
-          from: 'locations.userId',
+          from: 'locations.user_id',
           to: 'users.id'
         }
       },
@@ -90,7 +99,7 @@ export class Location extends Model implements LocationProperties {
         relation: Model.BelongsToOneRelation,
         modelClass: Trip,
         join: {
-          from: 'locations.tripId',
+          from: 'locations.trip_id',
           to: 'trips.id'
         }
       },
@@ -98,7 +107,7 @@ export class Location extends Model implements LocationProperties {
         relation: Model.BelongsToOneRelation,
         modelClass: Country,
         join: {
-          from: 'locations.countryId',
+          from: 'locations.country_id',
           to: 'countries.id'
         }
       },
@@ -107,7 +116,7 @@ export class Location extends Model implements LocationProperties {
         modelClass: Photo,
         join: {
           from: 'locations.id',
-          to: 'photos.locationId'
+          to: 'photos.location_id'
         }
       }
     };
@@ -125,14 +134,14 @@ export class Location extends Model implements LocationProperties {
     // Country detection is handled by the frontend via Nominatim reverse geocoding.
     // The ST_Contains query does not work with geography columns, so we skip it here.
 
-    this.created_at = new Date();
-    this.updated_at = new Date();
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
   }
 
   async $beforeUpdate() {
     await super.$beforeUpdate({}, {} as any);
     // Country detection is handled by the frontend via Nominatim reverse geocoding.
-    this.updated_at = new Date();
+    this.updatedAt = new Date();
   }
 
   // Convertir a GeoJSON Feature
@@ -152,7 +161,9 @@ export class Location extends Model implements LocationProperties {
         category: this.category,
         visitDate: this.visitDate?.toISOString(),
         countryId: this.countryId,
-        countryName: (this as any).country?.name
+        countryName: (this as any).country?.name,
+        adminArea1: this.adminArea1,
+        adminArea2: this.adminArea2
       }
     };
   }

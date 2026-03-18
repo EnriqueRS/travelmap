@@ -1,5 +1,4 @@
-// backend/src/auth/entities/user.entity.ts
-import { Model } from 'objection';
+import { Model, snakeCaseMappers } from 'objection';
 import { Trip } from '../trips/entities/trip.entity';
 import { Location } from '../locations/entities/location.entity';
 import { Photo } from '../media/entities/photo.entity';
@@ -19,8 +18,10 @@ export interface UserProperties {
   themePreference: 'light' | 'dark' | 'auto';
   homeLocationLat?: number;
   homeLocationLng?: number;
-  created_at: Date;
-  updated_at: Date;
+  homeCountry?: string;
+  homeProvince?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class User extends Model implements UserProperties {
@@ -36,8 +37,10 @@ export class User extends Model implements UserProperties {
   themePreference!: 'light' | 'dark' | 'auto';
   homeLocationLat?: number;
   homeLocationLng?: number;
-  created_at!: Date;
-  updated_at!: Date;
+  homeCountry?: string;
+  homeProvince?: string;
+  createdAt!: Date;
+  updatedAt!: Date;
 
   static get tableName() {
     return 'users';
@@ -45,6 +48,10 @@ export class User extends Model implements UserProperties {
 
   static get idColumn() {
     return 'id';
+  }
+
+  static get columnNameMappers() {
+    return snakeCaseMappers();
   }
 
   static get jsonSchema() {
@@ -68,8 +75,10 @@ export class User extends Model implements UserProperties {
         },
         homeLocationLat: { type: ['number', 'null'] },
         homeLocationLng: { type: ['number', 'null'] },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' }
+        homeCountry: { type: ['string', 'null'], maxLength: 2 },
+        homeProvince: { type: ['string', 'null'], maxLength: 100 },
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' }
       }
     };
   }
@@ -81,7 +90,7 @@ export class User extends Model implements UserProperties {
         modelClass: Trip,
         join: {
           from: 'users.id',
-          to: 'trips.userId'
+          to: 'trips.user_id'
         }
       },
       locations: {
@@ -89,7 +98,7 @@ export class User extends Model implements UserProperties {
         modelClass: Location,
         join: {
           from: 'users.id',
-          to: 'locations.userId'
+          to: 'locations.user_id'
         }
       },
       photos: {
@@ -97,7 +106,7 @@ export class User extends Model implements UserProperties {
         modelClass: Photo,
         join: {
           from: 'users.id',
-          to: 'photos.userId'
+          to: 'photos.user_id'
         }
       },
       countryStatuses: {
@@ -105,7 +114,7 @@ export class User extends Model implements UserProperties {
         modelClass: UserCountryStatus,
         join: {
           from: 'users.id',
-          to: 'user_country_statuses.userId'
+          to: 'user_country_statuses.user_id'
         }
       },
       statistics: {
@@ -113,7 +122,7 @@ export class User extends Model implements UserProperties {
         modelClass: UserStatistics,
         join: {
           from: 'users.id',
-          to: 'user_statistics.userId'
+          to: 'user_statistics.user_id'
         }
       }
     };
@@ -122,13 +131,13 @@ export class User extends Model implements UserProperties {
   // Hooks for timestamps
   async $beforeInsert() {
     await super.$beforeInsert({} as any);
-    this.created_at = new Date();
-    this.updated_at = new Date();
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
   }
 
   async $beforeUpdate() {
     await super.$beforeUpdate({}, {} as any);
-    this.updated_at = new Date();
+    this.updatedAt = new Date();
   }
 
   // Get full name method
@@ -143,8 +152,8 @@ export class User extends Model implements UserProperties {
   async getVisitedCountries(): Promise<any[]> {
     const { Country } = await import('../geo/entities/country.entity');
     return await Country.query()
-      .join('user_country_statuses', 'countries.id', 'user_country_statuses.countryId')
-      .where('user_country_statuses.userId', this.id)
+      .join('user_country_statuses', 'countries.id', 'user_country_statuses.country_id')
+      .where('user_country_statuses.user_id', this.id)
       .where('user_country_statuses.status', 'visited')
       .select('countries.*');
   }
@@ -152,10 +161,10 @@ export class User extends Model implements UserProperties {
   // Get basic stats method
   async getBasicStats(): Promise<any> {
     const [tripsCount, locationsCount, countriesCount] = await Promise.all([
-      Trip.query().where('userId', this.id).count('* as count').first(),
-      Location.query().where('userId', this.id).count('* as count').first(),
+      Trip.query().where('user_id', this.id).count('* as count').first(),
+      Location.query().where('user_id', this.id).count('* as count').first(),
       UserCountryStatus.query()
-        .where('userId', this.id)
+        .where('user_id', this.id)
         .where('status', 'visited')
         .count('* as count')
         .first()
@@ -171,8 +180,8 @@ export class User extends Model implements UserProperties {
   // Method to check if a country is in a specific status
   async hasCountryStatus(countryId: number, status: 'visited' | 'planned' | 'wishlist'): Promise<boolean> {
     const result = await UserCountryStatus.query()
-      .where('userId', this.id)
-      .where('countryId', countryId)
+      .where('user_id', this.id)
+      .where('country_id', countryId)
       .where('status', status)
       .first();
 
@@ -189,7 +198,7 @@ export class User extends Model implements UserProperties {
       avatarUrl: this.avatarUrl,
       bio: this.bio,
       isPublic: this.isPublic,
-      created_at: this.created_at
+      createdAt: this.createdAt
     };
   }
 }

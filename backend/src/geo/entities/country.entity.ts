@@ -1,5 +1,4 @@
-// backend/src/geo/entities/country.entity.ts
-import { Model } from 'objection';
+import { Model, snakeCaseMappers } from 'objection';
 import { UserCountryStatus } from './user-country-status.entity';
 
 export interface CountryProperties {
@@ -39,6 +38,10 @@ export class Country extends Model implements CountryProperties {
     return 'id';
   }
 
+  static get columnNameMappers() {
+    return snakeCaseMappers();
+  }
+
   static get jsonSchema() {
     return {
       type: 'object',
@@ -67,7 +70,7 @@ export class Country extends Model implements CountryProperties {
         modelClass: UserCountryStatus,
         join: {
           from: 'countries.id',
-          to: 'user_country_statuses.countryId'
+          to: 'user_country_statuses.country_id'
         }
       }
     };

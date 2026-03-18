@@ -14,7 +14,8 @@
   import { languageStore } from "$lib/stores/ui"
   import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
   import AlbumModal from "$lib/components/ui/AlbumModal.svelte"
-  import CountryPicker from "$lib/components/ui/CountryPicker.svelte"
+  import CountryMultiSelect from "$lib/components/ui/CountryMultiSelect.svelte"
+  import ProvinceMultiSelect from "$lib/components/ui/ProvinceMultiSelect.svelte"
   import LocationPicker from "$lib/components/map/LocationPicker.svelte"
   import MiniStaticMap from "$lib/components/map/MiniStaticMap.svelte"
   import {
@@ -35,6 +36,8 @@
     Camera,
     Image,
     Monitor,
+    Globe,
+    Save,
   } from "lucide-svelte"
   import { onMount, tick } from "svelte"
   import { fade, slide } from "svelte/transition"
@@ -43,6 +46,8 @@
   import { API_URL } from "$lib/services/auth"
   import { toast } from "$lib/stores/ui"
   import { reverseGeocode } from "$lib/utils/geocode"
+  import { normalizeString } from "$lib/utils/string"
+  import { SPAIN_PROVINCES } from "$lib/utils/provinces"
 
   import { tripsService } from "$lib/services/trips"
   import { locationsService } from "$lib/services/locations"
@@ -63,6 +68,8 @@
   let modalLocationLng = 0
   let modalLocationDescription = ""
   let modalLocationRating = 5
+  let modalLocationAdminArea1 = ""
+  let modalLocationAdminArea2 = ""
   let selectedPhotoForLocation: AppPhoto | null = null
 
   function openAddLocation() {
@@ -74,6 +81,8 @@
     modalLocationLng = 0
     modalLocationDescription = ""
     modalLocationRating = 5
+    modalLocationAdminArea1 = ""
+    modalLocationAdminArea2 = ""
     selectedPhotoForLocation = null
     showLocationModal = true
   }
@@ -87,18 +96,48 @@
     modalLocationLng = loc.coordinates?.[1] || 0
     modalLocationRating = loc.rating || 5
     modalLocationDescription = loc.description || ""
+    modalLocationAdminArea1 = loc.adminArea1 || ""
+    modalLocationAdminArea2 = loc.adminArea2 || ""
     selectedPhotoForLocation = null // If they want to link a new photo, they can
     showLocationModal = true
   }
 
   async function handleLocationModalSelect(
-    e: CustomEvent<{ lat: number; lng: number }>,
+    e: CustomEvent<{
+      lat: number
+      lng: number
+      country?: string
+      province?: string
+      county?: string
+    }>,
   ) {
     modalLocationLat = e.detail.lat
     modalLocationLng = e.detail.lng
-    const country = await reverseGeocode(e.detail.lat, e.detail.lng)
-    if (country) {
-      modalLocationCountry = country
+
+    if (e.detail.country !== undefined) {
+      modalLocationCountry = e.detail.country || ""
+      modalLocationAdminArea1 = e.detail.province || ""
+      modalLocationAdminArea2 = e.detail.county || ""
+    } else {
+      const result = await reverseGeocode(e.detail.lat, e.detail.lng)
+      if (result) {
+        modalLocationCountry = result.countryCode || ""
+        if (modalLocationCountry === "ES" && result.state) {
+          const normalizedState = normalizeString(result.state)
+          const matched = SPAIN_PROVINCES.find((p) => {
+            const normalizedP = normalizeString(p.name)
+            return (
+              normalizedState.includes(normalizedP) ||
+              normalizedP.includes(normalizedState)
+            )
+          })
+          if (matched) modalLocationAdminArea1 = matched.name
+          else modalLocationAdminArea1 = ""
+        } else {
+          modalLocationAdminArea1 = result.state || ""
+        }
+        modalLocationAdminArea2 = result.county || ""
+      }
     }
     selectedPhotoForLocation = null // Clear selection if user manually clicks map
   }
@@ -111,9 +150,24 @@
       const lng = photo.metadata.exif.longitude
       modalLocationLat = lat
       modalLocationLng = lng
-      const country = await reverseGeocode(lat, lng)
-      if (country) {
-        modalLocationCountry = country
+      const result = await reverseGeocode(lat, lng)
+      if (result) {
+        modalLocationCountry = result.countryCode || ""
+        if (modalLocationCountry === "ES" && result.state) {
+          const normalizedState = normalizeString(result.state)
+          const matched = SPAIN_PROVINCES.find((p) => {
+            const normalizedP = normalizeString(p.name)
+            return (
+              normalizedState.includes(normalizedP) ||
+              normalizedP.includes(normalizedState)
+            )
+          })
+          if (matched) modalLocationAdminArea1 = matched.name
+          else modalLocationAdminArea1 = ""
+        } else {
+          modalLocationAdminArea1 = result.state || ""
+        }
+        modalLocationAdminArea2 = result.county || ""
       }
       toast.success($t("trip.photoLinkedGps"))
     } else {
@@ -136,6 +190,8 @@
         rating: modalLocationRating,
         description: modalLocationDescription,
         country: modalLocationCountry, // Frontend field
+        adminArea1: modalLocationAdminArea1,
+        adminArea2: modalLocationAdminArea2,
       }
 
       // Update local store
@@ -177,6 +233,8 @@
         visitedDate: new Date().toISOString().split("T")[0],
         images: selectedPhotoForLocation ? [selectedPhotoForLocation.id] : [],
         tripId: tripId,
+        adminArea1: modalLocationAdminArea1,
+        adminArea2: modalLocationAdminArea2,
       }
 
       // Persist to backend database
@@ -296,7 +354,13 @@
   }
 
   function handleBatchLocationSelect(
-    e: CustomEvent<{ lat: number; lng: number }>,
+    e: CustomEvent<{
+      lat: number
+      lng: number
+      country?: string
+      province?: string
+      county?: string
+    }>,
   ) {
     batchSelectedCoords = e.detail
   }
@@ -362,6 +426,7 @@
     startDate: "",
     endDate: "",
     countries: [] as string[],
+    provinces: [] as string[],
   }
 
   function startEditTrip() {
@@ -373,13 +438,12 @@
       startDate: trip.startDate ? trip.startDate.split("T")[0] : "",
       endDate: trip.endDate ? trip.endDate.split("T")[0] : "",
       countries: [...trip.countries],
+      provinces: [...(trip.provinces || [])],
     }
     isEditingTrip = true
   }
 
   async function saveTripEdit() {
-    addCountryToEdit()
-
     if (!editTripData.name.trim()) {
       toast.error($t("form.nameRequired"))
       return
@@ -775,7 +839,13 @@
   }
 
   function handleMetadataLocationSelect(
-    e: CustomEvent<{ lat: number; lng: number }>,
+    e: CustomEvent<{
+      lat: number
+      lng: number
+      country?: string
+      province?: string
+      county?: string
+    }>,
   ) {
     newMetadataLat = e.detail.lat
     newMetadataLng = e.detail.lng
@@ -816,12 +886,27 @@
         <p class="dates">
           {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
         </p>
-        <div class="countries">
+        <div class="countries-section">
           {#each trip.countries as country}
-            <span class="country-tag"
-              >{getCountryFlag(country)}
-              {getCountryName(country, $languageStore)}</span
-            >
+            <div class="country-group">
+              <span class="country-tag">
+                {getCountryFlag(country)}
+                {getCountryName(country, $languageStore)}
+              </span>
+
+              {#if country === "ES" && trip.provinces && trip.provinces.length > 0}
+                <div class="provinces-list" transition:slide>
+                  {#each trip.provinces as provName}
+                    {@const province = SPAIN_PROVINCES.find(
+                      (p) => p.name === provName,
+                    )}
+                    <span class="province-tag">
+                      {province?.name}
+                    </span>
+                  {/each}
+                </div>
+              {/if}
+            </div>
           {/each}
         </div>
         <button
@@ -835,7 +920,16 @@
 
     <section class="description-section">
       <h2>{$t("trip.about")}</h2>
-      <p>{trip.description}</p>
+      {#if trip.description}
+        <p>{trip.description}</p>
+      {:else}
+        <button
+          class="btn btn-sm btn-secondary mx-auto mt-4 block"
+          on:click={startEditTrip}
+        >
+          {$t("trip.addDescription")}
+        </button>
+      {/if}
     </section>
 
     <section class="locations-section">
@@ -1301,53 +1395,80 @@
 
 {#if isEditingTrip}
   <div
-    class="modal-backdrop pointer-events-auto flex items-center justify-center p-4"
+    class="modal-backdrop pointer-events-auto"
+    transition:fade={{ duration: 200 }}
   >
     <div
-      class="modal card meta-modal w-full max-w-lg bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl overflow-y-auto max-h-[90vh] text-left"
+      class="premium-modal w-full max-w-lg"
+      transition:slide={{ duration: 300, axis: "y" }}
     >
-      <header class="modal-header flex justify-between items-center mb-6">
-        <h3 class="text-xl font-bold text-white m-0">{$t("trip.editTrip")}</h3>
+      <!-- Header -->
+      <header class="modal-header-premium">
+        <div class="header-main">
+          <div class="header-icon edit-icon">
+            <Globe size={24} />
+          </div>
+          <div class="header-text">
+            <h3>{$t("trip.editTripHeader")}</h3>
+            <p class="subheader text-purple-400">
+              {$t("trip.editTripSubheader")}
+            </p>
+          </div>
+        </div>
         <button
-          class="text-slate-400 hover:text-white"
-          on:click={() => (isEditingTrip = false)}>&times;</button
+          class="btn-close-modal"
+          on:click={() => (isEditingTrip = false)}
         >
+          <X size={20} />
+        </button>
       </header>
 
-      <div class="flex flex-col gap-4">
-        <div>
-          <label class="block text-sm font-medium text-slate-300 mb-1"
-            >{$t("form.name")}</label
-          >
-          <input type="text" bind:value={editTripData.name} class="input-box" />
-        </div>
+      <!-- Body -->
+      <div class="modal-body-scroll scroll-content">
+        <div class="form-grid">
+          <!-- Name -->
+          <div class="form-field-group full-width-field">
+            <span class="field-label">{$t("trip.tripName")}</span>
+            <input
+              type="text"
+              bind:value={editTripData.name}
+              placeholder={$t("form.namePlaceholder")}
+              class="premium-input"
+            />
+          </div>
 
-        <div>
-          <label class="block text-sm font-medium text-slate-300 mb-1"
-            >{$t("trip.status")}</label
-          >
-          <select bind:value={editTripData.status} class="input-box">
-            <option value="Planificado">{$t("status.Planificado")}</option>
-            <option value="En curso">{$t("status.En curso")}</option>
-            <option value="Completado">{$t("status.Completado")}</option>
-          </select>
-        </div>
+          <!-- Status -->
+          <div class="form-field-group">
+            <span class="field-label">{$t("trip.tripStatus")}</span>
+            <select bind:value={editTripData.status} class="premium-select">
+              <option value="Planificado">{$t("status.Planificado")}</option>
+              <option value="En curso">{$t("status.En curso")}</option>
+              <option value="Completado">{$t("status.Completado")}</option>
+            </select>
+          </div>
 
-        <div class="flex gap-4">
-          <div class="flex-1">
-            <label class="block text-sm font-medium text-slate-300 mb-1"
-              >{$t("form.startDate")}</label
-            >
+          <!-- Description -->
+          <div class="form-field-group full-width-field">
+            <span class="field-label">{$t("trip.tripDescription")}</span>
+            <textarea
+              bind:value={editTripData.description}
+              class="premium-textarea"
+              rows="3"
+              placeholder={$t("form.descPlaceholder")}
+            />
+          </div>
+
+          <!-- Dates -->
+          <div class="form-field-group">
+            <span class="field-label">{$t("form.startDate")}</span>
             <input
               type="date"
               bind:value={editTripData.startDate}
-              class="input-box"
+              class="premium-input"
             />
           </div>
-          <div class="flex-1">
-            <label class="block text-sm font-medium text-slate-300 mb-1"
-              >{$t("form.endDate")}</label
-            >
+          <div class="form-field-group">
+            <span class="field-label">{$t("form.endDate")}</span>
             <input
               type="date"
               bind:value={editTripData.endDate}
@@ -1358,61 +1479,48 @@
                     new Date().toISOString().split("T")[0]
                 }
               }}
-              class="input-box"
+              class="premium-input"
             />
           </div>
-        </div>
 
-        <div>
-          <label class="block text-sm font-medium text-slate-300 mb-1"
-            >{$t("form.description")}</label
-          >
-          <textarea
-            bind:value={editTripData.description}
-            rows="3"
-            class="input-box"
-          />
-        </div>
+          <!-- Countries -->
+          <div class="form-field-group full-width-field">
+            <span class="field-label">{$t("trip.tripCountries")}</span>
+            <CountryMultiSelect
+              bind:selectedCountries={editTripData.countries}
+            />
+          </div>
 
-        <div>
-          <label class="block text-sm font-medium text-slate-300 mb-1"
-            >{$t("form.countries")}</label
-          >
-          <div class="flex gap-2 mb-2">
-            <CountryPicker id="edit-country" bind:value={countryInputValue} />
-            <button
-              class="btn btn-sm flex items-center justify-start gap-1"
-              on:click={addCountryToEdit}
-            >
-              <Plus size={16} />
-              {$t("form.add")}
-            </button>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            {#each editTripData.countries as country}
-              <span
-                class="inline-flex items-center gap-1 bg-slate-700 text-sm px-2 py-1 rounded-md text-white border border-slate-600"
-              >
-                {getCountryName(country, $languageStore)}
-                <button
-                  class="text-red-400 hover:text-red-300 text-xs ml-1"
-                  on:click={() => removeCountryFromEdit(country)}
-                  >&times;</button
-                >
-              </span>
-            {/each}
-          </div>
+          <!-- Provinces -->
+          {#if editTripData.countries.includes("ES")}
+            <div transition:slide class="form-field-group full-width-field">
+              <span class="field-label">{$t("trip.tripProvinces")}</span>
+              <ProvinceMultiSelect
+                bind:selectedProvinces={editTripData.provinces}
+              />
+            </div>
+          {/if}
         </div>
       </div>
 
-      <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-700">
-        <button class="btn btn-ghost" on:click={() => (isEditingTrip = false)}
-          >{$t("form.cancel")}</button
+      <!-- Footer -->
+      <footer class="premium-modal-footer">
+        <button
+          class="btn-cancel-premium"
+          on:click={() => (isEditingTrip = false)}
         >
-        <button class="btn btn-primary" on:click={saveTripEdit}
-          >{$t("form.saveChanges")}</button
+          {$t("form.cancel")}
+        </button>
+
+        <button
+          class="btn-save-premium"
+          on:click={saveTripEdit}
+          disabled={!editTripData.name}
         >
-      </div>
+          <Save size={18} />
+          {$t("trip.saveTripBtn")}
+        </button>
+      </footer>
     </div>
   </div>
 {/if}
@@ -1486,6 +1594,21 @@
             </select>
           </div>
 
+          {#if modalLocationCountry === "ES" || modalLocationCountry === "Spain" || modalLocationCountry === "España"}
+            <div class="form-field-group">
+              <span class="field-label">{$t("map.provinceLabel")}</span>
+              <select
+                bind:value={modalLocationAdminArea1}
+                class="premium-select"
+              >
+                <option value="">{$t("map.selectProvince")}</option>
+                {#each SPAIN_PROVINCES as province}
+                  <option value={province.name}>{province.name}</option>
+                {/each}
+              </select>
+            </div>
+          {/if}
+
           <!-- Rating (Simple Star selector or just field) -->
           <!-- <div class="form-field-group">
             <span class="field-label">{"Rating"}</span>
@@ -1557,7 +1680,7 @@
           <div class="map-preview-container">
             <LocationPicker
               height="200px"
-              hideSearch={true}
+              hideSearch={false}
               initialLocation={modalLocationLat !== 0
                 ? { lat: modalLocationLat, lng: modalLocationLng }
                 : null}
@@ -1943,19 +2066,66 @@
     font-size: 1.1rem;
   }
 
-  .countries {
+  .countries-section {
     display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    margin-top: 1rem;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    width: 100%;
+    margin-top: 1.5rem;
+  }
+
+  .country-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
   }
 
   .country-tag {
-    background: #1e293b;
-    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+    padding: 0.4rem 1rem;
+    border-radius: 9999px;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .provinces-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 16px;
+    border: 1px dashed rgba(148, 163, 184, 0.2);
+    max-width: 95%;
+  }
+
+  .province-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(148, 163, 184, 0.1);
+    color: #e2e8f0;
+    padding: 0.25rem 0.6rem;
     border-radius: 8px;
-    border: 1px solid #334155;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+  }
+
+  .chip-flag {
+    width: 16px;
+    height: 12px;
+    object-fit: cover;
+    border-radius: 2px;
   }
 
   section {

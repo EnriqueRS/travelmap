@@ -16,6 +16,7 @@
   import type { AppPhoto } from "$lib/services/media"
   import type { Trip } from "$lib/stores/data"
   import { API_URL } from "$lib/services/auth"
+  import { normalizeString } from "$lib/utils/string"
 
   export let height = "100%"
   export let locations: Location[] = []
@@ -40,30 +41,38 @@
   let searchQuery = ""
   let searchLoading = false
   let searchError = ""
+  let currentZoom = 2
+  const ZOOM_THRESHOLD_PROVINCES = 4
 
   const dispatch = createEventDispatcher()
   let tripLinesGroup: any
   let photoClusterGroup: any
   let countryHighlightsGroup: any
   let geoJsonData: any = null
+  let provincesGeoJSONData: any = null
 
-  // Reactive update when locations prop changes
+  // 1. Reactive update for DATA changes (Should fit bounds)
   $: if (
     map &&
     browser &&
     L &&
     markerClusterGroup &&
-    locations &&
-    mapPhotos &&
-    trips &&
-    hiddenTrips &&
-    tripColorMap &&
-    showCountryHighlights !== undefined
+    (locations ||
+      mapPhotos ||
+      trips ||
+      hiddenTrips ||
+      tripColorMap ||
+      showCountryHighlights !== undefined)
   ) {
-    updateMarkers()
+    updateMarkers(true)
   }
 
-  async function updateMarkers() {
+  // 2. Reactive update for ZOOM changes (Should NOT fit bounds)
+  $: if (map && browser && L && currentZoom !== undefined) {
+    updateMarkers(false)
+  }
+
+  async function updateMarkers(shouldFit = false) {
     if (!map || !markerClusterGroup) return
 
     // Clear existing layer
@@ -150,44 +159,6 @@
       bounds.extend([loc.coordinates[0], loc.coordinates[1]])
     })
 
-    // Add Trip Polylines
-    const validTrips = trips.filter(
-      (t) =>
-        t.status === "Planificado" ||
-        t.status === "En curso" ||
-        t.status === "Completado",
-    )
-
-    validTrips.forEach((trip) => {
-      // Get the locations for this trip
-      const tripLocations = locations.filter((l) => {
-        const locTripId = l.tripId || (l as any).trip_id
-        return locTripId === trip.id
-      })
-      // Sort them sequentially by visitDate if needed (assuming visitedDate or simply order added)
-      tripLocations.sort(
-        (a, b) =>
-          new Date(a.visitedDate).getTime() - new Date(b.visitedDate).getTime(),
-      )
-
-      if (tripLocations.length > 1) {
-        const latlngs = tripLocations.map((l) => [
-          l.coordinates[0],
-          l.coordinates[1],
-        ])
-        const color = tripColorMap[trip.id] || "#3b82f6"
-        const polyline = L.polyline(latlngs, {
-          color: color,
-          weight: 3,
-          dashArray: trip.status === "Planificado" ? "5, 10" : "", // Dashed line for planned
-          opacity: 0.8,
-        }).bindPopup(`<strong>${$t("trip.tripPrefix")}:</strong> ${trip.name}`)
-
-        tripLinesGroup.addLayer(polyline)
-        bounds.extend(polyline.getBounds())
-      }
-    })
-
     // Add Photos Markers
     mapPhotos.forEach((photo) => {
       if (photo.metadata?.exif?.latitude && photo.metadata?.exif?.longitude) {
@@ -195,7 +166,7 @@
           photo.provider === "local"
             ? `${API_URL}${photo.url}`
             : `${API_URL}/media/photos/${photo.id}/image`
-        const photoTripId = photo.tripId || (photo as any).trip_id
+        const photoTripId = photo.tripId
         const photoTrip = photoTripId
           ? trips.find((t) => t.id === photoTripId)
           : null
@@ -291,11 +262,13 @@
           if (t.countries && Array.isArray(t.countries)) {
             t.countries.forEach((alpha2: string) => {
               if (alpha2) {
-                if (t.status === "Completado" || t.status === "En curso") {
-                  const iso = countriesInfo.toAlpha3(alpha2)
-                  visitedIsos.add(countriesInfo.toAlpha3(alpha2))
-                } else if (t.status === "Planificado") {
-                  plannedIsos.add(countriesInfo.toAlpha3(alpha2))
+                const alpha3 = countriesInfo.toAlpha3(alpha2)
+                if (alpha3) {
+                  if (t.status === "Completado" || t.status === "En curso") {
+                    visitedIsos.add(alpha3)
+                  } else if (t.status === "Planificado") {
+                    plannedIsos.add(alpha3)
+                  }
                 }
               }
             })
@@ -303,23 +276,43 @@
         })
         const geoLayer = L.geoJSON(geoJsonData, {
           style: function (feature: any) {
-            const iso = feature.id // ISO Alpha-3 is exactly the generic geojson ID
+            const iso = feature.id
+
+            // If it's a country with provinces (like ES) and we are zoomed in, show a very faint highlight
+            if (iso === "ESP" && currentZoom >= ZOOM_THRESHOLD_PROVINCES) {
+              if (visitedIsos.has(iso)) {
+                return {
+                  fillColor: "#10b981",
+                  color: "#047857",
+                  weight: 0.5,
+                  fillOpacity: 0.03,
+                }
+              } else if (plannedIsos.has(iso)) {
+                return {
+                  fillColor: "#3b82f6",
+                  color: "#1d4ed8",
+                  weight: 0.5,
+                  fillOpacity: 0.02,
+                }
+              }
+            }
+
             if (visitedIsos.has(iso)) {
               return {
                 fillColor: "#10b981",
                 color: "#047857",
                 weight: 1,
                 fillOpacity: 0.35,
-              } // Esmerald / Green for visited
+              }
             } else if (plannedIsos.has(iso)) {
               return {
                 fillColor: "#3b82f6",
                 color: "#1d4ed8",
                 weight: 1,
                 fillOpacity: 0.25,
-              } // Blue for planned
+              }
             } else {
-              return { weight: 0, fillOpacity: 0 } // Invisible context
+              return { weight: 0, fillOpacity: 0 }
             }
           },
         })
@@ -328,6 +321,124 @@
       } catch (err) {
         console.error("Error loading GeoJSON data", err)
       }
+
+      // --- Province Highlights Logic (for Home Country) ---
+      if ($userProfile.homeCountry && typeof window !== "undefined") {
+        try {
+          const homeIso2 = $userProfile.homeCountry
+          if (!provincesGeoJSONData) {
+            // Check if we have a file for this country (only ES implemented for now)
+            if (homeIso2 === "ES") {
+              const res = await fetch("/geo/provinces_ES.geo.json")
+              if (res.ok) {
+                provincesGeoJSONData = await res.json()
+              }
+            }
+          }
+
+          if (provincesGeoJSONData) {
+            const visitedProvinces = new Set<string>()
+            const plannedProvinces = new Set<string>()
+
+            locations.forEach((loc) => {
+              if (loc.country === homeIso2 && loc.adminArea1) {
+                const provName = normalizeString(loc.adminArea1)
+                const trip = trips.find((t) => t.id === loc.tripId)
+                if (
+                  trip &&
+                  (trip.status === "Completado" || trip.status === "En curso")
+                ) {
+                  visitedProvinces.add(provName)
+                } else if (trip && trip.status === "Planificado") {
+                  plannedProvinces.add(provName)
+                } else if (!loc.tripId) {
+                  // Legacy or direct locations
+                  visitedProvinces.add(provName)
+                }
+              }
+            })
+
+            trips.forEach((t) => {
+              if (t.provinces && t.provinces.length > 0) {
+                t.provinces.forEach((prov: string) => {
+                  if (t.status === "Completado" || t.status === "En curso") {
+                    visitedProvinces.add(normalizeString(prov))
+                  } else if (t.status === "Planificado") {
+                    plannedProvinces.add(normalizeString(prov))
+                  }
+                })
+              }
+            })
+
+            // Ensure visited takes precedence
+            visitedProvinces.forEach((p) => plannedProvinces.delete(p))
+
+            // Only show provinces if zoomed in
+            if (currentZoom >= ZOOM_THRESHOLD_PROVINCES) {
+              const provLayer = L.geoJSON(provincesGeoJSONData, {
+                style: function (feature: any) {
+                  const featName = normalizeString(
+                    feature.properties.name || "",
+                  )
+
+                  // Flexible check: does any visited province name match this feature name or vice versa?
+                  let isVisited = false
+                  visitedProvinces.forEach((v) => {
+                    if (v.includes(featName) || featName.includes(v))
+                      isVisited = true
+                  })
+
+                  let isPlanned = false
+                  if (!isVisited) {
+                    plannedProvinces.forEach((p) => {
+                      if (p.includes(featName) || featName.includes(p))
+                        isPlanned = true
+                    })
+                  }
+
+                  const homeProv = $userProfile.homeProvince
+                    ? normalizeString($userProfile.homeProvince)
+                    : null
+                  const isHome =
+                    homeProv &&
+                    (homeProv.includes(featName) || featName.includes(homeProv))
+                  if (isVisited) {
+                    return {
+                      fillColor: "#10b981",
+                      color: "#059669",
+                      weight: 1.5,
+                      fillOpacity: 0.6, // Higher opacity for contrast
+                    }
+                  } else if (isPlanned) {
+                    return {
+                      fillColor: "#3b82f6",
+                      color: "#2563eb",
+                      weight: 1.5,
+                      fillOpacity: 0.5,
+                    }
+                  } else if (isHome && showHome) {
+                    return {
+                      fillColor: "#ef4444",
+                      color: "#b91c1c",
+                      weight: 1.5,
+                      fillOpacity: 0.15,
+                    }
+                  }
+                  return {
+                    color: "rgba(255,255,255,0.1)",
+                    weight: 0.3,
+                    fillOpacity: 0.02,
+                    fillColor: "#ffffff",
+                  }
+                },
+              })
+              countryHighlightsGroup.addLayer(provLayer)
+            }
+          }
+        } catch (err) {
+          console.error("Error loading province GeoJSON", err)
+        }
+      }
     }
 
     const homeBounds = updateHomeMarker()
@@ -335,7 +446,7 @@
       bounds.extend(homeBounds)
     }
 
-    if (bounds.isValid()) {
+    if (shouldFit && bounds.isValid()) {
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 })
     }
   }
@@ -369,8 +480,8 @@
         zIndexOffset: -1000,
       }).addTo(map).bindPopup(`
           <div style="text-align: center;">
-            <h3 style="margin: 0;">🏠 ${$t("common.home")}</h3>
-            <p>${home.name}</p>
+            <h3 style="margin: 0;">🏠</h3>
+            <p>${$t("map.home")}</p>
           </div>
         `)
 
@@ -380,8 +491,8 @@
   }
 
   // React to showHome change
-  $: if (map && (showHome || !showHome)) {
-    updateHomeMarker()
+  $: if (map && showHome !== undefined) {
+    updateMarkers(false)
   }
 
   function getCategoryEmoji(category: string) {
@@ -475,6 +586,12 @@
       map.on("click", (e: any) => {
         dispatch("mapclick", { lat: e.latlng.lat, lng: e.latlng.lng })
       })
+
+      map.on("zoomend", () => {
+        currentZoom = map.getZoom()
+      })
+
+      currentZoom = map.getZoom()
 
       if (L.markerClusterGroup) {
         // Initialize Cluster Group with custom styles for Location Markers

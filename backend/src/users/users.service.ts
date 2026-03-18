@@ -37,6 +37,8 @@ export class UsersService {
       name?: string;
       bio?: string;
       avatar?: string;
+      homeCountry?: string;
+      homeProvince?: string;
       homeLocationLat?: number;
       homeLocationLng?: number;
     },
@@ -54,6 +56,14 @@ export class UsersService {
 
     if (typeof payload.avatar === 'string') {
       patch.avatarUrl = payload.avatar;
+    }
+
+    if (typeof payload.homeCountry === 'string') {
+      patch.homeCountry = payload.homeCountry;
+    }
+
+    if (typeof payload.homeProvince === 'string') {
+      patch.homeProvince = payload.homeProvince;
     }
 
     if (typeof payload.homeLocationLat === 'number') {

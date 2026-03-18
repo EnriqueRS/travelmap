@@ -56,7 +56,7 @@ export class IntegrationsService {
     if (integration) {
       integration = await integration.$query().patchAndFetch({
         url: baseUrl,
-        access_token: apiKey
+        accessToken: apiKey
       });
     } else {
       console.log('Immich integration not found, creating new one.');
@@ -66,7 +66,7 @@ export class IntegrationsService {
         userId,
         provider: 'immich',
         url: baseUrl,
-        access_token: apiKey
+        accessToken: apiKey
       });
     }
 
@@ -77,7 +77,7 @@ export class IntegrationsService {
    * Get active connection for a user and provider.
    */
   async getIntegration(userId: number, provider: 'immich'): Promise<UserIntegration> {
-    const integration = await UserIntegration.query().findOne({ userId, provider });
+    const integration = await UserIntegration.query().findOne({ user_id: userId, provider });
     if (!integration) {
       throw new NotFoundException(`No connection found for ${provider}`);
     }
@@ -92,7 +92,7 @@ export class IntegrationsService {
 
     try {
       const response = await axios.get(`${integration.url}/albums`, {
-        headers: { 'x-api-key': integration.access_token }
+        headers: { 'x-api-key': integration.accessToken }
       });
       return response.data;
     } catch (error) {
@@ -109,7 +109,7 @@ export class IntegrationsService {
     try {
       // In Immich, we get the album which contains its assets
       const response = await axios.get(`${integration.url}/albums/${albumId}`, {
-        headers: { 'x-api-key': integration.access_token }
+        headers: { 'x-api-key': integration.accessToken }
       });
       return response.data.assets || [];
     } catch (error) {

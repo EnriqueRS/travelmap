@@ -15,7 +15,7 @@ const getInitialUser = () => {
 
 export const getToken = () => {
   const user = getInitialUser();
-  return user?.access_token || null;
+  return user?.accessToken || null;
 };
 
 export const currentUser = writable(getInitialUser());
@@ -23,7 +23,7 @@ export const currentUser = writable(getInitialUser());
 export const authService = {
   async register(userData: any) {
     const response = await axios.post(`${API_URL}/auth/register`, userData);
-    if (response.data.access_token) {
+    if (response.data.accessToken) {
       this.setSession(response.data);
     }
     return response.data;
@@ -34,7 +34,7 @@ export const authService = {
       username,
       password: pass,
     });
-    if (response.data.access_token) {
+    if (response.data.accessToken) {
       this.setSession(response.data);
     }
     return response.data;
@@ -54,8 +54,8 @@ export const authService = {
     }
     currentUser.set(data);
     // Fetch user data if we have a token
-    if (data?.access_token) {
-      this.fetchUserData(data.access_token);
+    if (data?.accessToken) {
+      this.fetchUserData(data.accessToken);
     }
   },
 

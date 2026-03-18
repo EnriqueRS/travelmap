@@ -20,7 +20,7 @@ export class GeoService {
         c.*,
         COALESCE(ucs.status, 'default') as status
       FROM countries c
-      LEFT JOIN user_country_statuses ucs ON c.id = ucs.countryId AND ucs.userId = ?
+      LEFT JOIN user_country_statuses ucs ON c.id = ucs.country_id AND ucs.user_id = ?
       ORDER BY c.name
     `;
 
@@ -36,16 +36,16 @@ export class GeoService {
 
       return {
         type: 'Feature',
-        id: country.isoAlpha2,
+        id: country.iso_alpha2,
         geometry,
         properties: {
-          isoAlpha2: country.isoAlpha2,
-          isoAlpha3: country.isoAlpha3,
+          isoAlpha2: country.iso_alpha2,
+          isoAlpha3: country.iso_alpha3,
           name: country.name,
           continent: country.continent,
           capital: country.capital,
           population: country.population,
-          areaSqKm: country.areaSqKm,
+          areaSqKm: country.area_sq_km,
           status: country.status
         }
       };
@@ -64,10 +64,10 @@ export class GeoService {
     const result = await this.knex.raw(`
       SELECT 
         status,
-        JSON_AGG(c.isoAlpha2) as countries
+        JSON_AGG(c.iso_alpha2) as countries
       FROM user_country_statuses ucs
-      JOIN countries c ON ucs.countryId = c.id
-      WHERE ucs.userId = ?
+      JOIN countries c ON ucs.country_id = c.id
+      WHERE ucs.user_id = ?
       GROUP BY status
     `, [userId]);
 
@@ -98,7 +98,7 @@ export class GeoService {
   ): Promise<void> {
     // Obtener ID del país
     const country = await this.knex('countries')
-      .where('isoAlpha2', countryCode)
+      .where('iso_alpha2', countryCode)
       .first();
 
     if (!country) {
@@ -108,20 +108,20 @@ export class GeoService {
     // Eliminar estado anterior si existe
     await this.knex('user_country_statuses')
       .where({
-        userId,
-        countryId: country.id
+        user_id: userId,
+        country_id: country.id
       })
       .del();
 
     // Crear nuevo estado
     await this.knex('user_country_statuses').insert({
-      userId,
-      countryId: country.id,
+      user_id: userId,
+      country_id: country.id,
       status,
-      visitDate: visitDate || (status === 'visited' ? new Date() : null),
+      visit_date: visitDate || (status === 'visited' ? new Date() : null),
       notes,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      created_at: new Date(),
+      updated_at: new Date()
     });
 
     // Actualizar estadísticas del usuario
@@ -155,6 +155,9 @@ export class GeoService {
 
     return result.rows.map((country: any) => ({
       ...country,
+      isoAlpha2: country.iso_alpha2,
+      isoAlpha3: country.iso_alpha3,
+      areaSqKm: country.area_sq_km,
       distanceKm: Math.round(country.distance * 111320 * 100) / 100
     }));
   }
@@ -193,8 +196,8 @@ export class GeoService {
         c.continent,
         COUNT(*) as count
       FROM user_country_statuses ucs
-      JOIN countries c ON ucs.countryId = c.id
-      WHERE ucs.userId = ? AND ucs.status = 'visited'
+      JOIN countries c ON ucs.country_id = c.id
+      WHERE ucs.user_id = ? AND ucs.status = 'visited'
       GROUP BY c.continent
       ORDER BY count DESC
     `, [userId]);
@@ -202,12 +205,12 @@ export class GeoService {
     // Estadísticas básicas
     const [countriesVisited, totalLocations] = await Promise.all([
       this.knex('user_country_statuses')
-        .where({ userId, status: 'visited' })
+        .where({ user_id: userId, status: 'visited' })
         .count('* as count')
         .first(),
       
       this.knex('locations')
-        .where({ userId })
+        .where({ user_id: userId })
         .count('* as count')
         .first()
     ]);
@@ -218,7 +221,7 @@ export class GeoService {
         ST_X(ST_Centroid(ST_Collect(coordinates))) as lng,
         ST_Y(ST_Centroid(ST_Collect(coordinates))) as lat
       FROM locations
-      WHERE userId = ? AND coordinates IS NOT NULL
+      WHERE user_id = ? AND coordinates IS NOT NULL
     `, [userId]);
 
     // Distancia total viajada
@@ -278,7 +281,7 @@ export class GeoService {
           coordinates,
           ROW_NUMBER() OVER (ORDER BY visit_date ASC NULLS LAST, created_at ASC) as rn
         FROM locations
-        WHERE userId = ? AND coordinates IS NOT NULL
+        WHERE user_id = ? AND coordinates IS NOT NULL
       )
       SELECT COALESCE(SUM(distance), 0) as total_distance
       FROM (
@@ -302,30 +305,30 @@ export class GeoService {
   private async updateUserStatistics(userId: number): Promise<void> {
     const [countriesVisited, totalLocations, totalTrips] = await Promise.all([
       this.knex('user_country_statuses')
-        .where({ userId, status: 'visited' })
-        .countDistinct('countryId as count')
+        .where({ user_id: userId, status: 'visited' })
+        .countDistinct('country_id as count')
         .first(),
 
       this.knex('locations')
-        .where({ userId })
+        .where({ user_id: userId })
         .count('* as count')
         .first(),
 
       this.knex('trips')
-        .where({ userId, status: 'completed' })
+        .where({ user_id: userId, status: 'completed' })
         .count('* as count')
         .first()
     ]);
 
     await this.knex('user_statistics')
       .insert({
-        userId,
-        countriesVisited: parseInt((countriesVisited?.count || '0') as string),
-        totalLocations: parseInt((totalLocations?.count || '0') as string),
-        totalTrips: parseInt((totalTrips?.count || '0') as string),
-        lastCalculated: new Date()
+        user_id: userId,
+        countries_visited: parseInt((countriesVisited?.count || '0') as string),
+        total_locations: parseInt((totalLocations?.count || '0') as string),
+        total_trips: parseInt((totalTrips?.count || '0') as string),
+        last_calculated: new Date()
       })
-      .onConflict('userId')
+      .onConflict('user_id')
       .merge();
   }
 }

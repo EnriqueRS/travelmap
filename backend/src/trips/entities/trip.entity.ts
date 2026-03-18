@@ -1,5 +1,4 @@
-// backend/src/trips/entities/trip.entity.ts
-import { Model } from 'objection';
+import { Model, snakeCaseMappers } from 'objection';
 import { User } from '../../users/user.entity';
 import { Location } from '../../locations/entities/location.entity';
 import { Photo } from '../../media/entities/photo.entity';
@@ -14,14 +13,15 @@ export interface TripProperties {
   startDate?: Date;
   endDate?: Date;
   countries?: string[];
+  provinces?: string[];
   totalCost?: number;
   currency: string;
   isPublic: boolean;
   coverImage?: string;
   linkedAlbumId?: string;
   linkedAlbumProvider?: 'immich';
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class Trip extends Model implements TripProperties {
@@ -33,14 +33,15 @@ export class Trip extends Model implements TripProperties {
   startDate?: Date;
   endDate?: Date;
   countries?: string[];
+  provinces?: string[];
   totalCost?: number;
   currency!: string;
   isPublic!: boolean;
   coverImage?: string;
   linkedAlbumId?: string;
   linkedAlbumProvider?: 'immich';
-  created_at!: Date;
-  updated_at!: Date;
+  createdAt!: Date;
+  updatedAt!: Date;
 
   static get tableName() {
     return 'trips';
@@ -48,6 +49,14 @@ export class Trip extends Model implements TripProperties {
 
   static get idColumn() {
     return 'id';
+  }
+
+  static get columnNameMappers() {
+    return snakeCaseMappers();
+  }
+
+  static get jsonAttributes() {
+    return ['countries', 'provinces', 'tags'];
   }
 
   static get jsonSchema() {
@@ -67,14 +76,15 @@ export class Trip extends Model implements TripProperties {
         startDate: { type: 'string', format: 'date' },
         endDate: { type: 'string', format: 'date' },
         countries: { type: 'array', items: { type: 'string' } },
+        provinces: { type: 'array', items: { type: 'string' } },
         totalCost: { type: 'number', minimum: 0 },
         currency: { type: 'string', minLength: 3, maxLength: 3, default: 'EUR' },
         isPublic: { type: 'boolean', default: false },
         coverImage: { type: 'string', maxLength: 500 },
         linkedAlbumId: { type: 'string', maxLength: 255 },
         linkedAlbumProvider: { type: 'string', enum: ['immich'] },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' }
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' }
       }
     };
   }
@@ -85,7 +95,7 @@ export class Trip extends Model implements TripProperties {
         relation: Model.BelongsToOneRelation,
         modelClass: User,
         join: {
-          from: 'trips.userId',
+          from: 'trips.user_id',
           to: 'users.id'
         }
       },
@@ -94,7 +104,7 @@ export class Trip extends Model implements TripProperties {
         modelClass: Location,
         join: {
           from: 'trips.id',
-          to: 'locations.tripId'
+          to: 'locations.trip_id'
         }
       },
       photos: {
@@ -102,7 +112,7 @@ export class Trip extends Model implements TripProperties {
         modelClass: Photo,
         join: {
           from: 'trips.id',
-          to: 'photos.tripId'
+          to: 'photos.trip_id'
         }
       },
       itineraryDays: {
@@ -110,7 +120,7 @@ export class Trip extends Model implements TripProperties {
         modelClass: ItineraryDay,
         join: {
           from: 'trips.id',
-          to: 'itinerary_days.tripId'
+          to: 'itinerary_days.trip_id'
         }
       }
     };
@@ -124,13 +134,13 @@ export class Trip extends Model implements TripProperties {
       const { v4: uuidv4 } = require('uuid');
       this.id = uuidv4();
     }
-    this.created_at = new Date();
-    this.updated_at = new Date();
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
   }
 
   async $beforeUpdate() {
     await super.$beforeUpdate({}, {} as any);
-    this.updated_at = new Date();
+    this.updatedAt = new Date();
   }
 
   // Método para obtener duración en días
@@ -154,10 +164,10 @@ export class Trip extends Model implements TripProperties {
     const Location = require('../locations/entities/location.entity').Location;
 
     const result = await Location.query()
-      .where('tripId', this.id)
-      .whereNotNull('countryId')
-      .distinct('countryId')
-      .count('countryId as count')
+      .where('trip_id', this.id)
+      .whereNotNull('country_id')
+      .distinct('country_id')
+      .count('country_id as count')
       .first();
 
     return parseInt(result?.count || '0');
@@ -166,8 +176,8 @@ export class Trip extends Model implements TripProperties {
   // Método para obtener todas las ubicaciones con país
   async getLocationsWithCountry(): Promise<Array<Location & { countryName?: string }>> {
     return await Location.query()
-      .where('tripId', this.id)
-      .leftJoin('countries', 'locations.countryId', 'countries.id')
+      .where('trip_id', this.id)
+      .leftJoin('countries', 'locations.country_id', 'countries.id')
       .select(
         'locations.*',
         'countries.name as countryName'
@@ -178,8 +188,8 @@ export class Trip extends Model implements TripProperties {
   // Método para obtener resumen del viaje
   async getSummary(): Promise<any> {
     const [locationsCount, photosCount, countriesCount, totalDistance] = await Promise.all([
-      Location.query().where('tripId', this.id).count('* as count').first(),
-      Photo.query().where('tripId', this.id).count('* as count').first(),
+      Location.query().where('trip_id', this.id).count('* as count').first(),
+      Photo.query().where('trip_id', this.id).count('* as count').first(),
       this.getUniqueCountriesCount(),
       this.calculateTotalDistance()
     ]);
@@ -196,7 +206,7 @@ export class Trip extends Model implements TripProperties {
   // Método para calcular distancia total del viaje
   private async calculateTotalDistance(): Promise<number> {
     const locations = await Location.query()
-      .where('tripId', this.id)
+      .where('trip_id', this.id)
       .whereNotNull('coordinates')
       .orderBy('visitDate', 'asc');
 
