@@ -31,10 +31,9 @@ export class LocationsService {
         .first())?.id || null : null,
       latitude,
       longitude,
-      adminArea1: createData.adminArea1 || null,
-      adminArea2: createData.adminArea2 || null,
+      admin_area_1: createData.adminArea1 || null,
+      admin_area_2: createData.adminArea2 || null,
     };
-
     const location = await Location.query().insert(backendPayload);
 
     // Link photos if provided
@@ -43,7 +42,7 @@ export class LocationsService {
       await Photo.query()
         .patch({ locationId: location.id, showOnMap: true } as any)
         .whereIn('id', createData.images)
-        .where('userId', userId);
+        .where('user_id', userId);
     }
 
     console.log('[LocationsService] Location created:', location.id);
@@ -84,14 +83,14 @@ export class LocationsService {
       // For now, let's just link the new ones (and maybe unlink all previous for this location then re-link)
       await Photo.query()
         .patch({ locationId: null } as any)
-        .where('locationId', id)
-        .where('userId', userId);
+        .where('location_id', id)
+        .where('user_id', userId);
 
       if (updateData.images.length > 0) {
         await Photo.query()
           .patch({ locationId: id, showOnMap: true } as any)
           .whereIn('id', updateData.images)
-          .where('userId', userId);
+          .where('user_id', userId);
       }
     }
 
@@ -109,8 +108,8 @@ export class LocationsService {
     // Unlink photos
     await Photo.query()
       .patch({ locationId: null } as any)
-      .where('locationId', id)
-      .where('userId', userId);
+      .where('location_id', id)
+      .where('user_id', userId);
 
     // Delete the location
     await Location.query().deleteById(id);
@@ -121,8 +120,8 @@ export class LocationsService {
 
   async getUserLocations(userId: number): Promise<Location[]> {
     return Location.query()
-      .where('userId', userId)
+      .where('user_id', userId)
       .withGraphFetched('photos')
-      .orderBy('visitDate', 'desc');
+      .orderBy('visit_date', 'desc');
   }
 }

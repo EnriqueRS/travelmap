@@ -195,14 +195,14 @@ export class Location extends Model implements LocationProperties {
   async getUserLocationStats(): Promise<any> {
     const [sameCategoryCount, sameCountryCount] = await Promise.all([
       Location.query()
-        .where('userId', this.userId)
+        .where('user_id', this.userId)
         .where('category', this.category)
         .count('* as count')
         .first(),
 
       Location.query()
-        .where('userId', this.userId)
-        .where('countryId', this.countryId)
+        .where('user_id', this.userId)
+        .where('country_id', this.countryId)
         .count('* as count')
         .first()
     ]);
@@ -237,12 +237,12 @@ export class Location extends Model implements LocationProperties {
     }
   ): Promise<Location[]> {
     return await Location.query()
-      .where('userId', userId)
+      .where('user_id', userId)
       .where('latitude', '>=', bounds.southwest.lat)
       .where('latitude', '<=', bounds.northeast.lat)
       .where('longitude', '>=', bounds.southwest.lng)
       .where('longitude', '<=', bounds.northeast.lng)
-      .orderBy('visitDate', 'desc');
+      .orderBy('visit_date', 'desc');
   }
 
   // Search locations by text
@@ -252,11 +252,11 @@ export class Location extends Model implements LocationProperties {
     limit: number = 20
   ): Promise<Location[]> {
     return await Location.query()
-      .where('userId', userId)
+      .where('user_id', userId)
       .where('name', 'ilike', `%${query}%`)
       .orWhere('description', 'ilike', `%${query}%`)
       .withGraphFetched('country')
       .limit(limit)
-      .orderBy('visitDate', 'desc');
+      .orderBy('visit_date', 'desc');
   }
 }
