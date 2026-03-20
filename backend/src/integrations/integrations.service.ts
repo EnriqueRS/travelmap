@@ -51,7 +51,7 @@ export class IntegrationsService {
 
     console.log('Immich connection validated successfully.');
     // Upsert database record
-    let integration = await UserIntegration.query().findOne({ userId, provider: 'immich' });
+    let integration = await UserIntegration.query().findOne({ user_id: userId, provider: 'immich' });
 
     if (integration) {
       integration = await integration.$query().patchAndFetch({
@@ -63,10 +63,10 @@ export class IntegrationsService {
       const { v4: uuidv4 } = require('uuid');
       integration = await UserIntegration.query().insert({
         id: uuidv4(),
-        userId,
+        user_id: userId,
         provider: 'immich',
         url: baseUrl,
-        accessToken: apiKey
+        access_token: apiKey
       });
     }
 
