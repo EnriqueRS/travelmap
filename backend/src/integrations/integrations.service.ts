@@ -63,10 +63,10 @@ export class IntegrationsService {
       const { v4: uuidv4 } = require('uuid');
       integration = await UserIntegration.query().insert({
         id: uuidv4(),
-        user_id: userId,
+        userId,
         provider: 'immich',
         url: baseUrl,
-        access_token: apiKey
+        accessToken: apiKey
       });
     }
 
