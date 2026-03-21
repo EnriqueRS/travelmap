@@ -84,7 +84,7 @@ export class MediaService {
    * Modifica propiedades lógicas de la foto (si se muestra en mapa o es la portada)
    */
   async updatePhoto(id: string, userId: number, data: { showOnMap?: boolean, isCover?: boolean, isHidden?: boolean, metadata?: any }): Promise<Photo> {
-    const photo = await Photo.query().findOne({ id, userId });
+    const photo = await Photo.query().findOne({ id, user_id: userId });
 
     if (!photo) {
       throw new NotFoundException('Foto no encontrada');
