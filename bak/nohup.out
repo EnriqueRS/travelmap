@@ -1,0 +1,449 @@
+[0;32mIniciando backend y frontend...[0m
+[0;36m[BACKEND][0m Iniciando...
+[0;32m[FRONTEND][0m Iniciando...
+[0;36m[BACKEND][0m 
+[0;36m[BACKEND][0m > travelmap-backend@1.0.0 start
+[0;36m[BACKEND][0m > nest start
+[0;36m[BACKEND][0m 
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +16ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mKnexModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMulterModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDatabaseModule dependencies initialized[39m[38;5;3m +18ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsersModule dependencies initialized[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTripsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mIntegrationsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mLocationsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mKnexCoreModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMediaModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGeoModule dependencies initialized[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGeoController {/geo}:[39m[38;5;3m +27ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries, GET} route[39m[38;5;3m +2ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/user-countries, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries/update, POST} route[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries/nearby, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries/by-continent, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/user/geographic-stats, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries/search, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/auth}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/login, POST} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/register, POST} route[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/profile, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsersController {/users}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/users/me, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/users/me, PATCH} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTripsController {/trips}:[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/trips, POST} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/trips, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/trips/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mIntegrationsController {/integrations}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/immich, POST} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/immich/albums, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/immich/albums/:albumId/assets, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/status, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMediaController {/media}:[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 250672  - [39m03/20/2026, 8:28:38 PM [32m    LOG[3[0;32mIniciando backend y frontend...[0m
+[0;36m[BACKEND][0m Iniciando...
+[0;32m[FRONTEND][0m Iniciando...
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m > travelmap-frontend@1.0.0 dev
+[0;32m[FRONTEND][0m > vite dev --host
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m Port 5173 is in use, trying another one...
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m   VITE v4.5.14  ready in 1163 ms
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m   ➜  Local:   http://localhost:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.100.73:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://100.126.131.63:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.29.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.17.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.21.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.160.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.23.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.192.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.128.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.176.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.18.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.27.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.32.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.19.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.144.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.224.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.31.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.20.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.28.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.24.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.240.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.26.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.64.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.48.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.25.0.1:5174/
+[0;36m[BACKEND][0m 
+[0;36m[BACKEND][0m > travelmap-backend@1.0.0 start
+[0;36m[BACKEND][0m > nest start
+[0;36m[BACKEND][0m 
+[0;32mIniciando backend y frontend...[0m
+[0;36m[BACKEND][0m Iniciando...
+[0;32m[FRONTEND][0m Iniciando...
+[0;36m[BACKEND][0m 
+[0;36m[BACKEND][0m > travelmap-backend@1.0.0 start
+[0;36m[BACKEND][0m > nest start
+[0;36m[BACKEND][0m 
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:54 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:54 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +17ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:54 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mKnexModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:54 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:54 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMulterModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:54 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:54 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:54 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDatabaseModule dependencies initialized[39m[38;5;3m +20ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsersModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTripsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mIntegrationsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mLocationsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mKnexCoreModule dependencies initialized[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMediaModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGeoModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGeoController {/geo}:[39m[38;5;3m +29ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries, GET} route[39m[38;5;3m +3ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/user-countries, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries/update, POST} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries/nearby, GET} route[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries/by-continent, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/user/geographic-stats, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries/search, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/auth}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/login, POST} route[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/register, POST} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/profile, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsersController {/users}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/users/me, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/users/me, PATCH} route[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTripsController {/trips}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/trips, POST} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/trips, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/trips/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mIntegrationsController {/integrations}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/immich, POST} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/immich/albums, GET} route[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/immich/albums/:albumId/assets, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/status, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMediaController {/media}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 262546  - [39m03/20/2026, 8:35:55 PM [32m    LOG[3[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m > travelmap-frontend@1.0.0 dev
+[0;32m[FRONTEND][0m > vite dev --host
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m Port 5173 is in use, trying another one...
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m   VITE v4.5.14  ready in 1166 ms
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m   ➜  Local:   http://localhost:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.100.73:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://100.126.131.63:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.29.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.17.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.21.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.160.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.23.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.192.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.128.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.176.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.18.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.27.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.32.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.19.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.144.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.224.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.31.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.20.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.28.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.24.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.240.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.26.0.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.64.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.48.1:5174/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.25.0.1:5174/
+[0;32m[FRONTEND][0m 8:36:12 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/map/+page.svelte:1190:10 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 8:36:12 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/map/+page.svelte:1031:2 A11y: visible, non-interactive elements with an on:click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as <button type="button"> or <a> might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details.
+[0;32m[FRONTEND][0m 8:36:12 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/map/+page.svelte:1031:2 A11y: <div> with click handler must have an ARIA role
+[0;32m[FRONTEND][0m 8:36:12 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/map/+page.svelte:1365:12 A11y: visible, non-interactive elements with an on:click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as <button type="button"> or <a> might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details.
+[0;32m[FRONTEND][0m 8:36:12 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/map/+page.svelte:1365:12 A11y: <div> with click handler must have an ARIA role
+[0;32m[FRONTEND][0m 8:36:12 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/map/+page.svelte:1563:2 Unused CSS selector ".sidebar-top-logo"
+[0;32m[FRONTEND][0m 8:36:12 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/map/+page.svelte:1570:2 Unused CSS selector ".logo-box"
+[0;32m[FRONTEND][0m 8:36:12 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/map/+page.svelte:1582:2 Unused CSS selector ".logo-text"
+[0;32m[FRONTEND][0m 8:36:12 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/ProvinceMultiSelect.svelte:205:2 Unused CSS selector ".chevron"
+[0;32m[FRONTEND][0m 8:36:12 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/ProvinceMultiSelect.svelte:210:2 Unused CSS selector ".chevron.rotate"
+[0;32m[FRONTEND][0m 8:36:12 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/ProvinceMultiSelect.svelte:237:2 Unused CSS selector ".search-icon"
+[0;32m[FRONTEND][0m 8:36:12 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/ProvinceMultiSelect.svelte:309:2 Unused CSS selector ".check-icon"
+[0;32m[FRONTEND][0m NotFound [Error]: Not found: /profile/avatar-1
+[0;32m[FRONTEND][0m     at resolve (/docker/travelmap/frontend/node_modules/@sveltejs/kit/src/runtime/server/respond.js:483:13)
+[0;32m[FRONTEND][0m     at resolve (/docker/travelmap/frontend/node_modules/@sveltejs/kit/src/runtime/server/respond.js:277:5)
+[0;32m[FRONTEND][0m     at #options.hooks.handle (/docker/travelmap/frontend/node_modules/@sveltejs/kit/src/runtime/server/index.js:49:56)
+[0;32m[FRONTEND][0m     at Module.respond (/docker/travelmap/frontend/node_modules/@sveltejs/kit/src/runtime/server/respond.js:274:40)
+[0;32m[FRONTEND][0m     at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+[0;32m[FRONTEND][0m   status: 404
+[0;32m[FRONTEND][0m }
+[0;32m[FRONTEND][0m 8:36:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:156:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 8:36:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:165:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 8:36:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:174:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 8:36:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:183:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 8:36:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:192:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 8:36:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:200:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 8:36:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:368:2 Unused CSS selector ".nav-icon"
+[0;32m[FRONTEND][0m 8:36:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:457:2 Unused CSS selector ".search-icon"
+[0;32m[FRONTEND][0m 8:36:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:674:2 Unused CSS selector ".more-btn"
+[0;32m[FRONTEND][0m 8:36:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:685:2 Unused CSS selector ".more-btn:hover"
+[0;32m[FRONTEND][0m 8:36:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:712:2 Unused CSS selector ".date-icon"
+[0;32m[FRONTEND][0m 8:36:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:735:2 Unused CSS selector ".text-accent-primary"
+[0;32m[FRONTEND][0m 8:36:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:739:2 Unused CSS selector ".text-green-400"
+[0;32m[FRONTEND][0m 8:37:04 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/new/+page.svelte:86:8 A11y: visible, non-interactive elements with an on:click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as <button type="button"> or <a> might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details.
+[0;32m[FRONTEND][0m 8:37:04 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/new/+page.svelte:86:8 A11y: <div> with click handler must have an ARIA role
+[0;32m[FRONTEND][0m 8:37:04 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/new/+page.svelte:98:8 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 8:37:04 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/new/+page.svelte:179:2 Unused CSS selector ".btn-remove-country:hover"
+[0;32m[FRONTEND][0m 8:37:04 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/CountryMultiSelect.svelte:197:2 Unused CSS selector ".chevron"
+[0;32m[FRONTEND][0m 8:37:04 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/CountryMultiSelect.svelte:202:2 Unused CSS selector ".chevron.rotate"
+[0;32m[FRONTEND][0m 8:37:04 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/CountryMultiSelect.svelte:229:2 Unused CSS selector ".search-icon"
+[0;32m[FRONTEND][0m 8:37:04 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/CountryMultiSelect.svelte:298:2 Unused CSS selector ".check-icon"
+[0;32m[FRONTEND][0m 8:38:35 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/[id]/+page.svelte:1589:2 A11y: visible, non-interactive elements with an on:click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as <button type="button"> or <a> might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details.
+[0;32m[FRONTEND][0m 8:38:35 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/[id]/+page.svelte:1589:2 A11y: <div> with click handler must have an ARIA role
+[0;32m[FRONTEND][0m 8:38:35 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/AlbumModal.svelte:34:0 A11y: visible, non-interactive elements with an on:click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as <button type="button"> or <a> might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details.
+[0;32m[FRONTEND][0m 8:38:35 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/AlbumModal.svelte:34:0 A11y: <div> with click handler must have an ARIA role
+[0;32m[FRONTEND][0m 8:42:59 PM [vite] hmr update /src/routes/+layout.svelte, /src/app.css, /src/routes/profile/+page.svelte, /src/lib/components/ui/ProvinceExplorer.svelte, /src/lib/components/map/LocationPicker.svelte, /src/routes/+page.svelte, /src/routes/map/+page.svelte, /src/lib/components/ui/ProvinceMultiSelect.svelte, /src/lib/components/map/MapContainer.svelte, /src/routes/login/+page.svelte, /src/routes/trips/+page.svelte, /src/lib/components/ui/DatePicker.svelte, /src/routes/trips/new/+page.svelte, /src/lib/components/ui/CountryMultiSelect.svelte, /src/routes/trips/[id]/+page.svelte, /src/lib/components/ui/AlbumModal.svelte
+[0;32m[FRONTEND][0m 8:42:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/CountryMultiSelect.svelte:197:2 Unused CSS selector ".chevron"
+[0;32m[FRONTEND][0m 8:42:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/CountryMultiSelect.svelte:202:2 Unused CSS selector ".chevron.rotate"
+[0;32m[FRONTEND][0m 8:42:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/CountryMultiSelect.svelte:229:2 Unused CSS selector ".search-icon"
+[0;32m[FRONTEND][0m 8:42:59 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/CountryMultiSelect.svelte:298:2 Unused CSS selector ".check-icon"
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/[id]/+page.svelte:1589:2 A11y: visible, non-interactive elements with an on:click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as <button type="button"> or <a> might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details.
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/[id]/+page.svelte:1589:2 A11y: <div> with click handler must have an ARIA role
+[0;32m[FRONTEND][0m 8:43:00 PM [0;32mIniciando backend y frontend...[0m
+[0;36m[BACKEND][0m Iniciando...
+[0;32m[FRONTEND][0m Iniciando...
+[vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/ProvinceMultiSelect.svelte:205:2 Unused CSS selector ".chevron"
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/ProvinceMultiSelect.svelte:210:2 Unused CSS selector ".chevron.rotate"
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/ProvinceMultiSelect.svelte:237:2 Unused CSS selector ".search-icon"
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/ProvinceMultiSelect.svelte:309:2 Unused CSS selector ".check-icon"
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/AlbumModal.svelte:34:0 A11y: visible, non-interactive elements with an on:click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as <button type="button"> or <a> might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details.
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/AlbumModal.svelte:34:0 A11y: <div> with click handler must have an ARIA role
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/AlbumModal.svelte:34:0 A11y: visible, non-interactive elements with an on:click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as <button type="button"> or <a> might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details.
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/AlbumModal.svelte:34:0 A11y: <div> with click handler must have an ARIA role
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/CountryMultiSelect.svelte:197:2 Unused CSS selector ".chevron"
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/CountryMultiSelect.svelte:202:2 Unused CSS selector ".chevron.rotate"
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/CountryMultiSelect.svelte:229:2 Unused CSS selector ".search-icon"
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/CountryMultiSelect.svelte:298:2 Unused CSS selector ".check-icon"
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/ProvinceMultiSelect.svelte:205:2 Unused CSS selector ".chevron"
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/ProvinceMultiSelect.svelte:210:2 Unused CSS selector ".chevron.rotate"
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/ProvinceMultiSelect.svelte:237:2 Unused CSS selector ".search-icon"
+[0;32m[FRONTEND][0m 8:43:00 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/lib/components/ui/ProvinceMultiSelect.svelte:309:2 Unused CSS selector ".check-icon"
+[0;32m[FRONTEND][0m 8:43:06 PM [vite] page reload .svelte-kit/generated/client/nodes/0.js
+[0;32m[FRONTEND][0m 8:43:06 PM [vite] page reload .svelte-kit/generated/client/nodes/1.js
+[0;32m[FRONTEND][0m 8:43:06 PM [vite] page reload .svelte-kit/generated/client/nodes/2.js
+[0;32m[FRONTEND][0m 8:43:06 PM [vite] page reload .svelte-kit/generated/client/nodes/3.js
+[0;32m[FRONTEND][0m 8:43:06 PM [vite] page reload .svelte-kit/generated/client/nodes/4.js
+[0;32m[FRONTEND][0m 8:43:06 PM [vite] page reload .svelte-kit/generated/client/nodes/5.js
+[0;32m[FRONTEND][0m 8:43:06 PM [vite] page reload .svelte-kit/generated/client/nodes/7.js
+[0;32m[FRONTEND][0m 8:43:06 PM [vite] page reload .svelte-kit/generated/client/nodes/8.js
+[0;32m[FRONTEND][0m 8:43:06 PM [vite] page reload .svelte-kit/generated/client/nodes/9.js
+[0;32m[0;36m[BACKEND][0m 
+[0;36m[BACKEND][0m > travelmap-backend@1.0.0 start
+[0;36m[BACKEND][0m > nest start
+[0;36m[BACKEND][0m 
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +15ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mKnexModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMulterModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDatabaseModule dependencies initialized[39m[38;5;3m +21ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsersModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTripsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mIntegrationsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mLocationsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mKnexCoreModule dependencies initialized[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMediaModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGeoModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGeoController {/geo}:[39m[38;5;3m +28ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries, GET} route[39m[38;5;3m +2ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/user-countries, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries/update, POST} route[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries/nearby, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries/by-continent, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/user/geographic-stats, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/geo/countries/search, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/auth}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/login, POST} route[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/register, POST} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/auth/profile, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsersController {/users}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/users/me, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/users/me, PATCH} route[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTripsController {/trips}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/trips, POST} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/trips, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/trips/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mIntegrationsController {/integrations}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/immich, POST} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/immich/albums, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/immich/albums/:albumId/assets, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/status, GET} route[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMediaController {/media}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/media/map, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/media/trips/:tripId/photos, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/media/trips/:tripId/photos, POST} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/media/batch/photos, PATCH} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/media/photos/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/media/photos/:id, DELETE} route[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/media/photos/:id/image, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mLocationsController {/locations}:[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/locations, POST} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/locations/:id, PATCH} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/locations, GET} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/locations/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[0;36m[BACKEND][0m [32m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +6ms[39m
+[0;36m[BACKEND][0m [31m[Nest] 271865  - [39m03/20/2026, 8:43:08 PM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3001[39m[38;5;3m +1ms[39m
+[0;36m[BACKEND][0m node:net:1940
+[0;36m[BACKEND][0m     const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+[0;36m[BACKEND][0m                ^
+[0;36m[BACKEND][0m 
+[0;36m[BACKEND][0m Error: listen EADDRINUSE: address already in use :::3001
+[0;36m[BACKEND][0m     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+[0;36m[BACKEND][0m     at listenInCluster (node:net:1997:12)
+[0;36m[BACKEND][0m     at Server.listen (node:net:2102:7)
+[0;36m[BACKEND][0m     at ExpressAdapter.listen (/docker/travelmap/backend/node_modules/@nestjs/platform-express/adapters/express-adapter.js:95:32)
+[0;36m[BACKEND][0m     at /docker/travelmap/backend/node_modules/@nestjs/core/nest-application.js:183:30
+[0;36m[BACKEND][0m     at new Promise (<anonymous>)
+[0;36m[BACKEND][0m     at NestApplication.listen (/docker/travelmap/backend/node_modules/@nestjs/core/nest-application.js:173:16)
+[0;36m[BACKEND][0m     at async bootstrap (/docker/travelmap/backend/src/main.ts:47:3) {
+[0;36m[BACKEND][0m   code: 'EADDRINUSE',
+[0;36m[BACKEND][0m   errno: -98,
+[0;36m[BACKEND][0m   syscall: 'listen',
+[0;36m[BACKEND][0m   address: '::',
+[0;36m[BACKEND][0m   port: 3001
+[0;36m[BACKEND][0m }
+[0;36m[BACKEND][0m 
+[0;36m[BACKEND][0m Node.js v22.22.0
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m > travelmap-frontend@1.0.0 dev
+[0;32m[FRONTEND][0m > vite dev --host
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m Port 5173 is in use, trying another one...
+[0;32m[FRONTEND][0m Port 5174 is in use, trying another one...
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m   VITE v4.5.14  ready in 1143 ms
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m   ➜  Local:   http://localhost:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.100.73:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://100.126.131.63:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.29.0.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.17.0.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.21.0.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.160.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.23.0.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.192.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.0.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.128.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.176.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.18.0.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.27.0.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.32.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.19.0.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.144.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.224.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.31.0.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.20.0.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.28.0.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.24.0.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.240.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.26.0.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.64.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://192.168.48.1:5175/
+[0;32m[FRONTEND][0m   ➜  Network: http://172.25.0.1:5175/
+[FRONTEND][0m 8:43:06 PM [vite] page reload .svelte-kit/generated/client/app.js
+[0;32m[FRONTEND][0m 8:43:06 PM [vite] page reload .svelte-kit/generated/client/matchers.js
+[0;32m[FRONTEND][0m 8:43:06 PM [vite] page reload .svelte-kit/generated/server/internal.js
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:156:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:165:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:174:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:183:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:192:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:200:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:368:2 Unused CSS selector ".nav-icon"
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:457:2 Unused CSS selector ".search-icon"
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:674:2 Unused CSS selector ".more-btn"
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:685:2 Unused CSS selector ".more-btn:hover"
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:712:2 Unused CSS selector ".date-icon"
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:735:2 Unused CSS selector ".text-accent-primary"
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:739:2 Unused CSS selector ".text-green-400"
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:156:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:165:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:174:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:183:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:192:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:200:12 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:368:2 Unused CSS selector ".nav-icon"
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:457:2 Unused CSS selector ".search-icon"
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:674:2 Unused CSS selector ".more-btn"
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:685:2 Unused CSS selector ".more-btn:hover"
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:712:2 Unused CSS selector ".date-icon"
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:735:2 Unused CSS selector ".text-accent-primary"
+[0;32m[FRONTEND][0m 9:13:54 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/+page.svelte:739:2 Unused CSS selector ".text-green-400"
+[0;32m[FRONTEND][0m 9:13:56 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/new/+page.svelte:86:8 A11y: visible, non-interactive elements with an on:click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as <button type="button"> or <a> might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details.
+[0;32m[FRONTEND][0m 9:13:56 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/new/+page.svelte:86:8 A11y: <div> with click handler must have an ARIA role
+[0;32m[FRONTEND][0m 9:13:56 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/new/+page.svelte:98:8 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:56 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/new/+page.svelte:179:2 Unused CSS selector ".btn-remove-country:hover"
+[0;32m[FRONTEND][0m 9:13:56 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/new/+page.svelte:86:8 A11y: visible, non-interactive elements with an on:click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as <button type="button"> or <a> might be more appropriate. See https://svelte.dev/docs/accessibility-warnings#a11y-click-events-have-key-events for more details.
+[0;32m[FRONTEND][0m 9:13:56 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/new/+page.svelte:86:8 A11y: <div> with click handler must have an ARIA role
+[0;32m[FRONTEND][0m 9:13:56 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/new/+page.svelte:98:8 A11y: A form label must be associated with a control.
+[0;32m[FRONTEND][0m 9:13:56 PM [vite-plugin-svelte] /docker/travelmap/frontend/src/routes/trips/new/+page.svelte:179:2 Unused CSS selector ".btn-remove-country:hover"
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload tailwind.config.js
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] changed tsconfig file detected: /docker/travelmap/frontend/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] hmr update /.svelte-kit/generated/root.svelte
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload .svelte-kit/generated/client/app.js
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload .svelte-kit/generated/client/matchers.js
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload .svelte-kit/generated/client/nodes/0.js
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload .svelte-kit/generated/client/nodes/1.js
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload .svelte-kit/generated/client/nodes/2.js
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload .svelte-kit/generated/client/nodes/3.js
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload .svelte-kit/generated/client/nodes/4.js
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload .svelte-kit/generated/client/nodes/5.js
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload .svelte-kit/generated/client/nodes/7.js
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload .svelte-kit/generated/client/nodes/8.js
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload .svelte-kit/generated/client/nodes/9.js
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload .svelte-kit/generated/server/internal.js
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] hmr update /src/app.css
+[0;32m[FRONTEND][0m 11:47:53 AM [vite] page reload src/app.html
+[0;32m[FRONTEND][0m file:///docker/travelmap/frontend/node_modules/@sveltejs/kit/src/core/config/index.js:18
+[0;32m[FRONTEND][0m 		throw new Error(`${relative} does not exist`);
+[0;32m[FRONTEND][0m 		^
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m Error: src/app.html does not exist
+[0;32m[FRONTEND][0m     at load_template (file:///docker/travelmap/frontend/node_modules/@sveltejs/kit/src/core/config/index.js:18:9)
+[0;32m[FRONTEND][0m     at write_server (file:///docker/travelmap/frontend/node_modules/@sveltejs/kit/src/core/sync/write_server.js:106:14)
+[0;32m[FRONTEND][0m     at Module.server (file:///docker/travelmap/frontend/node_modules/@sveltejs/kit/src/core/sync/sync.js:77:2)
+[0;32m[FRONTEND][0m     at FSWatcher.<anonymous> (file:///docker/travelmap/frontend/node_modules/@sveltejs/kit/src/exports/vite/dev/index.js:324:9)
+[0;32m[FRONTEND][0m     at FSWatcher.emit (node:events:519:28)
+[0;32m[FRONTEND][0m     at file:///docker/travelmap/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:53794:16
+[0;32m[FRONTEND][0m     at Map.forEach (<anonymous>)
+[0;32m[FRONTEND][0m     at Timeout._onTimeout (file:///docker/travelmap/frontend/node_modules/vite/dist/node/chunks/dep-827b23df.js:53792:30)
+[0;32m[FRONTEND][0m     at listOnTimeout (node:internal/timers:588:17)
+[0;32m[FRONTEND][0m     at process.processTimers (node:internal/timers:523:7)
+[0;32m[FRONTEND][0m 
+[0;32m[FRONTEND][0m Node.js v22.22.0

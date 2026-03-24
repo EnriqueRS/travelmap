@@ -1,0 +1,93 @@
+/**
+ * Geocoding via OpenStreetMap Nominatim (free, no API key).
+ * Usage policy: https://operations.osmfoundation.org/policies/nominatim/
+ * - Max 1 request per second; use a descriptive User-Agent.
+ */
+
+const NOMINATIM_BASE_URL = "https://nominatim.openstreetmap.org";
+const USER_AGENT =
+  "TravelMap/1.0 (https://github.com/travelmap; contact@example.com)";
+
+export interface GeocodeResult {
+  lat: number;
+  lng: number;
+  displayName: string;
+}
+
+export async function geocode(query: string): Promise<GeocodeResult | null> {
+  if (!query?.trim()) return null;
+
+  const params = new URLSearchParams({
+    q: query.trim(),
+    format: "json",
+    limit: "1",
+  });
+
+  const res = await fetch(`${NOMINATIM_BASE_URL}/search?${params}`, {
+    headers: {
+      Accept: "application/json",
+      "User-Agent": USER_AGENT,
+    },
+  });
+
+  if (!res.ok) return null;
+
+  const data = await res.json();
+  if (!Array.isArray(data) || data.length === 0) return null;
+
+  const first = data[0];
+  const lat = parseFloat(first.lat);
+  const lon = parseFloat(first.lon);
+  if (Number.isNaN(lat) || Number.isNaN(lon)) return null;
+
+  return {
+    lat,
+    lng: lon,
+    displayName: first.display_name ?? `${lat}, ${lon}`,
+  };
+}
+
+export interface ReverseGeocodeResult {
+  countryCode: string | null;
+  country: string | null;
+  state: string | null;
+  county: string | null;
+  city: string | null;
+}
+
+export async function reverseGeocode(lat: number, lng: number): Promise<ReverseGeocodeResult | null> {
+  const params = new URLSearchParams({
+    lat: lat.toString(),
+    lon: lng.toString(),
+    format: "json",
+    "accept-language": "es",
+    addressdetails: "1",
+  });
+
+  try {
+    const res = await fetch(`${NOMINATIM_BASE_URL}/reverse?${params}`, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": USER_AGENT,
+      },
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    if (data && data.address) {
+      const addr = data.address;
+      return {
+        countryCode: addr.country_code?.toUpperCase() || null,
+        country: addr.country || null,
+        state: addr.state || addr.province || addr.region || null,
+        county: addr.county || addr.city_district || null,
+        province: addr.province || null,
+        city: addr.city || addr.town || addr.village || null,
+      };
+    }
+  } catch (error) {
+    console.warn("Error reverse geocoding:", error);
+  }
+  return null;
+}
