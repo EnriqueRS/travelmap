@@ -517,3 +517,5 @@ npm run format      # Prettier format
 - **Jerarquía Visual del Mapa Optimizada**: Ajuste de la opacidad de los países a un nivel muy tenue (0.03) al hacer zoom, garantizando que las provincias resaltadas destaquen con el máximo contraste.
 - **Restauración de i18n**: Reparación de errores en el almacén de traducciones y compleción de claves faltantes para acciones de formulario y avisos.
 - **Corrección de Errores**: Se eliminaron claves duplicadas y se corrigieron errores de sintaxis en la página del mapa.
+
+test
