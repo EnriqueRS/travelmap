@@ -3,12 +3,38 @@ import { Trip } from './entities/trip.entity';
 
 @Injectable()
 export class TripsService {
+  // Función para calcular el estado dinámico basado en fechas
+  private calculateDynamicStatus(startDate?: Date, endDate?: Date): 'Planificado' | 'En curso' | 'Completado' {
+    if (!startDate || !endDate) {
+      return 'Planificado';
+    }
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    // Resetear la hora para comparar solo fechas
+    now.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    if (now < start) {
+      return 'Planificado';
+    } else if (now > end) {
+      return 'Completado';
+    } else {
+      return 'En curso';
+    }
+  }
+
   async createTrip(userId: number, createData: any): Promise<Trip> {
     const { v4: uuidv4 } = require('uuid');
 
-    let mappedStatus: 'Planificado' | 'En curso' | 'Completado' | 'Cancelado' = 'Planificado';
-    if (['Planificado', 'En curso', 'Completado', 'Cancelado'].includes(createData.status)) {
-      mappedStatus = createData.status;
+    // Si no se especifica status o no es 'Cancelado', calcular basado en fechas
+    let finalStatus: 'Planificado' | 'En curso' | 'Completado' | 'Cancelado';
+    if (createData.status === 'Cancelado') {
+      finalStatus = 'Cancelado';
+    } else {
+      finalStatus = this.calculateDynamicStatus(createData.startDate, createData.endDate);
     }
 
     const backendPayload = {
@@ -18,7 +44,7 @@ export class TripsService {
       description: createData.description,
       startDate: createData.startDate,
       endDate: createData.endDate,
-      status: mappedStatus,
+      status: finalStatus,
       countries: Array.isArray(createData.countries) ? createData.countries : [],
       provinces: Array.isArray(createData.provinces) ? createData.provinces : [],
       currency: 'EUR',
@@ -31,7 +57,16 @@ export class TripsService {
   }
 
   async getUserTrips(userId: number): Promise<Trip[]> {
-    return Trip.query().where('user_id', userId);
+    const trips = await Trip.query().where('user_id', userId);
+    
+    // Recalcular el estado dinámico para cada viaje que no esté cancelado
+    for (const trip of trips) {
+      if (trip.status !== 'Cancelado') {
+        trip.status = this.calculateDynamicStatus(trip.startDate, trip.endDate);
+      }
+    }
+    
+    return trips;
   }
 
   async updateTrip(userId: number, id: string, updateData: any): Promise<Trip> {
@@ -41,16 +76,67 @@ export class TripsService {
       throw new Error('Trip not found or unauthorized');
     }
 
-    const updatedTrip = await Trip.query().patchAndFetchById(id, {
+    // Determinar el status a guardar
+    let finalStatus: 'Planificado' | 'En curso' | 'Completado' | 'Cancelado';
+    
+    if (updateData.status === 'Cancelado') {
+      // El usuario explícitamente quiere cancelar
+      finalStatus = 'Cancelado';
+    } else if (trip.status === 'Cancelado' && updateData.status === undefined) {
+      // El viaje ya estaba cancelado y no se está cambiando el status, mantenerlo
+      finalStatus = 'Cancelado';
+    } else {
+      // Calcular estado dinámico basado en fechas (usar nuevas fechas si se proporcionan)
+      const startDate = updateData.startDate !== undefined ? updateData.startDate : trip.startDate;
+      const endDate = updateData.endDate !== undefined ? updateData.endDate : trip.endDate;
+      finalStatus = this.calculateDynamicStatus(startDate, endDate);
+    }
+
+    // Solo incluir status en el patch si ha cambiado o debemos forzarlo
+    const patchData: any = {
       name: updateData.name,
       description: updateData.description,
       startDate: updateData.startDate,
       endDate: updateData.endDate,
-      status: updateData.status,
       countries: updateData.countries,
       provinces: updateData.provinces,
       coverImage: updateData.coverImage
-    });
+    };
+    
+    // Siempre actualizar el estado dinámico (excepto si es Cancelado y ya lo era)
+    patchData.status = finalStatus;
+
+    const updatedTrip = await Trip.query().patchAndFetchById(id, patchData);
+
+    return updatedTrip;
+  }
+
+    // Determinar el status a guardar
+    let finalStatus: 'Planificado' | 'En curso' | 'Completado' | 'Cancelado';
+    if (updateData.status === 'Cancelado') {
+      finalStatus = 'Cancelado';
+    } else {
+      // Usar las fechas del updateData si están presentes, si no las del trip actual
+      const startDate = updateData.startDate !== undefined ? updateData.startDate : trip.startDate;
+      const endDate = updateData.endDate !== undefined ? updateData.endDate : trip.endDate;
+      finalStatus = this.calculateDynamicStatus(startDate, endDate);
+    }
+
+    // Solo incluir status en el patch si ha cambiado o debemos forzarlo
+    const patchData: any = {
+      name: updateData.name,
+      description: updateData.description,
+      startDate: updateData.startDate,
+      endDate: updateData.endDate,
+      countries: updateData.countries,
+      provinces: updateData.provinces,
+      coverImage: updateData.coverImage
+    };
+    
+    // Siempre actualizar el estado dinámico (excepto si es Cancelado y ya lo era)
+    patchData.status = finalStatus;
+
+    const updatedTrip = await Trip.query().patchAndFetchById(id, patchData);
 
     return updatedTrip;
   }
