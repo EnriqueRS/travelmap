@@ -137,7 +137,7 @@ export class MediaService {
   }
 
   async deletePhoto(id: string, userId: number): Promise<boolean> {
-    const photo = await Photo.query().findOne({ id, userId });
+    const photo = await Photo.query().findOne({ id, user_id: userId });
     if (!photo) throw new NotFoundException('Foto no encontrada');
 
     await photo.$query().delete();

@@ -99,7 +99,7 @@ export class LocationsService {
   }
 
   async deleteLocation(userId: number, id: string): Promise<{ success: boolean }> {
-    const location = await Location.query().findOne({ id, userId });
+    const location = await Location.query().findOne({ id, user_id: userId });
     if (!location) {
       // Could throw NotFoundException but let's just throw Error or return false
       throw new Error('Location not found or unauthorized');

@@ -190,6 +190,7 @@ export const translations = {
       photoLinkedNoGps: "Foto vinculada",
       tripUpdated: "Viaje actualizado",
       addDescription: "Añadir descripción",
+      uploading: "Subiendo...",
     },
     // Map View
     continents: {
@@ -585,6 +586,7 @@ export const translations = {
       photoLinkedNoGps: "Photo linked",
       tripUpdated: "Trip updated",
       addDescription: "Add description",
+      uploading: "Uploading...",
     },
     // Map View
     continents: {
