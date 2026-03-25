@@ -228,19 +228,23 @@
     ) {
       try {
         toast.info($t("map.uploadingToast"))
-        const newPhotoPayload = await mediaService.uploadLocalPhoto(
+        const newPhotoPayloads = await mediaService.uploadLocalPhoto(
           finalTripId,
-          newLocationPhotoFiles[0],
+          newLocationPhotoFiles,
         )
-        // Guardar metadata con latitud / longitud de este picker
-        await mediaService.updatePhoto(newPhotoPayload.id, {
-          showOnMap: true,
-          metadata: {
-            exif: { latitude: newLocationLat, longitude: newLocationLng },
-          },
-        })
+        // newPhotoPayloads es un array de fotos
+        // Para cada foto, actualizamos su metadata si se debe mostrar en el mapa
+        for (const photo of newPhotoPayloads) {
+          await mediaService.updatePhoto(photo.id, {
+            showOnMap: true,
+            metadata: {
+              exif: { latitude: newLocationLat, longitude: newLocationLng },
+            },
+          })
+        }
         toast.success($t("map.uploadSuccessToast"))
-        newLoc.images = [newPhotoPayload.id]
+        // Guardamos los IDs de todas las fotos subidas
+        newLoc.images = newPhotoPayloads.map(p => p.id)
         mapPhotos = await mediaService.getMapPhotos() // Refrescar fotos del mapa global
       } catch (e) {
         console.error("No se pudo subir la foto con el viaje", e)
@@ -1264,6 +1268,7 @@
               type="file"
               class="hidden"
               accept="image/*"
+              multiple
               bind:files={newLocationPhotoFiles}
               disabled={newLocationTripId === "new" || newLocationTripId === ""}
             />

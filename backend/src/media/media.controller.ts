@@ -1,5 +1,5 @@
-import { Controller, Post, Get, Patch, Delete, Param, Body, UseGuards, Request, UseInterceptors, UploadedFile, BadRequestException, Res, NotFoundException } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Controller, Post, Get, Patch, Delete, Param, Body, UseGuards, Request, UseInterceptors, UploadedFiles, BadRequestException, Res, NotFoundException } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { MediaService } from './media.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Response } from 'express';
@@ -22,22 +22,25 @@ export class MediaController {
 
   @Post('trips/:tripId/photos')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('file', 25)) // max 25 archivos
   async uploadPhoto(
     @Request() req,
     @Param('tripId') tripId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files: Express.Multer.File[],
     @Body() body: any // for external cases
   ) {
-    if (file) {
-      return this.mediaService.addLocalPhoto(tripId, req.user.userId, file);
+    // Caso 1: Archivos locales múltiples
+    if (files && files.length > 0) {
+      const photos = await this.mediaService.addLocalPhotos(tripId, req.user.userId, files);
+      return photos; // Devolvemos array de fotos
     }
 
+    // Caso 2: Foto externa (Immich) - mantiene compatibilidad
     if (body.provider === 'immich' && body.url && body.externalId) {
       return this.mediaService.addExternalPhoto(tripId, req.user.userId, body);
     }
 
-    throw new BadRequestException('Se requiere un archivo local o datos de un proveedor externo.');
+    throw new BadRequestException('Se requiere al menos un archivo local o datos de un proveedor externo.');
   }
 
   @Patch('batch/photos')
