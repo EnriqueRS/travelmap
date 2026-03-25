@@ -36,6 +36,7 @@
     Activity,
     Info,
     Camera,
+    Share2,
   } from "lucide-svelte"
   import { COUNTRIES, getCountryName } from "$lib/utils/countries"
   import { normalizeString } from "$lib/utils/string"
@@ -77,10 +78,15 @@
   let newTripProvinces: string[] = []
   let showProvinceExplorer = false
 
-  let newLocationPhotoFiles: FileList | null = null
-  let isSavingLocation = false
+   let newLocationPhotoFiles: FileList | null = null
+   let isSavingLocation = false
 
-  // Modal Search State
+   // Share Modal State
+   let showShareModal = false
+   let shareImageUrl = ""
+   let isGeneratingImage = false
+
+   // Modal Search State
   let modalSearchQuery = ""
   let locationPickerRef: any
 
@@ -1041,16 +1047,27 @@
         </button>
       </div>
 
-      <div class="topbar-right">
-        <div class="mini-stat">
-          <span class="label">{$t("status.Completado")}</span>
-          <span class="value text-green">{visitedCount}</span>
-        </div>
-        <div class="mini-stat">
-          <span class="label">{$t("status.Planificado")}</span>
-          <span class="value text-blue">{plannedCount}</span>
-        </div>
-      </div>
+   <div class="topbar-right">
+     <div class="mini-stat">
+       <span class="label">{$t("status.Completado")}</span>
+       <span class="value text-green">{visitedCount}</span>
+     </div>
+     <div class="mini-stat">
+       <span class="label">{$t("status.Planificado")}</span>
+       <span class="value text-blue">{plannedCount}</span>
+     </div>
+     <button
+       class="btn-share"
+       on:click={async () => {
+         if (mapComponent) {
+           await generateShareImage()
+         }
+       }}
+       title={$t("map.shareMap")}
+     >
+       <Share2 size={18} />
+     </button>
+   </div>
     </header>
 
     <!-- Map Area -->
