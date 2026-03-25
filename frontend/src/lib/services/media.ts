@@ -38,17 +38,24 @@ export const mediaService = {
     return res.data;
   },
 
-  uploadLocalPhoto: async (tripId: string, file: File): Promise<AppPhoto> => {
+  uploadLocalPhoto: async (tripId: string, files: File | File[]): Promise<AppPhoto[] | AppPhoto> => {
     const token = getToken();
     const formData = new FormData();
-    formData.append("file", file);
+    
+    // Soporte para un solo archivo o múltiples
+    const fileArray = Array.isArray(files) ? files : [files];
+    
+    fileArray.forEach(file => {
+      formData.append('file', file);
+    });
+
     const res = await axios.post(
       `${API_URL}/media/trips/${tripId}/photos`,
       formData,
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
         },
       }
     );

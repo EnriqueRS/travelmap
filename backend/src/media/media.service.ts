@@ -72,6 +72,35 @@ export class MediaService {
   }
 
   /**
+   * Registra múltiples fotos locales almacenadas por Multer
+   */
+  async addLocalPhotos(tripId: string, userId: number, files: Express.Multer.File[]): Promise<Photo[]> {
+    const { v4: uuidv4 } = require('uuid');
+    const photos: Photo[] = [];
+
+    for (const file of files) {
+      const photoUrl = `/uploads/photos/${file.filename}`;
+      const photo = await Photo.query().insert({
+        id: uuidv4(),
+        userId,
+        tripId,
+        provider: 'local',
+        url: photoUrl,
+        showOnMap: false,
+        isCover: false,
+        isHidden: false,
+        metadata: {
+          size: file.size,
+          format: path.extname(file.originalname).replace('.', '')
+        }
+      });
+      photos.push(photo);
+    }
+
+    return photos;
+  }
+
+  /**
    * Obtiene todas las fotos vinculadas a un viaje
    */
   async getTripPhotos(tripId: string, userId: number): Promise<Photo[]> {

@@ -566,11 +566,14 @@
     if (input.files && input.files.length > 0) {
       toast.info($t("trip.uploading"))
       try {
-        const newPhoto = await mediaService.uploadLocalPhoto(
+        // Convertir FileList a Array y subir todos
+        const filesArray = Array.from(input.files)
+        const newPhotos = await mediaService.uploadLocalPhoto(
           tripId,
-          input.files[0],
+          filesArray,
         )
-        photos = [newPhoto, ...photos]
+        // newPhotos es un array, lo extendemos al inicio
+        photos = [...newPhotos, ...photos]
         input.value = "" // Reset
         toast.success($t("trip.uploadSuccess"))
       } catch (err) {
@@ -1033,6 +1036,7 @@
             type="file"
             bind:this={fileInput}
             on:change={handleFileUpload}
+            multiple
             accept="image/*"
             style="display:none;"
           />
