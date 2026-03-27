@@ -190,7 +190,18 @@ export const translations = {
       photoLinkedNoGps: "Foto vinculada",
       tripUpdated: "Viaje actualizado",
       addDescription: "Añadir descripción",
-      uploading: "Subiendo...",
+       uploading: "Subiendo...",
+       batchGpsToPhotos: "Añadir GPS a {count} fotos",
+       batchGpsSuccess: "GPS añadido a {count} fotos exitosamente",
+       immichImportSuccess: "¡{count} fotos importadas exitosamente desde Immich!",
+       immichImportError: "Error al importar álbum de Immich",
+       unlinkingAlbumPhotos: "Desvinculando fotos del álbum...",
+       errorUnlinkingAlbum: "Error al desvincular el álbum",
+       errorLoadingImmichAlbums: "Error al cargar álbumes de Immich",
+       albumUnlinkSuccess: "{count} fotos desvinculadas exitosamente",
+       hiddenphoto: "Foto oculta",
+       coveradded: "Portada añadida",
+       checkingLinkedAlbums: "Comprobando álbumes vinculados...",
     },
     // Map View
     continents: {
@@ -397,7 +408,20 @@ export const translations = {
       back: "Volver",
     },
     landing: {
+      heroSubtitle: "Registra tus viajes, comparte tus lugares favoritos y conecta con otros viajeros.",
+      exploreTheWorld: "Explora el mundo",
+      exploreMap: "Explorar Mapa",
+      interactiveMap: "Mapa Interactivo",
+      interactiveMapDesc: "Visualiza tus viajes en un mapa mundial interactivo con estadísticas y seguimiento de países.",
+      photoGallery: "Galería de Fotos",
+      photoGalleryDesc: "Sube y organiza tus fotos de viaje, vinculándolas con ubicaciones exactas en el mapa.",
       tripPlanner: "Planificador de Viajes",
+      tripPlannerDesc: "Planifica y registra tus viajes con fechas, países y lugares visitados. Crea itinerarios detallados.",
+      statistics: "Estadísticas",
+      statisticsDesc: "Consulta tu progreso mundial, países visitados, provincias y estadísticas detalladas de tus aventuras.",
+      ctaTitle: "Comienza tu aventura hoy",
+      ctaDesc: "Únete a miles de viajeros que ya están mapificando sus recuerdos.",
+      ctaButton: "Comenzar Ahora"
     }
   },
   en: {
@@ -586,7 +610,18 @@ export const translations = {
       photoLinkedNoGps: "Photo linked",
       tripUpdated: "Trip updated",
       addDescription: "Add description",
-      uploading: "Uploading...",
+       uploading: "Uploading...",
+       batchGpsToPhotos: "Add GPS to {count} photos",
+       batchGpsSuccess: "GPS successfully added to {count} photos",
+       immichImportSuccess: "Successfully imported {count} photos from Immich!",
+       immichImportError: "Error importing Immich album",
+       unlinkingAlbumPhotos: "Unlinking album photos...",
+       errorUnlinkingAlbum: "Error unlinking album",
+       errorLoadingImmichAlbums: "Error loading Immich albums",
+       albumUnlinkSuccess: "Successfully unlinked {count} photos",
+       hiddenphoto: "Hidden photo",
+       coveradded: "Cover added",
+       checkingLinkedAlbums: "Checking linked albums...",
     },
     // Map View
     continents: {
@@ -790,8 +825,21 @@ export const translations = {
       confirm: "Confirm",
       back: "Back",
     },
-    landing: {
+     landing: {
+      heroSubtitle: "Record your travels, share your favorite places and connect with other travelers.",
+      exploreTheWorld: "Explore the world",
+      exploreMap: "Explore Map",
+      interactiveMap: "Interactive Map",
+      interactiveMapDesc: "Visualize your trips on an interactive world map with statistics and country tracking.",
+      photoGallery: "Photo Gallery",
+      photoGalleryDesc: "Upload and organize your travel photos, linking them to exact locations on the map.",
       tripPlanner: "Trip Planner",
+      tripPlannerDesc: "Plan and record your trips with dates, countries, and visited places. Create detailed itineraries.",
+      statistics: "Statistics",
+      statisticsDesc: "View your global progress, visited countries, provinces, and detailed statistics of your adventures.",
+      ctaTitle: "Start your adventure today",
+      ctaDesc: "Join thousands of travelers who are already mapping their memories.",
+      ctaButton: "Get Started Now"
     }
   }
 };
