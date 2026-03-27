@@ -111,33 +111,4 @@ export class TripsService {
     return updatedTrip;
   }
 
-    // Determinar el status a guardar
-    let finalStatus: 'Planificado' | 'En curso' | 'Completado' | 'Cancelado';
-    if (updateData.status === 'Cancelado') {
-      finalStatus = 'Cancelado';
-    } else {
-      // Usar las fechas del updateData si están presentes, si no las del trip actual
-      const startDate = updateData.startDate !== undefined ? updateData.startDate : trip.startDate;
-      const endDate = updateData.endDate !== undefined ? updateData.endDate : trip.endDate;
-      finalStatus = this.calculateDynamicStatus(startDate, endDate);
-    }
-
-    // Solo incluir status en el patch si ha cambiado o debemos forzarlo
-    const patchData: any = {
-      name: updateData.name,
-      description: updateData.description,
-      startDate: updateData.startDate,
-      endDate: updateData.endDate,
-      countries: updateData.countries,
-      provinces: updateData.provinces,
-      coverImage: updateData.coverImage
-    };
-    
-    // Siempre actualizar el estado dinámico (excepto si es Cancelado y ya lo era)
-    patchData.status = finalStatus;
-
-    const updatedTrip = await Trip.query().patchAndFetchById(id, patchData);
-
-    return updatedTrip;
-  }
 }

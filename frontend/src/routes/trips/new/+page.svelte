@@ -18,6 +18,25 @@
   let endDate = ""
   let status: Trip["status"] = "Planificado"
 
+  $: if (startDate && endDate) {
+    const now = new Date()
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    now.setHours(0, 0, 0, 0)
+    start.setHours(0, 0, 0, 0)
+    end.setHours(0, 0, 0, 0)
+
+    if (now < start) {
+      status = "Planificado"
+    } else if (now > end) {
+      status = "Completado"
+    } else {
+      status = "En curso"
+    }
+  } else {
+    status = "Planificado"
+  }
+
   let selectedCountries: string[] = []
   let selectedProvinces: string[] = []
 
@@ -117,14 +136,6 @@
         </div>
       {/if}
 
-      <div class="form-group">
-        <label for="status">{$t("form.status")}</label>
-        <select id="status" bind:value={status} class="input-box">
-          <option value="Planificado">{$t("status.Planificado")}</option>
-          <option value="En curso">{$t("status.En curso")}</option>
-          <option value="Completado">{$t("status.Completado")}</option>
-        </select>
-      </div>
 
       <div class="form-actions">
         <a href="/trips" class="btn btn-ghost border border-border"

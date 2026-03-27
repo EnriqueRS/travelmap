@@ -1437,15 +1437,6 @@
             />
           </div>
 
-          <!-- Status -->
-          <div class="form-field-group">
-            <span class="field-label">{$t("trip.tripStatus")}</span>
-            <select bind:value={editTripData.status} class="premium-select">
-              <option value="Planificado">{$t("status.Planificado")}</option>
-              <option value="En curso">{$t("status.En curso")}</option>
-              <option value="Completado">{$t("status.Completado")}</option>
-            </select>
-          </div>
 
           <!-- Description -->
           <div class="form-field-group full-width-field">
