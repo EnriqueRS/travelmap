@@ -200,7 +200,8 @@ export const translations = {
        errorLoadingImmichAlbums: "Error al cargar álbumes de Immich",
        albumUnlinkSuccess: "{count} fotos desvinculadas exitosamente",
        hiddenphoto: "Foto oculta",
-       coveradded: "Portada añadida"
+       coveradded: "Portada añadida",
+       checkingLinkedAlbums: "Comprobando álbumes vinculados...",
     },
     // Map View
     continents: {
@@ -619,7 +620,8 @@ export const translations = {
        errorLoadingImmichAlbums: "Error loading Immich albums",
        albumUnlinkSuccess: "Successfully unlinked {count} photos",
        hiddenphoto: "Hidden photo",
-       coveradded: "Cover added"
+       coveradded: "Cover added",
+       checkingLinkedAlbums: "Checking linked albums...",
     },
     // Map View
     continents: {
