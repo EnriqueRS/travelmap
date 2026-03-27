@@ -510,6 +510,8 @@
   let immichAlbums: any[] = []
   let isLinkingInfo = false
   let isUnlinkingAlbum = false
+  let isImportingPhotos = false
+  let importingProgress = { current: 0, total: 0 }
   let showHiddenPhotos = false
 
   $: hasImmichPhotos = photos.some((p) => p.provider === "immich")
@@ -682,17 +684,22 @@
   async function handleLinkAlbum(event: CustomEvent<{ albumId: string }>) {
     const selectedAlbumId = event.detail.albumId
     if (!selectedAlbumId) return
+    
+    isImportingPhotos = true
+    importingProgress = { current: 0, total: 0 }
     isLinkingInfo = true
+    showImmichModal = false
     toast.info($t("trip.importingImmichPhotos"))
+    
     try {
       const assets = await integrationsService.getImmichAlbumAssets(
         selectedAlbumId,
       )
       const status = await integrationsService.checkStatus()
 
+      importingProgress.total = assets.length
       let count = 0
       for (const asset of assets) {
-        // Thumbnail request to generic Immich endpoint with the user's base URL API attached
         let cleanBase = status.url.endsWith("/api")
           ? status.url.slice(0, -4)
           : status.url
@@ -702,17 +709,19 @@
           tripId,
           assetUrl,
           asset.id,
-          asset.exifInfo, // Pass the exif info along
+          asset.exifInfo,
         )
         photos = [newPhoto, ...photos]
         count++
+        importingProgress.current = count
       }
-      showImmichModal = false
       toast.success($t("trip.immichImportSuccess", { count }))
     } catch (err) {
       console.error(err)
       toast.error($t("trip.immichImportError"))
     } finally {
+      isImportingPhotos = false
+      importingProgress = { current: 0, total: 0 }
       isLinkingInfo = false
     }
   }
@@ -1162,7 +1171,7 @@
         </div>
       </div>
 
-      {#if displayedPhotos.length > 0}
+      {#if displayedPhotos.length > 0 || isImportingPhotos}
         <div class="gallery-container">
           {#if selectedPhoto}
             <div
@@ -1360,8 +1369,23 @@
               </div>
             </div>
           {/if}
+
+          {#if isImportingPhotos}
+            <div class="import-progress p-6 bg-slate-800/50 rounded-xl">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-slate-300 font-medium">{$t("trip.importingImmichPhotos")}</span>
+                <span class="text-blue-400 font-bold">{importingProgress.current} / {importingProgress.total}</span>
+              </div>
+              <div class="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
+                <div 
+                  class="bg-blue-500 h-full transition-all duration-300 ease-out"
+                  style="width: {importingProgress.total > 0 ? (importingProgress.current / importingProgress.total) * 100 : 0}%"
+                ></div>
+              </div>
+            </div>
+          {/if}
         </div>
-      {:else}
+      {:else if !isImportingPhotos}
         <div class="empty-state">
           <p>
             {$t("trip.emptyGallery")}
