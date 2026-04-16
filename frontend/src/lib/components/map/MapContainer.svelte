@@ -159,8 +159,12 @@
       bounds.extend([loc.coordinates[0], loc.coordinates[1]])
     })
 
-    // Add Photos Markers
+    // Add Photos Markers (solo fotos sin locationId, las otras ya se muestran en el marcador del lugar)
     mapPhotos.forEach((photo) => {
+      // Filtrar fotos vinculadas a un lugar - ya se muestran en el popup del lugar
+      if (photo.locationId) {
+        return
+      }
       if (photo.metadata?.exif?.latitude && photo.metadata?.exif?.longitude) {
         const url =
           photo.provider === "local"
