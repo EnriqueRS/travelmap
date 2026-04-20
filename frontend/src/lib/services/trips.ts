@@ -22,5 +22,16 @@ export const tripsService = {
     });
 
     return response.data;
+  },
+
+  async deleteTrip(id: string) {
+    const token = getToken();
+    if (!token) throw new Error("No authentication token found");
+
+    const response = await axios.delete(`${API_URL}/trips/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
   }
 };

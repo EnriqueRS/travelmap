@@ -494,10 +494,21 @@
     )
   }
 
+  let showDeleteTripConfirm = false
+
   function handleDelete() {
-    if (confirm($t("trip.deleteConfirm"))) {
+    showDeleteTripConfirm = true
+  }
+
+  async function confirmDeleteTrip() {
+    showDeleteTripConfirm = false
+    try {
+      await tripsService.deleteTrip(tripId)
       trips.update((current) => current.filter((t) => t.id !== tripId))
       goto("/trips")
+    } catch (err) {
+      console.error("[handleDelete] Failed to delete trip:", err)
+      toast.error($t("trip.errorDeletingTrip"))
     }
   }
 
@@ -2004,6 +2015,41 @@
         <button
           class="btn btn-danger flex-1 bg-red-500 hover:bg-red-600 border-none text-white"
           on:click={confirmDeleteLocation}>{$t("form.delete")}</button
+        >
+      </div>
+    </div>
+  </div>
+{/if}
+
+{#if showDeleteTripConfirm}
+  <div
+    class="modal-backdrop pointer-events-auto flex items-center justify-center p-4"
+    style="z-index: 9999;"
+  >
+    <div
+      class="modal card w-full max-w-sm bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl text-center"
+    >
+      <div
+        class="w-16 h-16 mx-auto mb-4 bg-red-500/10 rounded-full flex items-center justify-center"
+      >
+        <Trash2 size={32} class="text-red-500" />
+      </div>
+      <h3 class="text-lg font-bold text-white mb-2">
+        {$t("trip.deleteConfirmTitle")}
+      </h3>
+      <p class="text-slate-300 text-sm mb-6">
+        {$t("trip.deleteConfirm")}
+      </p>
+
+      <div class="flex gap-3 justify-center">
+        <button
+          class="btn btn-secondary flex-1"
+          on:click={() => (showDeleteTripConfirm = false)}
+          >{$t("form.cancel")}</button
+        >
+        <button
+          class="btn btn-danger flex-1 bg-red-500 hover:bg-red-600 border-none text-white"
+          on:click={confirmDeleteTrip}>{$t("form.delete")}</button
         >
       </div>
     </div>

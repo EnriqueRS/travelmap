@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Patch, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { TripsService } from './trips.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -20,5 +20,10 @@ export class TripsController {
   @Patch(':id')
   async updateTrip(@Request() req, @Param('id') id: string, @Body() updateData: any) {
     return this.tripsService.updateTrip(req.user.userId, id, updateData);
+  }
+
+  @Delete(':id')
+  async deleteTrip(@Request() req, @Param('id') id: string) {
+    return this.tripsService.deleteTrip(req.user.userId, id);
   }
 }

@@ -111,4 +111,23 @@ export class TripsService {
     return updatedTrip;
   }
 
+  async deleteTrip(userId: number, id: string): Promise<{ deleted: boolean }> {
+    const trip = await Trip.query().findOne({ id, user_id: userId });
+
+    if (!trip) {
+      throw new Error('Trip not found or unauthorized');
+    }
+
+    // Import dynamically to avoid issues
+    const { Location } = await import('../locations/entities/location.entity');
+
+    // Delete all locations associated with this trip
+    await Location.query().where('trip_id', id).delete();
+
+    // Delete the trip
+    await Trip.query().deleteById(id);
+
+    return { deleted: true };
+  }
+
 }
