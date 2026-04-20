@@ -451,6 +451,7 @@ npm run format      # Prettier format
 ### Recent Updates / Actualizaciones Recientes
 
 **🇬🇧 English:**
+- **Map Sharing & Infographics**: Added a functional "Share Map" feature that generates a beautiful, downloadable infographic using the native Canvas API. Instead of capturing the map (which had rendering issues), it creates a fully custom-designed image with visited countries and their flags, continent progress bars, trip statistics, and a premium dark gradient layout. No external dependencies required.
 - **Conditional Home Highlight**: The home province highlight and the home marker on the map can now be toggled on and off reactively using the `showHome` setting. This allows users to hide their residence for a cleaner view of their travels or for privacy during screen sharing.
 - **Province-Level Tracking**: Automatically detects the user's home country and province using GPS coordinates and reverse geocoding. Visited provinces are highlighted on the map (initially for Spain), and sub-national statistics are displayed on the user profile.
 - **Mobile Map Page Redesign**: Complete mobile-first redesign of the `/map` page. On screens ≤768px, the desktop sidebar is hidden and replaced with an inline stats panel (trip counts, progress bar, filter chips), a search bar, and a full-screen map. A bottom navigation bar (Map, Trips, Profile) provides easy thumb navigation. The desktop top navbar is simplified to show only the brand and logout button on mobile.
@@ -492,6 +493,7 @@ npm run format      # Prettier format
 - **Province Tracking & Explorer**: Detailed tracking for visited provinces within your home country (starting with Spain). Includes a premium **Province Explorer** with flags and progress bars. 🚩
 
 **🇪🇸 Español:**
+- **Compartir Mapa e Infografías**: Se ha añadido la funcionalidad "Compartir Mapa", que genera una infografía descargable usando la API nativa de Canvas. En lugar de capturar el mapa (que tenía problemas de renderizado), se crea una imagen personalizada con los países visitados y sus banderas, barras de progreso por continente, estadísticas de viajes, y un diseño premium con degradado oscuro. Sin dependencias externas.
 - **Resaltado de Residencia Condicional**: El resaltado de la provincia de residencia y el marcador de hogar en el mapa ahora se pueden activar o desactivar de forma reactiva mediante el ajuste `showHome`. Esto permite a los usuarios ocultar su lugar de residencia para una vista más limpia de sus viajes o por privacidad al compartir pantalla.
 - **Seguimiento a Nivel de Provincia**: Detección automática del país y provincia de residencia del usuario mediante coordenadas GPS y geocodificación inversa. Las provincias visitadas se iluminan en el mapa (inicialmente para España) y se muestran estadísticas sub-nacionales en el perfil de usuario.
 - **Seguimiento y Explorador de Provincias**: Seguimiento detallado de las provincias visitadas dentro de tu país de origen (empezando por España). Incluye un **Explorador de Provincias** premium con banderas y barras de progreso. 🚩

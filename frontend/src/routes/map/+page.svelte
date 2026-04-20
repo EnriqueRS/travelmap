@@ -86,6 +86,304 @@
    let shareImageUrl = ""
    let isGeneratingImage = false
 
+   // Build visited countries data for the infographic
+   function getVisitedCountriesData() {
+     return visitedCountryNames.map(id => {
+       const country = COUNTRIES.find(c => c.id === id)
+       return {
+         id,
+         name: country ? (($languageStore === 'en') ? country.labelEn : country.labelEs) : id,
+         flag: country?.flag || '🌍'
+       }
+     }).sort((a, b) => a.name.localeCompare(b.name))
+   }
+
+   // Build continent stats for the infographic
+   function getContinentData() {
+     const continents = [
+       { key: 'Europa', label: $languageStore === 'en' ? 'Europe' : 'Europa', color: '#3b82f6', ids: new Set<string>() },
+       { key: 'América', label: $languageStore === 'en' ? 'Americas' : 'América', color: '#10b981', ids: new Set<string>() },
+       { key: 'Asia', label: 'Asia', color: '#f59e0b', ids: new Set<string>() },
+       { key: 'África', label: $languageStore === 'en' ? 'Africa' : 'África', color: '#ef4444', ids: new Set<string>() },
+       { key: 'Oceanía', label: $languageStore === 'en' ? 'Oceania' : 'Oceanía', color: '#8b5cf6', ids: new Set<string>() },
+     ]
+     COUNTRIES.forEach(c => {
+       let idx = 0 // Default: Europa
+       if (AMERICAS.includes(c.id)) idx = 1
+       else if (ASIA.includes(c.id)) idx = 2
+       else if (AFRICA.includes(c.id)) idx = 3
+       else if (OCEANIA.includes(c.id)) idx = 4
+       continents[idx].ids.add(c.id)
+     })
+     return continents.map(cont => ({
+       ...cont,
+       total: cont.ids.size,
+       visited: visitedCountryNames.filter(id => cont.ids.has(id)).length,
+     }))
+   }
+
+   async function generateShareImage() {
+     showShareModal = true
+     isGeneratingImage = true
+     shareImageUrl = ""
+
+     try {
+       await new Promise(r => setTimeout(r, 50))
+
+       const visitedData = getVisitedCountriesData()
+       const continentData = getContinentData()
+       const userName = $userProfile?.name || "Traveler"
+
+       // Canvas dimensions (portrait infographic)
+       const W = 1080
+       const flagCols = Math.min(visitedData.length, 4)
+       const flagRows = Math.ceil(visitedData.length / flagCols)
+       const flagSectionH = Math.max(flagRows * 90 + 60, 200)
+       const continentSectionH = 320
+       const H = 480 + flagSectionH + continentSectionH + 80
+
+       const canvas = document.createElement('canvas')
+       canvas.width = W
+       canvas.height = H
+       const ctx = canvas.getContext('2d')!
+
+       // --- BACKGROUND ---
+       const bgGrad = ctx.createLinearGradient(0, 0, 0, H)
+       bgGrad.addColorStop(0, '#0f172a')
+       bgGrad.addColorStop(0.5, '#1e1b4b')
+       bgGrad.addColorStop(1, '#0f172a')
+       ctx.fillStyle = bgGrad
+       ctx.fillRect(0, 0, W, H)
+
+       // Subtle dot pattern
+       ctx.fillStyle = 'rgba(99, 102, 241, 0.03)'
+       for (let x = 0; x < W; x += 30) {
+         for (let y = 0; y < H; y += 30) {
+           ctx.beginPath()
+           ctx.arc(x, y, 1.5, 0, Math.PI * 2)
+           ctx.fill()
+         }
+       }
+
+       // Decorative glow circles
+       const drawGlow = (cx: number, cy: number, r: number, color: string) => {
+         const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r)
+         g.addColorStop(0, color)
+         g.addColorStop(1, 'transparent')
+         ctx.fillStyle = g
+         ctx.fillRect(cx - r, cy - r, r * 2, r * 2)
+       }
+       drawGlow(180, 120, 250, 'rgba(99, 102, 241, 0.08)')
+       drawGlow(W - 200, H - 200, 300, 'rgba(16, 185, 129, 0.06)')
+
+       // --- HEADER ---
+       let y = 55
+
+       // App branding
+       ctx.font = 'bold 22px Inter, system-ui, sans-serif'
+       ctx.fillStyle = '#6366f1'
+       ctx.textAlign = 'left'
+       ctx.fillText('✈  TravelMap', 60, y)
+
+       // Username badge
+       ctx.textAlign = 'right'
+       ctx.font = '600 20px Inter, system-ui, sans-serif'
+       ctx.fillStyle = '#60a5fa'
+       const userText = `@${userName}`
+       const uW = ctx.measureText(userText).width + 32
+       const rx = W - 60 - uW
+       ctx.fillStyle = 'rgba(96, 165, 250, 0.12)'
+       roundRect(ctx, rx, y - 22, uW, 34, 17)
+       ctx.fill()
+       ctx.fillStyle = '#60a5fa'
+       ctx.fillText(userText, W - 60, y)
+
+       // Divider line
+       y += 35
+       ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)'
+       ctx.lineWidth = 1
+       ctx.beginPath()
+       ctx.moveTo(60, y)
+       ctx.lineTo(W - 60, y)
+       ctx.stroke()
+
+       // Title
+       y += 55
+       ctx.textAlign = 'center'
+       ctx.font = '900 48px Inter, system-ui, sans-serif'
+       ctx.fillStyle = '#f8fafc'
+       ctx.fillText($t('map.infographicTitle'), W / 2, y)
+       y += 42
+       ctx.font = '300 28px Inter, system-ui, sans-serif'
+       ctx.fillStyle = '#94a3b8'
+       ctx.fillText($t('map.infographicSubtitle'), W / 2, y)
+
+       // --- STATS CARDS ---
+       y += 55
+       const stats = [
+         { value: String(regions), label: $t('map.statsVisited'), color: '#10b981' },
+         { value: String(totalLocations), label: $t('map.statsLocations'), color: '#3b82f6' },
+         { value: String(totalTrips), label: $t('map.statsTrips'), color: '#f59e0b' },
+         { value: `${completion}%`, label: $t('map.statsProgress'), color: '#8b5cf6' },
+       ]
+       const cardW = 210
+       const cardH = 100
+       const cardGap = 18
+       const totalCardsW = stats.length * cardW + (stats.length - 1) * cardGap
+       let cx = (W - totalCardsW) / 2
+
+       stats.forEach(stat => {
+         // Card background
+         ctx.fillStyle = 'rgba(30, 41, 59, 0.7)'
+         roundRect(ctx, cx, y, cardW, cardH, 16)
+         ctx.fill()
+
+         // Accent top bar
+         ctx.fillStyle = stat.color
+         roundRect(ctx, cx, y, cardW, 4, 2)
+         ctx.fill()
+
+         // Value
+         ctx.textAlign = 'center'
+         ctx.font = '800 36px Inter, system-ui, sans-serif'
+         ctx.fillStyle = stat.color
+         ctx.fillText(stat.value, cx + cardW / 2, y + 50)
+
+         // Label
+         ctx.font = '600 13px Inter, system-ui, sans-serif'
+         ctx.fillStyle = '#94a3b8'
+         ctx.fillText(stat.label.toUpperCase(), cx + cardW / 2, y + 78)
+
+         cx += cardW + cardGap
+       })
+
+       // --- VISITED COUNTRIES ---
+       y += cardH + 50
+       ctx.textAlign = 'left'
+       ctx.font = '700 22px Inter, system-ui, sans-serif'
+       ctx.fillStyle = '#e2e8f0'
+       ctx.fillText(`🌍  ${$t('map.countriesVisitedList')}`, 60, y)
+
+       y += 20
+       // Country flag pills
+       const pillW = (W - 120 - (flagCols - 1) * 12) / flagCols
+       const pillH = 72
+
+       visitedData.forEach((country, i) => {
+         const col = i % flagCols
+         const row = Math.floor(i / flagCols)
+         const px = 60 + col * (pillW + 12)
+         const py = y + row * (pillH + 14)
+
+         // Pill background
+         ctx.fillStyle = 'rgba(30, 41, 59, 0.6)'
+         roundRect(ctx, px, py, pillW, pillH, 14)
+         ctx.fill()
+
+         // Border glow
+         ctx.strokeStyle = 'rgba(99, 102, 241, 0.15)'
+         ctx.lineWidth = 1
+         roundRect(ctx, px, py, pillW, pillH, 14)
+         ctx.stroke()
+
+         // Flag emoji
+         ctx.font = '32px serif'
+         ctx.textAlign = 'left'
+         ctx.fillText(country.flag, px + 14, py + 46)
+
+         // Country name
+         ctx.font = '600 15px Inter, system-ui, sans-serif'
+         ctx.fillStyle = '#e2e8f0'
+         const maxTextW = pillW - 65
+         let displayName = country.name
+         while (ctx.measureText(displayName).width > maxTextW && displayName.length > 3) {
+           displayName = displayName.slice(0, -1)
+         }
+         if (displayName !== country.name) displayName += '…'
+         ctx.fillText(displayName, px + 56, py + 44)
+       })
+
+       // --- CONTINENT PROGRESS ---
+       y += flagSectionH + 20
+       ctx.textAlign = 'left'
+       ctx.font = '700 22px Inter, system-ui, sans-serif'
+       ctx.fillStyle = '#e2e8f0'
+       ctx.fillText(`📊  ${$t('map.continentProgress')}`, 60, y)
+
+       y += 24
+       continentData.forEach((cont, i) => {
+         const barY = y + i * 52
+         const pct = cont.total > 0 ? cont.visited / cont.total : 0
+         const barW = W - 280
+
+         // Label
+         ctx.font = '600 16px Inter, system-ui, sans-serif'
+         ctx.fillStyle = '#cbd5e1'
+         ctx.textAlign = 'left'
+         ctx.fillText(cont.label, 75, barY + 16)
+
+         // Bar background
+         ctx.fillStyle = 'rgba(51, 65, 85, 0.5)'
+         roundRect(ctx, 200, barY, barW, 22, 11)
+         ctx.fill()
+
+         // Bar fill
+         if (pct > 0) {
+           const fillGrad = ctx.createLinearGradient(200, 0, 200 + barW * pct, 0)
+           fillGrad.addColorStop(0, cont.color)
+           fillGrad.addColorStop(1, cont.color + '88')
+           ctx.fillStyle = fillGrad
+           roundRect(ctx, 200, barY, Math.max(barW * pct, 22), 22, 11)
+           ctx.fill()
+         }
+
+         // Value
+         ctx.textAlign = 'right'
+         ctx.font = '700 15px Inter, system-ui, sans-serif'
+         ctx.fillStyle = cont.color
+         ctx.fillText(`${cont.visited}/${cont.total}`, W - 60, barY + 16)
+       })
+
+       // --- FOOTER ---
+       y += continentData.length * 52 + 30
+       ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)'
+       ctx.lineWidth = 1
+       ctx.beginPath()
+       ctx.moveTo(60, y)
+       ctx.lineTo(W - 60, y)
+       ctx.stroke()
+
+       y += 30
+       ctx.textAlign = 'center'
+       ctx.font = '400 14px Inter, system-ui, sans-serif'
+       ctx.fillStyle = '#475569'
+       ctx.fillText(`TravelMap • ${new Date().getFullYear()}`, W / 2, y)
+
+       shareImageUrl = canvas.toDataURL('image/png')
+       console.log('[Share] Infographic generated successfully')
+
+     } catch (err) {
+       console.error("[Share] Error generating infographic:", err)
+     } finally {
+       isGeneratingImage = false
+     }
+   }
+
+   // Helper: draw a rounded rectangle path
+   function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+     ctx.beginPath()
+     ctx.moveTo(x + r, y)
+     ctx.lineTo(x + w - r, y)
+     ctx.arcTo(x + w, y, x + w, y + r, r)
+     ctx.lineTo(x + w, y + h - r)
+     ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
+     ctx.lineTo(x + r, y + h)
+     ctx.arcTo(x, y + h, x, y + h - r, r)
+     ctx.lineTo(x, y + r)
+     ctx.arcTo(x, y, x + r, y, r)
+     ctx.closePath()
+   }
+
    // Modal Search State
   let modalSearchQuery = ""
   let locationPickerRef: any
@@ -1523,6 +1821,72 @@
   />
 {/if}
 
+{#if showShareModal}
+  <div
+    class="modal-overlay share-modal-overlay"
+    role="dialog"
+    on:click|self={() => (showShareModal = false)}
+    on:keydown={(e) => { if (e.key === 'Escape') showShareModal = false }}
+    transition:fade={{ duration: 200 }}
+  >
+    <div
+      class="premium-modal share-modal"
+      transition:scale={{ duration: 200, start: 0.95 }}
+    >
+      <header class="modal-header-premium">
+        <div class="header-main">
+          <div class="header-icon bg-indigo-500/20 text-indigo-400">
+            <Share2 size={24} />
+          </div>
+          <div class="header-text">
+            <h3>{$t("map.shareMapTitle")}</h3>
+            <p class="subheader">{$t("map.shareMapDesc")}</p>
+          </div>
+        </div>
+        <button
+          class="btn-close-modal"
+          on:click={() => (showShareModal = false)}
+        >
+          <X size={20} />
+        </button>
+      </header>
+
+      <div class="modal-body-scroll share-modal-body custom-scrollbar">
+        {#if isGeneratingImage}
+          <div class="share-generating-state">
+            <div
+              class="share-spinner"
+            ></div>
+            <p class="share-generating-text">{$t("map.generatingImage")}</p>
+          </div>
+        {:else if shareImageUrl}
+          <div class="share-result-container">
+            <img src={shareImageUrl} alt={$t("map.shareMapTitle")} class="share-result-img" />
+          </div>
+        {/if}
+      </div>
+
+      <footer class="premium-modal-footer">
+        <button
+          class="btn-cancel-premium"
+          on:click={() => (showShareModal = false)}
+        >
+          {$t("form.cancel")}
+        </button>
+        {#if shareImageUrl}
+          <a
+            href={shareImageUrl}
+            download="travelmap-infographic.png"
+            class="btn-save-premium share-download-btn"
+          >
+            <Share2 size={16} /> {$t("map.downloadImage")}
+          </a>
+        {/if}
+      </footer>
+    </div>
+  </div>
+{/if}
+
 <style>
   .dashboard-page {
     display: grid;
@@ -1547,6 +1911,64 @@
     height: 100%;
     padding-top: 5rem;
     z-index: 10;
+  }
+
+  /* Share Modal and Infographic */
+  .share-modal {
+    max-width: 600px !important;
+    width: 95vw;
+  }
+  .share-modal-body {
+    position: relative;
+    padding: 1.25rem;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .share-generating-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 0;
+    width: 100%;
+  }
+  .share-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(99, 102, 241, 0.2);
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 1rem;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .share-generating-text {
+    color: #94a3b8;
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+  .share-result-container {
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+  .share-result-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+  }
+  .share-download-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
   }
 
   .minimized-filters {
