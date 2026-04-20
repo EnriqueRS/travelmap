@@ -226,6 +226,7 @@
     }
 
     // Photo Upload Logic
+    let photoUploadSuccess = false
     if (
       newLocationPhotoFiles &&
       newLocationPhotoFiles.length > 0 &&
@@ -238,20 +239,16 @@
           finalTripId,
           newLocationPhotoFiles,
         )
-        // newPhotoPayloads es un array de fotos
-        // Para cada foto, actualizamos su metadata si se debe mostrar en el mapa
+        // Para cada foto, actualizamos solo showOnMap para que se muestre en el mapa
+        // Las coordenadas del lugar ya se guardan en la tabla locations, no sobrescribimos EXIF
         for (const photo of newPhotoPayloads) {
           await mediaService.updatePhoto(photo.id, {
             showOnMap: true,
-            metadata: {
-              exif: { latitude: newLocationLat, longitude: newLocationLng },
-            },
           })
         }
-        toast.success($t("map.uploadSuccessToast"))
         // Guardamos los IDs de todas las fotos subidas
         newLoc.images = newPhotoPayloads.map(p => p.id)
-        mapPhotos = await mediaService.getMapPhotos() // Refrescar fotos del mapa global
+        photoUploadSuccess = true
       } catch (e) {
         console.error("No se pudo subir la foto con el viaje", e)
         toast.error($t("map.uploadErrorToast"))
@@ -264,6 +261,13 @@
     try {
       await locationsService.createLocation(newLoc)
       console.log("[saveNewLocation] Location persisted to database:", newLocId)
+      // Refrescar fotos del mapa global para obtener locationId actualizado
+      if (newLoc.images && newLoc.images.length > 0) {
+        mapPhotos = await mediaService.getMapPhotos()
+        if (photoUploadSuccess) {
+          toast.success($t("map.uploadSuccessToast"))
+        }
+      }
     } catch (err) {
       console.error(
         "[saveNewLocation] Failed to persist location to database, saving locally only:",

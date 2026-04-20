@@ -10,6 +10,7 @@ export interface AppPhoto {
   isHidden: boolean;
   externalId?: string;
   tripId?: string;
+  locationId?: string;
   metadata?: {
     size?: number;
     format?: string;
