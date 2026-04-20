@@ -134,26 +134,55 @@
           }</h3>
           <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">${$t(
             `category.${loc.category}`,
-          )} • ⭐ ${loc.rating}</p>
+          )}</p>
         </div>
       `
 
-      // Custom Icon logic
-      const customIcon = L.divIcon({
-        className: "custom-map-marker",
-        html: `<div class="marker-pin-custom" style="background-color: #3b82f6;">
-                  <span class="marker-emoji">${getCategoryEmoji(
-                    loc.category,
-                  )}</span>
-               </div>`,
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -40],
-      })
+      // Custom Icon logic: show photo if available, otherwise emoji pin
+      let customIcon
+      if (locPhoto) {
+        const url =
+          locPhoto.provider === "local"
+            ? `${API_URL}${locPhoto.url}`
+            : `${API_URL}/media/photos/${locPhoto.id}/image`
+        const borderColor = tripColorMap[loc.tripId] || "#3b82f6"
+        customIcon = L.divIcon({
+          className: "custom-photo-marker location-photo-marker",
+          html: `
+            <div class="marker-photo-wrapper" style="border-color: ${borderColor}">
+              <img src="${url}" alt="${loc.name}" class="marker-photo-img" />
+            </div>
+          `,
+          iconSize: [48, 48],
+          iconAnchor: [24, 48],
+          popupAnchor: [0, -48],
+        })
+      } else {
+        customIcon = L.divIcon({
+          className: "custom-map-marker",
+          html: `<div class="marker-pin-custom" style="background-color: #3b82f6;">
+                    <span class="marker-emoji">${getCategoryEmoji(
+                      loc.category,
+                    )}</span>
+                 </div>`,
+          iconSize: [40, 40],
+          iconAnchor: [20, 40],
+          popupAnchor: [0, -40],
+        })
+      }
 
       const marker = L.marker([loc.coordinates[0], loc.coordinates[1]], {
         icon: customIcon,
       }).bindPopup(popupContent)
+
+      // Add tooltip with location name
+      const tooltipOffset = locPhoto ? [0, -48] : [0, -40]
+      marker.bindTooltip(loc.name, {
+        permanent: false,
+        direction: 'top',
+        offset: tooltipOffset,
+        className: 'location-marker-tooltip'
+      })
 
       markerClusterGroup.addLayer(marker)
       bounds.extend([loc.coordinates[0], loc.coordinates[1]])
