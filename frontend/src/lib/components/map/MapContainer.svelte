@@ -133,7 +133,7 @@
             loc.name
           }</h3>
           <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">${$t(
-            `category.${loc.category}`,
+            `${loc.name}`,
           )}</p>
         </div>
       `
@@ -179,9 +179,9 @@
       const tooltipOffset = locPhoto ? [0, -48] : [0, -40]
       marker.bindTooltip(loc.name, {
         permanent: false,
-        direction: 'top',
+        direction: "top",
         offset: tooltipOffset,
-        className: 'location-marker-tooltip'
+        className: "location-marker-tooltip",
       })
 
       markerClusterGroup.addLayer(marker)
