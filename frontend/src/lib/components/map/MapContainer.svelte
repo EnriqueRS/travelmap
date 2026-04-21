@@ -288,25 +288,46 @@
           geoJsonData = await res.json()
         }
 
-        // Gather isos
-        const visitedIsos = new Set<string>()
-        const plannedIsos = new Set<string>()
-        trips.forEach((t) => {
-          if (t.countries && Array.isArray(t.countries)) {
-            t.countries.forEach((alpha2: string) => {
-              if (alpha2) {
-                const alpha3 = countriesInfo.toAlpha3(alpha2)
-                if (alpha3) {
-                  if (t.status === "Completado" || t.status === "En curso") {
-                    visitedIsos.add(alpha3)
-                  } else if (t.status === "Planificado") {
-                    plannedIsos.add(alpha3)
-                  }
-                }
-              }
-            })
-          }
-        })
+// Gather isos
+const visitedIsos = new Set<string>()
+const plannedIsos = new Set<string>()
+trips.forEach((t) => {
+if (t.countries && Array.isArray(t.countries)) {
+t.countries.forEach((alpha2: string) => {
+if (alpha2) {
+const alpha3 = countriesInfo.toAlpha3(alpha2)
+if (alpha3) {
+if (t.status === "Completado" || t.status === "En curso") {
+visitedIsos.add(alpha3)
+} else if (t.status === "Planificado") {
+plannedIsos.add(alpha3)
+}
+}
+}
+})
+}
+})
+
+// Also consider photos with showOnMap and tripId
+mapPhotos.forEach((photo) => {
+if (photo.showOnMap && photo.tripId) {
+const photoTrip = trips.find((t) => t.id === photo.tripId)
+if (photoTrip && photoTrip.countries && Array.isArray(photoTrip.countries)) {
+photoTrip.countries.forEach((alpha2: string) => {
+if (alpha2) {
+const alpha3 = countriesInfo.toAlpha3(alpha2)
+if (alpha3) {
+if (photoTrip.status === "Completado" || photoTrip.status === "En curso") {
+visitedIsos.add(alpha3)
+} else if (photoTrip.status === "Planificado") {
+plannedIsos.add(alpha3)
+}
+}
+}
+})
+}
+}
+})
         const geoLayer = L.geoJSON(geoJsonData, {
           style: function (feature: any) {
             const iso = feature.id
@@ -391,17 +412,33 @@
               }
             })
 
-            trips.forEach((t) => {
-              if (t.provinces && t.provinces.length > 0) {
-                t.provinces.forEach((prov: string) => {
-                  if (t.status === "Completado" || t.status === "En curso") {
-                    visitedProvinces.add(normalizeString(prov))
-                  } else if (t.status === "Planificado") {
-                    plannedProvinces.add(normalizeString(prov))
-                  }
-                })
-              }
-            })
+trips.forEach((t) => {
+if (t.provinces && t.provinces.length > 0) {
+t.provinces.forEach((prov: string) => {
+if (t.status === "Completado" || t.status === "En curso") {
+visitedProvinces.add(normalizeString(prov))
+} else if (t.status === "Planificado") {
+plannedProvinces.add(normalizeString(prov))
+}
+})
+}
+})
+
+// Also consider photos with showOnMap and tripId for provinces
+mapPhotos.forEach((photo) => {
+if (photo.showOnMap && photo.tripId) {
+const photoTrip = trips.find((t) => t.id === photo.tripId)
+if (photoTrip && photoTrip.provinces && photoTrip.provinces.length > 0) {
+photoTrip.provinces.forEach((prov: string) => {
+if (photoTrip.status === "Completado" || photoTrip.status === "En curso") {
+visitedProvinces.add(normalizeString(prov))
+} else if (photoTrip.status === "Planificado") {
+plannedProvinces.add(normalizeString(prov))
+}
+})
+}
+}
+})
 
             // Ensure visited takes precedence
             visitedProvinces.forEach((p) => plannedProvinces.delete(p))
