@@ -1304,13 +1304,20 @@
                         </div>
                       {/if}
 
-                      {#if displayedPhotos[i].showOnMap && displayedPhotos[i].metadata?.exif?.latitude}
-                        <div
-                          class="absolute bottom-2 right-2 bg-blue-500 text-white rounded-full p-1 shadow-md"
-                        >
-                          <MapPin size={10} />
-                        </div>
-                      {/if}
+{#if displayedPhotos[i].showOnMap && displayedPhotos[i].metadata?.exif?.latitude}
+<div
+class="absolute bottom-2 right-2 bg-blue-500 text-white rounded-full p-1 shadow-md"
+>
+<MapPin size={10} />
+</div>
+{:else if !displayedPhotos[i].metadata?.exif?.latitude}
+<div
+class="absolute bottom-2 right-2 bg-slate-600 text-slate-200 rounded-full p-1 shadow-md"
+title={$t("trip.noGps")}
+>
+<MapPinOff size={10} />
+</div>
+{/if}
 
                       {#if displayedPhotos[i].isCover}
                         <div
