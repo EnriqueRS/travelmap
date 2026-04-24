@@ -1298,11 +1298,34 @@
             </div>
             <div class="upload-text-main">
               {newLocationPhotoFiles && newLocationPhotoFiles.length > 0
-                ? newLocationPhotoFiles[0].name
+                ? `${newLocationPhotoFiles.length} ${$t("map.photosSelected")}`
                 : $t("map.uploadPhotoPrompt")}
             </div>
             <div class="upload-text-sub">{$t("map.uploadPhotoFormats")}</div>
           </label>
+
+          {#if newLocationPhotoFiles && newLocationPhotoFiles.length > 0}
+            <div class="photo-preview-scroll">
+              {#each Array.from(newLocationPhotoFiles) as photo, index}
+                <div class="photo-preview-item">
+                  <img src={URL.createObjectURL(photo)} alt="Preview" />
+                  <button
+                    class="photo-remove-btn"
+                    on:click|stopPropagation={(e) => {
+                      e.preventDefault()
+                      const dt = new DataTransfer()
+                      const files = Array.from(newLocationPhotoFiles)
+                      files.splice(index, 1)
+                      files.forEach(f => dt.items.add(f))
+                      newLocationPhotoFiles = dt.files
+                    }}
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              {/each}
+            </div>
+          {/if}
 
           {#if !newLocationTripId || newLocationTripId === "new"}
             <div class="upload-warning-box" transition:fade>
@@ -3236,5 +3259,58 @@
     border-radius: 4px;
     font-size: 0.65rem;
     font-weight: 700;
+  }
+
+  /* Photo Preview Scroll */
+  .photo-preview-scroll {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+  }
+
+  .photo-preview-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .photo-preview-item {
+    position: relative;
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    scroll-snap-align: start;
+  }
+
+  .photo-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .photo-remove-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .photo-remove-btn:hover {
+    background: rgba(239, 68, 68, 0.9);
   }
 </style>
