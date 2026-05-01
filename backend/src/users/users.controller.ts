@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Patch, Request, UseGuards, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Request, UseGuards, UnauthorizedException, Logger } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
+  private readonly logger = new Logger(UsersController.name);
+
   constructor (private readonly usersService: UsersService) { }
 
   @UseGuards(AuthGuard('jwt'))
@@ -12,6 +14,7 @@ export class UsersController {
     if (!req.user || !req.user.userId) {
       throw new UnauthorizedException();
     }
+    this.logger.debug(`Fetching profile for user ${req.user.userId}`);
     const user = await this.usersService.findByIdWithData(req.user.userId);
     if (!user) {
       throw new UnauthorizedException('User not found');
@@ -52,6 +55,7 @@ export class UsersController {
       throw new UnauthorizedException();
     }
 
+    this.logger.debug(`Updating profile for user ${req.user.userId}`);
     const updatedUser = await this.usersService.updateProfile(
       req.user.userId,
       body,
