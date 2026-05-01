@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Trip } from './entities/trip.entity';
 
 @Injectable()
 export class TripsService {
+  private readonly logger = new Logger(TripsService.name);
+
   // Función para calcular el estado dinámico basado en fechas
   private calculateDynamicStatus(startDate?: Date, endDate?: Date): 'Planificado' | 'En curso' | 'Completado' {
     if (!startDate || !endDate) {
@@ -52,20 +54,23 @@ export class TripsService {
     };
 
     const trip = await Trip.query().insert(backendPayload);
+    this.logger.debug(`Trip created: ${trip.id} for user ${userId}, status: ${trip.status}`);
 
     return trip;
   }
 
   async getUserTrips(userId: number): Promise<Trip[]> {
+    this.logger.debug(`Fetching trips for user ${userId}`);
     const trips = await Trip.query().where('user_id', userId);
-    
+
     // Recalcular el estado dinámico para cada viaje que no esté cancelado
     for (const trip of trips) {
       if (trip.status !== 'Cancelado') {
         trip.status = this.calculateDynamicStatus(trip.startDate, trip.endDate);
       }
     }
-    
+    this.logger.debug(`Found ${trips.length} trips for user ${userId}`);
+
     return trips;
   }
 
@@ -73,6 +78,7 @@ export class TripsService {
     const trip = await Trip.query().findOne({ id, user_id: userId });
 
     if (!trip) {
+      this.logger.warn(`Trip not found for update: ${id}, user: ${userId}`);
       throw new Error('Trip not found or unauthorized');
     }
 
@@ -107,6 +113,7 @@ export class TripsService {
     patchData.status = finalStatus;
 
     const updatedTrip = await Trip.query().patchAndFetchById(id, patchData);
+    this.logger.debug(`Trip updated: ${id} for user ${userId}, status: ${updatedTrip.status}`);
 
     return updatedTrip;
   }

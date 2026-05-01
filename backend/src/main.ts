@@ -5,9 +5,17 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { json, urlencoded } from 'express';
+import { WinstonLoggerService } from './logger/winston-logger.service';
+import { RequestLoggingInterceptor } from './logger/request-logging.interceptor';
+import { ExceptionLoggingFilter } from './logger/exception-logging.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const logger = new WinstonLoggerService();
+  logger.setDefaultContext('NestApplication');
+
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger,
+  });
 
   app.use(json({ limit: '25mb' }));
   app.use(urlencoded({ limit: '25mb', extended: true }));
@@ -32,6 +40,10 @@ async function bootstrap() {
     }),
   );
 
+  // Global logging interceptor and exception filter
+  app.useGlobalInterceptors(new RequestLoggingInterceptor());
+  app.useGlobalFilters(new ExceptionLoggingFilter());
+
   // API Documentation
   const config = new DocumentBuilder()
     .setTitle('TravelMap API')
@@ -45,7 +57,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}`);
+  logger.log(`Application is running on: http://localhost:${port}`, 'NestApplication');
 }
 
 bootstrap();

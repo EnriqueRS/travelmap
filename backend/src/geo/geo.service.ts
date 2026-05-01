@@ -1,5 +1,5 @@
 // backend/src/geo/geo.service.ts
-import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
 import { Knex } from 'knex';
 import { Country } from './entities/country.entity';
 import { UserCountryStatus } from './entities/user-country-status.entity';
@@ -9,12 +9,15 @@ import { KNEX_CONNECTION } from '../database/database.module';
 
 @Injectable()
 export class GeoService {
+  private readonly logger = new Logger(GeoService.name);
+
   constructor(@Inject(KNEX_CONNECTION) private knex: Knex) {}
 
   /**
    * Obtiene todos los países como GeoJSON con el estado del usuario
    */
   async getCountriesGeoJSON(userId?: number): Promise<CountriesGeoJSONResponse> {
+    this.logger.debug(`Fetching countries GeoJSON${userId ? ` for user ${userId}` : ''}`);
     let query = `
       SELECT 
         c.*,
@@ -83,6 +86,7 @@ export class GeoService {
       }
     });
 
+    this.logger.debug(`User ${userId} countries: visited=${response.visited.length}, planned=${response.planned.length}, wishlist=${response.wishlist.length}`);
     return response;
   }
 
@@ -123,6 +127,8 @@ export class GeoService {
       created_at: new Date(),
       updated_at: new Date()
     });
+
+    this.logger.debug(`Country status updated: ${countryCode} -> ${status} for user ${userId}`);
 
     // Actualizar estadísticas del usuario
     await this.updateUserStatistics(userId);

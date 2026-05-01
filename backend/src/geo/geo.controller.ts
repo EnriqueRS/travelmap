@@ -1,14 +1,15 @@
 // backend/src/geo/geo.controller.ts
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  UseGuards, 
+import {
+  Controller,
+  Get,
+  Post,
+  UseGuards,
   Request,
   Query,
   Body,
   HttpCode,
-  HttpStatus
+  HttpStatus,
+  Logger
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -19,6 +20,8 @@ import { CountriesGeoJSONResponse, UserCountriesResponse } from './dto/geo-respo
 @ApiTags('geo')
 @Controller('geo')
 export class GeoController {
+  private readonly logger = new Logger(GeoController.name);
+
   constructor(private readonly geoService: GeoService) {}
 
   @Get('countries')
@@ -32,6 +35,7 @@ export class GeoController {
   })
   async getCountriesGeoJSON(@Request() req): Promise<CountriesGeoJSONResponse> {
     const userId = req.user?.id;
+    this.logger.debug(`Fetching countries GeoJSON${userId ? ` for user ${userId}` : ' (public)'}`);
     return await this.geoService.getCountriesGeoJSON(userId);
   }
 
@@ -48,6 +52,7 @@ export class GeoController {
   })
   async getUserCountries(@Request() req): Promise<UserCountriesResponse> {
     const userId = req.user.id;
+    this.logger.debug(`Fetching user countries for user ${userId}`);
     return await this.geoService.getUserCountries(userId);
   }
 
@@ -76,12 +81,13 @@ export class GeoController {
     @Body() updateCountryStatusDto: UpdateCountryStatusDto
   ): Promise<{ success: boolean }> {
     const userId = req.user.id;
+    this.logger.debug(`Updating country status: ${updateCountryStatusDto.countryCode} -> ${updateCountryStatusDto.status} for user ${userId}`);
     await this.geoService.updateCountryStatus(
       userId,
       updateCountryStatusDto.countryCode!,
       updateCountryStatusDto.status as any
     );
-    
+
     return { success: true };
   }
 
@@ -97,6 +103,7 @@ export class GeoController {
     @Query('lat') lat: number,
     @Query('radius') radius: number = 500
   ): Promise<any[]> {
+    this.logger.debug(`Fetching nearby countries: lat=${lat}, lng=${lng}, radius=${radius}km`);
     return await this.geoService.getNearbyCountries(lng, lat, radius);
   }
 

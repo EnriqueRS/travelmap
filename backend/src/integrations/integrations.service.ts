@@ -1,9 +1,10 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import axios from 'axios';
 import { UserIntegration } from '../users/user-integration.entity';
 
 @Injectable()
 export class IntegrationsService {
+  private readonly logger = new Logger(IntegrationsService.name);
   /**
    * Validates and stores Immich credentials.
    * Verifies the API Key against the provided URL by testing an Immich endpoint.
@@ -42,14 +43,14 @@ export class IntegrationsService {
     } catch (error: any) {
       if (error instanceof BadRequestException) throw error;
 
-      console.error('Immich Validation Error:', error.message);
+      this.logger.error(`Immich validation error: ${error.message}`);
       if (error.response?.status === 401 || error.response?.status === 403) {
         throw new BadRequestException('API Key is invalid or without permissions.');
       }
       throw new BadRequestException('Could not establish connection with the specified server.');
     }
 
-    console.log('Immich connection validated successfully.');
+    this.logger.debug(`Immich connection validated successfully for user ${userId}`);
     // Upsert database record
     let integration = await UserIntegration.query().findOne({ user_id: userId, provider: 'immich' });
 
@@ -58,8 +59,9 @@ export class IntegrationsService {
         url: baseUrl,
         accessToken: apiKey
       });
+      this.logger.debug(`Updated Immich integration for user ${userId}`);
     } else {
-      console.log('Immich integration not found, creating new one.');
+      this.logger.debug(`Creating new Immich integration for user ${userId}`);
       const { v4: uuidv4 } = require('uuid');
       integration = await UserIntegration.query().insert({
         id: uuidv4(),
@@ -68,6 +70,7 @@ export class IntegrationsService {
         url: baseUrl,
         accessToken: apiKey
       });
+      this.logger.debug(`Created Immich integration for user ${userId}`);
     }
 
     return integration;
