@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onMount, onDestroy, createEventDispatcher } from "svelte"
-  import { browser } from "$app/environment"
+import { onMount, onDestroy, createEventDispatcher } from "svelte"
+import { browser } from "$app/environment"
+import { goto } from "$app/navigation"
   import { toast, languageStore } from "$lib/stores/ui"
   import { t } from "$lib/stores/i18n"
   import { getStatusColor, userProfile } from "$lib/stores/data"
@@ -44,12 +45,20 @@
   let currentZoom = 2
   const ZOOM_THRESHOLD_PROVINCES = 4
 
-  const dispatch = createEventDispatcher()
-  let tripLinesGroup: any
-  let photoClusterGroup: any
-  let countryHighlightsGroup: any
-  let geoJsonData: any = null
-  let provincesGeoJSONData: any = null
+const dispatch = createEventDispatcher()
+let tripLinesGroup: any
+let photoClusterGroup: any
+let countryHighlightsGroup: any
+let geoJsonData: any = null
+let provincesGeoJSONData: any = null
+
+// Trip navigation handler
+const tripNavigateHandler = (e: any) => {
+const tripId = e.detail?.tripId
+if (tripId) {
+goto(`/trips/${tripId}`)
+}
+}
 
   // 1. Reactive update for DATA changes (Should fit bounds)
   $: if (
@@ -145,7 +154,7 @@
           locPhoto.provider === "local"
             ? `${API_URL}${locPhoto.url}`
             : `${API_URL}/media/photos/${locPhoto.id}/image`
-        const borderColor = tripColorMap[loc.tripId] || "#3b82f6"
+        const borderColor = (loc.tripId && tripColorMap ? tripColorMap[loc.tripId] : undefined) || "#3b82f6"
         customIcon = L.divIcon({
           className: "custom-photo-marker location-photo-marker",
           html: `
@@ -221,15 +230,16 @@
           popupAnchor: [0, -48],
         })
 
-        const popupContent = `
-          <div style="text-align: center; width: 220px; padding: 0.5rem;">
-            <img src="${url}" style="width: 100%; border-radius: 8px; margin-bottom: 12px; object-fit: cover; max-height: 150px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);" />
-            ${
-              photoTrip
-                ? `<div style="margin-bottom: 8px;">
-                     <span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${$t(
-                       "trip.tripPrefix",
-                     )}: ${photoTrip.name}</span>
+const tripClickHandler = photoTrip ? `onclick="window.dispatchEvent(new CustomEvent('navigate-to-trip', {detail: {tripId: '${photoTrip.id}'}}))" style="cursor: pointer;"` : ''
+const popupContent = `
+    <div style="text-align: center; width: 220px; padding: 0.5rem;">
+    <img src="${url}" style="width: 100%; border-radius: 8px; margin-bottom: 12px; object-fit: cover; max-height: 150px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);" />
+    ${
+    photoTrip
+    ? `<div style="margin-bottom: 8px;">
+    <span ${tripClickHandler} style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${$t(
+    "trip.tripPrefix",
+    )}: ${photoTrip.name}</span>
                      ${
                        photoTrip.countries && photoTrip.countries.length > 0
                          ? `<div style="margin-top: 8px; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">${photoTrip.countries
@@ -722,12 +732,17 @@
         console.error("Leaflet MarkerClusterGroup not found!")
       }
 
-      // Initial marker update
-      updateMarkers()
-    } catch (e) {
-      console.error("Error initializing map:", e)
-    }
-  })
+// Initial marker update
+updateMarkers()
+} catch (e) {
+console.error("Error initializing map:", e)
+}
+})
+
+// Listen for navigate-to-trip events from map popups
+if (browser) {
+window.addEventListener('navigate-to-trip', tripNavigateHandler)
+}
 
   async function handleSearch() {
     if (!searchQuery.trim() || !map) return
@@ -748,11 +763,14 @@
     }
   }
 
-  onDestroy(() => {
-    if (map) {
-      map.remove()
-    }
-  })
+onDestroy(() => {
+if (map) {
+map.remove()
+}
+if (browser) {
+window.removeEventListener('navigate-to-trip', tripNavigateHandler)
+}
+})
 </script>
 
 <div class="map-outer">
