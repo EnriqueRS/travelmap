@@ -13,11 +13,11 @@
 
     // Curated dark, deep colors for a premium feel
     const palettes = [
-      ["#0f172a", "#1e1b4b", "#312e81"], // Deep slate to indigo
-      ["#052e16", "#064e3b", "#0f172a"], // Deep emerald to slate
+      ["var(--color-bg-main)", "#1e1b4b", "#312e81"], // Deep slate to indigo
+      ["#052e16", "#064e3b", "var(--color-bg-main)"], // Deep emerald to slate
       ["#4c0519", "#881337", "#171717"], // Deep rose to neutral dark
-      ["#2e1065", "#4c1d95", "#0f172a"], // Deep purple to slate
-      ["#172554", "#1e3a8a", "#0f172a"], // Deep blue to slate
+      ["#2e1065", "#4c1d95", "var(--color-bg-main)"], // Deep purple to slate
+      ["#172554", "#1e3a8a", "var(--color-bg-main)"], // Deep blue to slate
     ]
 
     const paletteIndex = Math.abs(hash) % palettes.length
@@ -45,7 +45,7 @@
 
 <div
   class="image-placeholder {className}"
-  style="background-image: {background}; background-color: #0f172a;"
+  style="background-image: {background}; background-color: var(--color-bg-main);"
 >
   <div class="animated-mesh" />
   <div class="placeholder-content">

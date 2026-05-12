@@ -61,29 +61,31 @@
     width: 100%;
   }
 
-  /* Ajustes para el popup premium sobre fondo oscuro */
+  /* Flatpickr calendar popup styling */
   :global(.flatpickr-calendar) {
     font-family: inherit;
-    border: 1px solid #334155 !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid var(--color-border-light) !important;
+    box-shadow: var(--shadow-lg) !important;
+    background: var(--color-bg-elevated) !important;
   }
 
-  /* flatpickr clona la clase original al altInput */
+  /* flatpickr clones the class to altInput */
   :global(input.custom-input) {
     width: 100%;
-    padding: 0.75rem;
-    border-radius: 8px;
-    border: 1px solid #475569;
-    background: #0f172a;
-    color: white;
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--radius-base);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
     font-family: inherit;
-    transition: border-color 0.2s;
+    font-size: 0.875rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
   }
 
   :global(input.custom-input:focus) {
     outline: none;
-    border-color: #60a5fa;
-    background: #1e293b;
+    border-color: var(--color-accent-primary);
+    box-shadow: 0 0 0 3px var(--color-accent-muted);
   }
 </style>

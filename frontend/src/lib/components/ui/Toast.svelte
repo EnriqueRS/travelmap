@@ -42,26 +42,27 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    background: #1e293b;
-    color: #f8fafc;
+    background: var(--color-bg-elevated);
+    color: var(--color-text-primary);
     padding: 12px 16px;
-    border-radius: 8px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
     min-width: 300px;
     max-width: 400px;
     pointer-events: auto;
     animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid var(--color-border);
     border-left: 4px solid transparent;
   }
 
   .toast.success {
-    border-left-color: #10b981;
+    border-left-color: var(--color-success);
   }
   .toast.error {
-    border-left-color: #ef4444;
+    border-left-color: var(--color-danger);
   }
   .toast.info {
-    border-left-color: #3b82f6;
+    border-left-color: var(--color-accent-primary);
   }
 
   .toast-icon {
@@ -69,37 +70,49 @@
   }
 
   .toast.success :global(.toast-icon) {
-    color: #10b981;
+    color: var(--color-success);
   }
   .toast.error :global(.toast-icon) {
-    color: #ef4444;
+    color: var(--color-danger);
   }
   .toast.info :global(.toast-icon) {
-    color: #3b82f6;
+    color: var(--color-accent-primary);
   }
 
   .toast-message {
     flex: 1;
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     line-height: 1.4;
   }
 
   .toast-close {
     background: transparent;
     border: none;
-    color: #94a3b8;
+    color: var(--color-text-muted);
     cursor: pointer;
     padding: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     transition: color 0.2s, background 0.2s;
   }
 
   .toast-close:hover {
-    color: #f8fafc;
-    background: #334155;
+    color: var(--color-text-primary);
+    background: var(--color-bg-tertiary);
+  }
+
+  @media (max-width: 768px) {
+    .toast-container {
+      bottom: 72px;
+      right: 16px;
+      left: 16px;
+    }
+    .toast {
+      min-width: auto;
+      max-width: none;
+    }
   }
 
   @keyframes slideIn {

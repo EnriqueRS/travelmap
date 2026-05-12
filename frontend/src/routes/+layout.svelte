@@ -333,9 +333,9 @@
     justify-content: center;
     width: 38px;
     height: 38px;
-    background-color: #3b82f6; /* bright blue accent */
-    border-radius: 10px;
-    color: white;
+    background-color: var(--color-accent-primary);
+    border-radius: var(--radius-base);
+    color: var(--color-text-inverse);
   }
 
   .nav-links {
@@ -524,16 +524,16 @@
   }
 
   .logout-btn {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid transparent;
-    color: #ef4444;
+    background: var(--color-danger-muted);
+    border: 1px solid var(--color-danger-border);
+    color: var(--color-danger-text);
     cursor: pointer;
     margin-left: 0.5rem;
   }
 
   .logout-btn:hover {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--color-danger);
   }
 
   .loading-screen {

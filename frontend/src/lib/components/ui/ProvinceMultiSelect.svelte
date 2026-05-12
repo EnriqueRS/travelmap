@@ -188,7 +188,7 @@
 
   .remove-btn:hover {
     background: rgba(239, 68, 68, 0.15);
-    color: #f87171;
+    color: var(--color-danger-text);
   }
 
   .dropdown-trigger {
@@ -207,12 +207,12 @@
 
   .placeholder-text {
     font-size: 0.9rem;
-    color: #64748b;
+    color: var(--color-text-muted);
   }
 
   .chevron {
     transition: transform 0.2s;
-    color: #64748b;
+    color: var(--color-text-muted);
   }
 
   .chevron.rotate {
@@ -247,7 +247,7 @@
     left: 1.25rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #64748b;
+    color: var(--color-text-muted);
   }
 
   .search-input {
@@ -321,7 +321,7 @@
   .no-results {
     padding: 2rem 1rem;
     text-align: center;
-    color: #64748b;
+    color: var(--color-text-muted);
     font-size: 0.9rem;
   }
 
@@ -333,10 +333,10 @@
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: var(--color-bg-tertiary);
     border-radius: 3px;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+    background: var(--color-border-light);
   }
 </style>
