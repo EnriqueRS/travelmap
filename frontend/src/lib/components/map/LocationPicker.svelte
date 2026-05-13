@@ -265,7 +265,7 @@
   .search-error {
     margin: 0 0 0.5rem 0;
     font-size: 0.8125rem;
-    color: #f87171;
+    color: var(--color-danger-text);
   }
   .map-container {
     width: 100%;
@@ -278,8 +278,8 @@
     top: 1rem;
     right: 1rem;
     z-index: 1000;
-    background: #0f172a;
-    border: 1px solid #1e293b;
+    background: var(--color-bg-main);
+    border: 1px solid var(--color-bg-secondary);
     padding: 0.4rem 0.75rem;
     border-radius: 10px;
     display: flex;
@@ -291,19 +291,19 @@
   .country-badge-floating .dot {
     width: 8px;
     height: 8px;
-    background: #10b981;
+    background: var(--color-success);
     border-radius: 50%;
   }
   .country-badge-floating .label {
-    color: #64748b;
+    color: var(--color-text-muted);
     text-transform: uppercase;
   }
   .country-badge-floating .value {
-    color: #10b981;
+    color: var(--color-success);
   }
   .hint {
     margin: 0.5rem 0 0;
     font-size: 0.8125rem;
-    color: #64748b;
+    color: var(--color-text-muted);
   }
 </style>

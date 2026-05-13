@@ -141,7 +141,7 @@
     text-align: center;
     padding: 2rem;
     border-radius: 12px;
-    background: linear-gradient(145deg, #f8fafc 0%, #e0e7ff 100%);
+    background: linear-gradient(145deg, var(--color-text-primary) 0%, #e0e7ff 100%);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
   }
@@ -157,18 +157,18 @@
   }
 
   .feature-card h3 {
-    color: #1e293b;
+    color: var(--color-bg-secondary);
     margin-bottom: 0.5rem;
     font-size: 1.2rem;
   }
 
   .feature-card p {
-    color: #64748b;
+    color: var(--color-text-muted);
     line-height: 1.6;
   }
 
   .cta {
-    background: #1e293b;
+    background: var(--color-bg-secondary);
     color: white;
     padding: 4rem 2rem;
     text-align: center;
@@ -177,7 +177,7 @@
   .cta-content h2 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
-    color: #60a5fa;
+    color: var(--color-accent-text);
   }
 
   .cta-content p {
@@ -200,12 +200,12 @@
   }
 
   .btn-primary {
-    background: #3b82f6;
+    background: var(--color-accent-primary);
     color: white;
   }
 
   .btn-primary:hover {
-    background: #2563eb;
+    background: var(--color-accent-hover);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
   }
@@ -218,7 +218,7 @@
 
   .btn-secondary:hover {
     background: white;
-    color: #3b82f6;
+    color: var(--color-accent-primary);
   }
 
   .btn-large {

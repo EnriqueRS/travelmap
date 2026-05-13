@@ -767,7 +767,7 @@
   }
 
   .text-green-400 {
-    color: #4ade80; /* matches tailwind green-400 */
+    color: var(--color-success-text); /* matches tailwind green-400 */
   }
 
   .trip-countries {
