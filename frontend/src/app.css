@@ -91,39 +91,61 @@
   }
 
   /* ═══════════════════════════════════════════════════════
-     LIGHT THEME: Clean & Minimal
+     LIGHT THEME: Clean & Refined
+     Warm whites, subtle depth, professional feel
      ═══════════════════════════════════════════════════════ */
   .theme-light {
-    --color-bg-main: #f8fafc;
+    /* Backgrounds - warm white palette with clear hierarchy */
+    --color-bg-main: #f7f8fc;
     --color-bg-secondary: #ffffff;
-    --color-bg-tertiary: #f1f5f9;
+    --color-bg-tertiary: #eef1f8;
     --color-bg-elevated: #ffffff;
 
-    --color-text-primary: #0f172a;
-    --color-text-secondary: #475569;
-    --color-text-muted: #94a3b8;
+    /* Text - strong contrast with warm undertones */
+    --color-text-primary: #1a1f36;
+    --color-text-secondary: #3c4257;
+    --color-text-muted: #6b7394;
     --color-text-inverse: #ffffff;
 
-    --color-accent-primary: #2563eb;
-    --color-accent-hover: #1d4ed8;
-    --color-accent-muted: rgba(37, 99, 235, 0.08);
-    --color-accent-text: #2563eb;
+    /* Accent / Brand - vibrant blue with better saturation */
+    --color-accent-primary: #4f46e5;
+    --color-accent-hover: #4338ca;
+    --color-accent-muted: rgba(79, 70, 229, 0.08);
+    --color-accent-text: #4f46e5;
 
-    --color-border: #e2e8f0;
-    --color-border-light: #cbd5e1;
+    /* Borders - subtle but visible */
+    --color-border: #e3e8f0;
+    --color-border-light: #d1d9e6;
 
+    /* Status: Danger */
+    --color-danger: #dc2626;
+    --color-danger-hover: #b91c1c;
+    --color-danger-muted: rgba(220, 38, 38, 0.08);
+    --color-danger-border: rgba(220, 38, 38, 0.2);
     --color-danger-text: #dc2626;
+
+    /* Status: Success */
+    --color-success: #059669;
+    --color-success-hover: #047857;
+    --color-success-muted: rgba(5, 150, 105, 0.08);
     --color-success-text: #059669;
+
+    /* Status: Warning */
+    --color-warning: #d97706;
+    --color-warning-hover: #b45309;
+    --color-warning-muted: rgba(217, 119, 6, 0.08);
     --color-warning-text: #d97706;
 
+    /* Tertiary accent - purple */
     --color-third: #7c3aed;
     --color-third-hover: #6d28d9;
 
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-    --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.1);
+    /* Shadows - soft and layered for depth */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.03);
+    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.04), 0 4px 8px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.04), 0 10px 20px -4px rgba(0, 0, 0, 0.08);
+    --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.06), 0 20px 40px -8px rgba(0, 0, 0, 0.1);
+    --shadow-glow: 0 0 20px rgba(79, 70, 229, 0.08);
   }
 
   /* ═══════════════════════════════════════════════════════
@@ -488,6 +510,69 @@
 
 /* Light theme: Elevated cards with more shadow */
 .theme-light .card-elevated {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Light theme: Cards with subtle border and clean shadows */
+.theme-light .card,
+.theme-light .card-elevated {
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+}
+
+/* Light theme: Inputs with cleaner look */
+.theme-light .input-box {
+  background-color: #ffffff;
+  border-color: var(--color-border);
+}
+
+.theme-light .input-box:hover:not(:focus):not(:disabled) {
+  border-color: var(--color-border-light);
+  background-color: #ffffff;
+}
+
+/* Light theme: Secondary buttons with soft style */
+.theme-light .btn-secondary {
+  background-color: #ffffff;
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-light .btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border-light);
+}
+
+/* Light theme: Ghost buttons */
+.theme-light .btn-ghost:hover:not(:disabled) {
+  background-color: var(--color-bg-tertiary);
+}
+
+/* Light theme: Danger buttons */
+.theme-light .btn-danger {
+  background-color: rgba(220, 38, 38, 0.06);
+  border-color: rgba(220, 38, 38, 0.15);
+}
+
+/* Light theme: Modal with stronger shadow */
+.theme-light .modal-container {
+  box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+/* Light theme: Modal overlay slightly lighter */
+.theme-light .modal-overlay {
+  background-color: rgba(15, 23, 42, 0.4);
+}
+
+/* Light theme: Badges */
+.theme-light .badge-default {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+}
+
+/* Light theme: Toast */
+.theme-light .toast {
+  background-color: #ffffff;
   box-shadow: var(--shadow-lg);
 }
 
