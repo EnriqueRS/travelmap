@@ -566,11 +566,12 @@ return true
 
   $: filteredPhotos = mapPhotos.filter((photo) => {
     const pTripId = photo.tripId
-    if (!pTripId) return true // Show un-tripped photos always unless user decides otherwise
+    if (!pTripId) return soloTripId ? false : true // Hide un-tripped photos in solo mode
 
     const trip = $trips.find((t) => t.id === pTripId)
-    if (!trip) return true // If it has a tripId that doesn't exist anymore, still show it
+    if (!trip) return soloTripId ? false : true // Hide orphan photos in solo mode
 
+    if (soloTripId && soloTripId !== String(trip.id)) return false
     if (hiddenTrips.includes(String(trip.id))) return false
     if (trip.status === "Planificado" && !showPlanned) return false
     if (trip.status === "Completado" && !showCompleted) return false
@@ -590,12 +591,18 @@ return true
       return false
     }
 
+    // Solo trip filter
+    const locTripId = loc.tripId
+
+    if (soloTripId) {
+      if (!locTripId) return false // Hide locations without trip in solo mode
+      if (String(locTripId) !== soloTripId) return false
+    }
+
     // Status filter
     let isPlanned = false
     let isCompleted = false
     let isOngoing = false
-
-    const locTripId = loc.tripId
 
     if (locTripId) {
       const trip = $trips.find((t) => t.id === locTripId)
@@ -1113,6 +1120,7 @@ title={soloTripId === trip.id ? $t("map.showAll") : $t("map.showOnlyThis")}
         {tripColorMap}
         {showHome}
         {showCountryHighlights}
+        {soloTripId}
         height="100%"
         on:mapclick={handleMapClick}
       />

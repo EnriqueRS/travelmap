@@ -26,6 +26,7 @@
   export let tripColorMap: Record<string, string> = {}
   export let showHome = true
   export let showCountryHighlights = false
+  export let soloTripId: string | null = null
 
   import countriesInfo from "i18n-iso-countries"
   import esLocale from "i18n-iso-countries/langs/es.json"
@@ -62,6 +63,7 @@
       trips ||
       hiddenTrips ||
       tripColorMap ||
+      soloTripId !== undefined ||
       showCountryHighlights !== undefined)
   ) {
     updateMarkers(true)
@@ -475,7 +477,7 @@
     }
 
     const homeBounds = updateHomeMarker()
-    if (homeBounds) {
+    if (homeBounds && !soloTripId) {
       bounds.extend(homeBounds)
     }
 
