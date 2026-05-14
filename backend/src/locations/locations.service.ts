@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Location } from './entities/location.entity';
 import { Country } from '../geo/entities/country.entity';
 import { Photo } from '../media/entities/photo.entity';
@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class LocationsService {
+  private readonly logger = new Logger(LocationsService.name);
+
   async createLocation(userId: number, createData: any): Promise<Location> {
     let latitude = 0;
     let longitude = 0;
@@ -35,6 +37,7 @@ export class LocationsService {
       admin_area_2: createData.adminArea2 || null,
     };
     const location = await Location.query().insert(backendPayload);
+    this.logger.debug(`Location created: ${location.id} for user ${userId}`);
 
     // Link photos if provided
     if (createData.images && createData.images.length > 0) {
@@ -43,9 +46,9 @@ export class LocationsService {
         .patch({ locationId: location.id, showOnMap: true } as any)
         .whereIn('id', createData.images)
         .where('user_id', userId);
+      this.logger.debug(`Linked ${createData.images.length} photos to location ${location.id}`);
     }
 
-    console.log('[LocationsService] Location created:', location.id);
     return location;
   }
 
@@ -91,10 +94,11 @@ export class LocationsService {
           .patch({ locationId: id, showOnMap: true } as any)
           .whereIn('id', updateData.images)
           .where('user_id', userId);
+        this.logger.debug(`Linked ${updateData.images.length} photos to location ${id}`);
       }
     }
 
-    console.log('[LocationsService] Location updated:', id);
+    this.logger.debug(`Location updated: ${id} for user ${userId}`);
     return updated;
   }
 
@@ -113,7 +117,7 @@ export class LocationsService {
 
     // Delete the location
     await Location.query().deleteById(id);
-    console.log('[LocationsService] Location deleted:', id);
+    this.logger.debug(`Location deleted: ${id} for user ${userId}`);
 
     return { success: true };
   }

@@ -8,6 +8,7 @@ import { TripsModule } from './trips/trips.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { MediaModule } from './media/media.module';
 import { LocationsModule } from './locations/locations.module';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { LocationsModule } from './locations/locations.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    LoggerModule,
     DatabaseModule,
     GeoModule,
     AuthModule,

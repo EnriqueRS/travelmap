@@ -139,7 +139,7 @@
     padding: 0.6rem;
     background: var(--color-bg-tertiary);
     border: 1px solid var(--color-border);
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     min-height: 48px;
     align-items: center;
     transition: all 0.2s;
@@ -147,7 +147,7 @@
 
   .selected-tags-container:focus-within {
     border-color: var(--color-accent-primary);
-    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.1);
+    box-shadow: 0 0 0 3px var(--color-accent-muted);
   }
 
   .country-tag {
@@ -155,9 +155,9 @@
     align-items: center;
     gap: 0.4rem;
     padding: 0.25rem 0.5rem;
-    background: rgba(96, 165, 250, 0.15);
-    border: 1px solid rgba(96, 165, 250, 0.3);
-    border-radius: 8px;
+    background: var(--color-accent-muted);
+    border: 1px solid var(--color-accent-primary);
+    border-radius: var(--radius-base);
     color: var(--color-text-primary);
     font-size: 0.85rem;
     font-weight: 500;
@@ -182,8 +182,8 @@
   }
 
   .remove-btn:hover {
-    background: rgba(239, 68, 68, 0.15);
-    color: #f87171;
+    background: var(--color-danger-muted);
+    color: var(--color-danger-text);
   }
 
   .dropdown-trigger {
@@ -202,12 +202,12 @@
 
   .placeholder-text {
     font-size: 0.9rem;
-    color: #64748b;
+    color: var(--color-text-muted);
   }
 
   .chevron {
     transition: transform 0.2s;
-    color: #64748b;
+    color: var(--color-text-muted);
   }
 
   .chevron.rotate {
@@ -221,8 +221,8 @@
     width: 100%;
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
-    border-radius: 12px;
-    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.5);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
     z-index: 100;
     overflow: hidden;
     display: flex;
@@ -242,7 +242,7 @@
     left: 1.25rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #64748b;
+    color: var(--color-text-muted);
   }
 
   .search-input {
@@ -250,7 +250,7 @@
     padding: 0.5rem 0.5rem 0.5rem 2rem;
     background: var(--color-bg-tertiary);
     border: 1px solid var(--color-border);
-    border-radius: 8px;
+    border-radius: var(--radius-base);
     color: var(--color-text-primary);
     font-size: 0.9rem;
     outline: none;
@@ -274,7 +274,7 @@
     padding: 0.6rem 0.75rem;
     background: transparent;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-base);
     color: var(--color-text-primary);
     cursor: pointer;
     transition: all 0.15s;
@@ -286,7 +286,7 @@
   }
 
   .option-item.selected {
-    background: rgba(96, 165, 250, 0.1);
+    background: var(--color-accent-muted);
     color: var(--color-accent-primary);
   }
 
@@ -313,7 +313,7 @@
   .no-results {
     padding: 2rem 1rem;
     text-align: center;
-    color: #64748b;
+    color: var(--color-text-muted);
     font-size: 0.9rem;
   }
 
@@ -325,10 +325,10 @@
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: var(--color-border-light);
     border-radius: 3px;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+    background: var(--color-border-light);
   }
 </style>

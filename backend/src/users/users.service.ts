@@ -1,22 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { User } from './user.entity';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   async findOne(username: string): Promise<User | undefined> {
+    this.logger.debug(`Finding user by username: ${username}`);
     return User.query().where('username', username).first();
   }
 
   async findByEmail(email: string): Promise<User | undefined> {
+    this.logger.debug(`Finding user by email: ${email}`);
     return User.query().where('email', email).first();
   }
 
   async create(data: Partial<User>): Promise<User> {
-    // passwordHash is expected to be already set by AuthService (hashed there)
-    return User.query().insert(data);
+    const user = await User.query().insert(data);
+    this.logger.debug(`User created: ${user.id}`);
+    return user;
   }
 
   async findByIdWithData(id: number): Promise<User | undefined> {
+    this.logger.debug(`Finding user with data: ${id}`);
     const { Location } = await import('../locations/entities/location.entity');
 
     return User.query()
@@ -46,7 +52,6 @@ export class UsersService {
     const patch: Partial<User> = {};
 
     if (typeof payload.name === 'string' && payload.name.trim()) {
-      // Use the single display name as username for now
       patch.username = payload.name.trim();
     }
 
@@ -75,10 +80,12 @@ export class UsersService {
     }
 
     if (Object.keys(patch).length === 0) {
-      // Nothing to update, return current user as-is
+      this.logger.debug(`No fields to update for user ${userId}`);
       return User.query().findById(userId);
     }
 
-    return User.query().patchAndFetchById(userId, patch);
+    const updated = await User.query().patchAndFetchById(userId, patch);
+    this.logger.debug(`User profile updated: ${userId}`);
+    return updated;
   }
 }

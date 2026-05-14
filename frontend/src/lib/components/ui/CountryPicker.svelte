@@ -161,11 +161,11 @@
   }
 
   .placeholder {
-    color: #94a3b8;
+    color: var(--color-text-secondary);
   }
 
   .chevron {
-    color: #64748b;
+    color: var(--color-text-muted);
   }
 
   .dropdown-menu {
@@ -196,7 +196,7 @@
     left: 0.8rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #64748b;
+    color: var(--color-text-muted);
   }
 
   .options-list {
@@ -238,7 +238,7 @@
 
   .no-results {
     padding: 0.75rem;
-    color: #94a3b8;
+    color: var(--color-text-secondary);
     text-align: center;
     font-size: 0.9rem;
   }
@@ -248,13 +248,13 @@
     width: 6px;
   }
   .options-list::-webkit-scrollbar-track {
-    background: #1e293b;
+    background: var(--color-bg-secondary);
   }
   .options-list::-webkit-scrollbar-thumb {
-    background: #475569;
+    background: var(--color-border-light);
     border-radius: 3px;
   }
   .options-list::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
+    background: var(--color-text-muted);
   }
 </style>

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -6,6 +6,8 @@ import { User } from '../users/user.entity';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor (
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -15,12 +17,15 @@ export class AuthService {
     const user = await this.usersService.findOne(username);
     if (user && (await bcrypt.compare(pass, user.passwordHash))) {
       const { passwordHash, ...result } = user;
+      this.logger.debug(`User validated: ${username}`);
       return result;
     }
+    this.logger.warn(`Failed validation attempt for user: ${username}`);
     return null;
   }
 
   async login(user: any) {
+    this.logger.debug(`User logged in: ${user.username}`);
     const payload = { username: user.username, sub: user.id };
     return {
       accessToken: this.jwtService.sign(payload),
@@ -38,6 +43,7 @@ export class AuthService {
   }
 
   async register(userDto: any) {
+    this.logger.debug(`Registering new user: ${userDto.username}`);
     // Check if user exists
     const existingUser = await this.usersService.findOne(userDto.username);
     if (existingUser) {

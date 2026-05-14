@@ -225,8 +225,9 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: 9999;
     display: flex;
     align-items: center;
@@ -238,19 +239,19 @@
     width: 100%;
     max-width: 1100px;
     height: 90vh;
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    border-radius: 24px;
+    background: var(--color-bg-main);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
     display: flex;
     overflow: hidden;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-xl);
   }
 
   /* Sidebar Styles */
   .explorer-sidebar {
     width: 320px;
-    background: #141c2f;
-    border-right: 1px solid #1e293b;
+    background: var(--color-bg-secondary);
+    border-right: 1px solid var(--color-border);
     display: flex;
     flex-direction: column;
     padding: 1.5rem;
@@ -266,12 +267,12 @@
   .header-icon {
     width: 40px;
     height: 40px;
-    background: rgba(59, 130, 246, 0.1);
-    border-radius: 12px;
+    background: var(--color-accent-muted);
+    border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #3b82f6;
+    color: var(--color-accent-primary);
   }
 
   .sidebar-header h3 {
@@ -282,16 +283,16 @@
 
   .sidebar-header p {
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--color-text-muted);
     margin: 0;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
   .progress-section {
-    background: rgba(15, 23, 42, 0.5);
-    border: 1px solid #1e293b;
-    border-radius: 16px;
+    background: var(--color-bg-main);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
     padding: 1.25rem;
     margin-bottom: 1.5rem;
   }
@@ -305,31 +306,32 @@
   }
 
   .progress-header .pct {
-    color: #3b82f6;
+    color: var(--color-accent-primary);
   }
 
   .progress-bar-bg {
     height: 8px;
-    background: #0f172a;
-    border-radius: 4px;
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-sm);
     overflow: hidden;
     margin-bottom: 0.5rem;
+    position: relative;
   }
 
   .progress-bar-fill {
     height: 100%;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     position: absolute;
     top: 0;
   }
 
   .progress-bar-fill.visited {
-    background: linear-gradient(90deg, #10b981, #34d399);
+    background: linear-gradient(90deg, var(--color-success), var(--color-success-text));
     z-index: 2;
   }
 
   .progress-bar-fill.planned {
-    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-text));
     z-index: 1;
     opacity: 0.6;
   }
@@ -342,7 +344,7 @@
 
   .progress-detail {
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--color-text-muted);
     margin: 0;
     display: flex;
     align-items: center;
@@ -355,8 +357,8 @@
     border-radius: 50%;
   }
 
-  .dot.visited { background: #10b981; }
-  .dot.planned { background: #3b82f6; }
+  .dot.visited { background: var(--color-success); }
+  .dot.planned { background: var(--color-accent-primary); }
 
   .regions-list {
     flex: 1;
@@ -365,7 +367,13 @@
     flex-direction: column;
     gap: 0.5rem;
     padding-right: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-light) transparent;
   }
+
+  .regions-list::-webkit-scrollbar { width: 6px; }
+  .regions-list::-webkit-scrollbar-track { background: transparent; }
+  .regions-list::-webkit-scrollbar-thumb { background: var(--color-border-light); border-radius: var(--radius-full); }
 
   .region-item {
     display: flex;
@@ -373,7 +381,7 @@
     padding: 0.75rem 1rem;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     cursor: pointer;
     transition: all 0.2s;
     text-align: left;
@@ -381,13 +389,13 @@
   }
 
   .region-item:hover {
-    background: rgba(255, 255, 255, 0.03);
-    border-color: #1e293b;
+    background: var(--color-bg-tertiary);
+    border-color: var(--color-border);
   }
 
   .region-item.active {
-    background: rgba(59, 130, 246, 0.1);
-    border-color: rgba(59, 130, 246, 0.3);
+    background: var(--color-accent-muted);
+    border-color: var(--color-accent-primary);
   }
 
   .region-info {
@@ -408,7 +416,7 @@
   .region-name {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #f1f5f9;
+    color: var(--color-text-primary);
   }
 
   .region-meta {
@@ -419,7 +427,7 @@
 
   .region-count {
     font-size: 0.7rem;
-    color: #64748b;
+    color: var(--color-text-muted);
     font-variant-numeric: tabular-nums;
     display: flex;
     align-items: center;
@@ -427,14 +435,14 @@
   }
 
   .planned-plus {
-    color: #3b82f6;
+    color: var(--color-accent-primary);
     font-weight: 700;
   }
 
   .mini-progress {
     flex: 1;
     height: 4px;
-    background: #0f172a;
+    background: var(--color-bg-main);
     border-radius: 2px;
     overflow: hidden;
   }
@@ -444,11 +452,11 @@
   }
 
   .mini-progress .fill.visited {
-    background: #10b981;
+    background: var(--color-success);
   }
 
   .mini-progress .fill.planned {
-    background: #3b82f6;
+    background: var(--color-accent-primary);
     opacity: 0.5;
   }
 
@@ -467,20 +475,21 @@
     right: 1.5rem;
     width: 40px;
     height: 40px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid #1e293b;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #64748b;
+    color: var(--color-text-muted);
     transition: all 0.2s;
+    cursor: pointer;
   }
 
   .close-btn:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    border-color: rgba(239, 68, 68, 0.2);
+    background: var(--color-danger-muted);
+    color: var(--color-danger);
+    border-color: var(--color-danger-border);
     transform: rotate(90deg);
   }
 
@@ -488,12 +497,12 @@
     font-size: 1.75rem;
     font-weight: 800;
     margin: 0 0 0.25rem 0;
-    color: #f8fafc;
+    color: var(--color-text-primary);
   }
 
   .main-header p {
     font-size: 0.95rem;
-    color: #64748b;
+    color: var(--color-text-muted);
     margin: 0;
   }
 
@@ -505,28 +514,33 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: #141c2f;
-    border: 1px solid #1e293b;
-    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
     padding: 0 1rem;
     height: 48px;
     width: 100%;
     max-width: 400px;
     transition: all 0.2s;
+    color: var(--color-text-muted);
   }
 
   .search-box:focus-within {
-    border-color: #3b82f6;
-    background: #0f172a;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    border-color: var(--color-accent-primary);
+    background: var(--color-bg-main);
+    box-shadow: 0 0 0 3px var(--color-accent-muted);
   }
 
   .search-box input {
     background: transparent;
     border: none;
-    color: #f1f5f9;
+    color: var(--color-text-primary);
     flex: 1;
     font-size: 0.95rem;
+  }
+
+  .search-box input::placeholder {
+    color: var(--color-text-muted);
   }
 
   .search-box input:focus {
@@ -540,12 +554,18 @@
     gap: 1rem;
     overflow-y: auto;
     padding-bottom: 2rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-light) transparent;
   }
 
+  .provinces-grid::-webkit-scrollbar { width: 6px; }
+  .provinces-grid::-webkit-scrollbar-track { background: transparent; }
+  .provinces-grid::-webkit-scrollbar-thumb { background: var(--color-border-light); border-radius: var(--radius-full); }
+
   .province-card {
-    background: #141c2f;
-    border: 1px solid #1e293b;
-    border-radius: 16px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
     padding: 1.25rem;
     display: flex;
     align-items: center;
@@ -557,12 +577,12 @@
 
   .province-card.visited {
     border-color: rgba(16, 185, 129, 0.3);
-    background: rgba(16, 185, 129, 0.05);
+    background: var(--color-success-muted);
   }
 
   .province-card.planned {
     border-color: rgba(59, 130, 246, 0.3);
-    background: rgba(59, 130, 246, 0.05);
+    background: var(--color-accent-muted);
   }
 
   .visited-badge, .planned-badge {
@@ -576,23 +596,23 @@
     align-items: center;
     justify-content: center;
     color: white;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-md);
   }
 
-  .visited-badge { background: #10b981; }
-  .planned-badge { background: #3b82f6; }
+  .visited-badge { background: var(--color-success); }
+  .planned-badge { background: var(--color-accent-primary); }
 
   .province-flag-box {
     width: 44px;
     height: 32px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 6px;
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border);
   }
 
   .province-flag-img {
@@ -619,14 +639,14 @@
   .province-name {
     font-size: 0.95rem;
     font-weight: 700;
-    color: #f1f5f9;
+    color: var(--color-text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .province-name.muted {
-    color: #64748b;
+    color: var(--color-text-muted);
     font-weight: 600;
   }
 
@@ -639,7 +659,7 @@
 
   .region-tag {
     font-size: 0.65rem;
-    color: #475569;
+    color: var(--color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 700;
@@ -648,15 +668,15 @@
   .status-tag {
     font-size: 0.6rem;
     padding: 1px 4px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     font-weight: 800;
     text-transform: uppercase;
   }
 
   .status-tag.planned {
-    background: rgba(59, 130, 246, 0.1);
-    color: #3b82f6;
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: var(--color-accent-muted);
+    color: var(--color-accent-text);
+    border: 1px solid var(--color-accent-primary);
   }
 
   .empty-state {
@@ -666,7 +686,7 @@
     align-items: center;
     justify-content: center;
     padding: 4rem;
-    color: #475569;
+    color: var(--color-text-muted);
     text-align: center;
   }
 
@@ -676,40 +696,27 @@
     font-weight: 600;
   }
 
-  /* Scrollbar Customization */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #1e293b;
-    border-radius: 10px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #334155;
-  }
-
   @media (max-width: 768px) {
+    .province-explorer-backdrop {
+      padding: 0;
+    }
+
     .explorer-modal {
       flex-direction: column;
-      height: 95vh;
+      height: 100vh;
+      border-radius: 0;
     }
 
     .explorer-sidebar {
       width: 100%;
       height: auto;
       border-right: none;
-      border-bottom: 1px solid #1e293b;
+      border-bottom: 1px solid var(--color-border);
       padding: 1rem;
     }
 
     .regions-list {
-      display: none; /* Hide on mobile to save space, or use a dropdown */
+      display: none;
     }
 
     .explorer-main {

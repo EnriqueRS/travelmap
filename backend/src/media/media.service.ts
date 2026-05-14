@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Photo } from './entities/photo.entity';
 import { Trip } from '../trips/entities/trip.entity';
 import * as path from 'path';
@@ -9,12 +9,15 @@ import axios from 'axios';
 
 @Injectable()
 export class MediaService {
+  private readonly logger = new Logger(MediaService.name);
+
   constructor (private readonly integrationsService: IntegrationsService) { }
 
   /**
    * Obtiene todas las fotos del usuario que deben mostrarse en el mapa.
    */
   async getMapPhotos(userId: number): Promise<Photo[]> {
+    this.logger.debug(`Fetching map photos for user ${userId}`);
     return Photo.query()
       .where('user_id', userId)
       .andWhere('show_on_map', true)
@@ -26,6 +29,7 @@ export class MediaService {
    */
   async addExternalPhoto(tripId: string, userId: number, externalData: any): Promise<Photo> {
     const { v4: uuidv4 } = require('uuid');
+    this.logger.debug(`Adding external photo for trip ${tripId}, user ${userId}, provider: ${externalData.provider}`);
     const photo = await Photo.query().insert({
       id: uuidv4(),
       userId,
@@ -42,6 +46,7 @@ export class MediaService {
         exif: externalData.exifInfo
       }
     });
+    this.logger.debug(`External photo added: ${photo.id}`);
     return photo;
   }
 
@@ -76,6 +81,7 @@ export class MediaService {
    */
   async addLocalPhotos(tripId: string, userId: number, files: Express.Multer.File[]): Promise<Photo[]> {
     const { v4: uuidv4 } = require('uuid');
+    this.logger.debug(`Adding ${files.length} local photos for trip ${tripId}, user ${userId}`);
     const photos: Photo[] = [];
 
     for (const file of files) {
@@ -97,6 +103,7 @@ export class MediaService {
       photos.push(photo);
     }
 
+    this.logger.debug(`Added ${photos.length} local photos for trip ${tripId}`);
     return photos;
   }
 
@@ -113,9 +120,11 @@ export class MediaService {
    * Modifica propiedades lógicas de la foto (si se muestra en mapa o es la portada)
    */
   async updatePhoto(id: string, userId: number, data: { showOnMap?: boolean, isCover?: boolean, isHidden?: boolean, metadata?: any }): Promise<Photo> {
+    this.logger.debug(`Updating photo ${id} for user ${userId}`);
     const photo = await Photo.query().findOne({ id, user_id: userId });
 
     if (!photo) {
+      this.logger.warn(`Photo not found: ${id} for user ${userId}`);
       throw new NotFoundException('Foto no encontrada');
     }
 
@@ -167,10 +176,13 @@ export class MediaService {
 
   async deletePhoto(id: string, userId: number): Promise<boolean> {
     const photo = await Photo.query().findOne({ id, user_id: userId });
-    if (!photo) throw new NotFoundException('Foto no encontrada');
+    if (!photo) {
+      this.logger.warn(`Photo not found for deletion: ${id} for user ${userId}`);
+      throw new NotFoundException('Foto no encontrada');
+    }
 
     await photo.$query().delete();
-    // Físicamente borrar local file aquí (omitido en MVP standard para prevención)
+    this.logger.debug(`Photo deleted: ${id} for user ${userId}`);
     return true;
   }
 
@@ -208,7 +220,7 @@ export class MediaService {
         res.set('Content-Type', response.headers['content-type']);
         return response.data.pipe(res);
       } catch (error) {
-        console.error('Error proxying Immich image:', error);
+        this.logger.error(`Error proxying Immich image: ${error.message}`, error.stack);
         throw new NotFoundException('Error obtaining image from Immich');
       }
     } else {

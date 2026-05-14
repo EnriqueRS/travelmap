@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onMount, onDestroy, createEventDispatcher } from "svelte"
-  import { browser } from "$app/environment"
+import { onMount, onDestroy, createEventDispatcher } from "svelte"
+import { browser } from "$app/environment"
+import { goto } from "$app/navigation"
   import { toast, languageStore } from "$lib/stores/ui"
   import { t } from "$lib/stores/i18n"
   import { getStatusColor, userProfile } from "$lib/stores/data"
@@ -45,12 +46,20 @@
   let currentZoom = 2
   const ZOOM_THRESHOLD_PROVINCES = 4
 
-  const dispatch = createEventDispatcher()
-  let tripLinesGroup: any
-  let photoClusterGroup: any
-  let countryHighlightsGroup: any
-  let geoJsonData: any = null
-  let provincesGeoJSONData: any = null
+const dispatch = createEventDispatcher()
+let tripLinesGroup: any
+let photoClusterGroup: any
+let countryHighlightsGroup: any
+let geoJsonData: any = null
+let provincesGeoJSONData: any = null
+
+// Trip navigation handler
+const tripNavigateHandler = (e: any) => {
+const tripId = e.detail?.tripId
+if (tripId) {
+goto(`/trips/${tripId}`)
+}
+}
 
   // 1. Reactive update for DATA changes (Should fit bounds)
   $: if (
@@ -114,7 +123,7 @@
       } else {
         headerHtml = `<div style="
           height: 100px; 
-          background: linear-gradient(135deg, #3b82f6, #8b5cf6); 
+          background: linear-gradient(135deg, var(--color-accent-primary), #8b5cf6); 
           border-radius: 8px; 
           margin-bottom: 8px;
           display: flex;
@@ -131,10 +140,10 @@
       const popupContent = `
         <div style="text-align: center; width: 160px;">
           ${headerHtml}
-          <h3 style="margin: 0; color: #1e293b; font-size: 16px; font-weight: 600;">${
+          <h3 style="margin: 0; color: var(--color-bg-secondary); font-size: 16px; font-weight: 600;">${
             loc.name
           }</h3>
-          <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">${$t(
+          <p style="margin: 4px 0 0; color: var(--color-text-muted); font-size: 13px;">${$t(
             `${loc.name}`,
           )}</p>
         </div>
@@ -147,7 +156,7 @@
           locPhoto.provider === "local"
             ? `${API_URL}${locPhoto.url}`
             : `${API_URL}/media/photos/${locPhoto.id}/image`
-        const borderColor = tripColorMap[loc.tripId] || "#3b82f6"
+        const borderColor = tripColorMap[loc.tripId] || "var(--color-accent-primary)"
         customIcon = L.divIcon({
           className: "custom-photo-marker location-photo-marker",
           html: `
@@ -162,7 +171,7 @@
       } else {
         customIcon = L.divIcon({
           className: "custom-map-marker",
-          html: `<div class="marker-pin-custom" style="background-color: #3b82f6;">
+          html: `<div class="marker-pin-custom" style="background-color: var(--color-accent-primary);">
                     <span class="marker-emoji">${getCategoryEmoji(
                       loc.category,
                     )}</span>
@@ -207,8 +216,8 @@
           : null
 
         const borderColor = photoTrip
-          ? tripColorMap[photoTrip.id] || "#3b82f6"
-          : "#f59e0b"
+          ? tripColorMap[photoTrip.id] || "var(--color-accent-primary)"
+          : "var(--color-warning)"
         const photoIcon = L.divIcon({
           className: "custom-photo-marker",
           html: `
@@ -223,15 +232,16 @@
           popupAnchor: [0, -48],
         })
 
-        const popupContent = `
-          <div style="text-align: center; width: 220px; padding: 0.5rem;">
-            <img src="${url}" style="width: 100%; border-radius: 8px; margin-bottom: 12px; object-fit: cover; max-height: 150px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);" />
-            ${
-              photoTrip
-                ? `<div style="margin-bottom: 8px;">
-                     <span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${$t(
-                       "trip.tripPrefix",
-                     )}: ${photoTrip.name}</span>
+const tripClickHandler = photoTrip ? `onclick="window.dispatchEvent(new CustomEvent('navigate-to-trip', {detail: {tripId: '${photoTrip.id}'}}))" style="cursor: pointer;"` : ''
+const popupContent = `
+    <div style="text-align: center; width: 220px; padding: 0.5rem;">
+    <img src="${url}" style="width: 100%; border-radius: 8px; margin-bottom: 12px; object-fit: cover; max-height: 150px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);" />
+    ${
+    photoTrip
+    ? `<div style="margin-bottom: 8px;">
+    <span ${tripClickHandler} style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${$t(
+    "trip.tripPrefix",
+    )}: ${photoTrip.name}</span>
                      ${
                        photoTrip.countries && photoTrip.countries.length > 0
                          ? `<div style="margin-top: 8px; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">${photoTrip.countries
@@ -247,7 +257,7 @@
                    </div>`
                 : ""
             }
-            <p style="margin: 0; font-size: 12px; color: #94a3b8;">${
+            <p style="margin: 0; font-size: 12px; color: var(--color-text-secondary);">${
               photo.metadata?.exif?.dateTimeOriginal
                 ? formatDate(photo.metadata.exif.dateTimeOriginal)
                 : $t("common.unknown")
@@ -317,14 +327,14 @@
             if (iso === "ESP" && currentZoom >= ZOOM_THRESHOLD_PROVINCES) {
               if (visitedIsos.has(iso)) {
                 return {
-                  fillColor: "#10b981",
+                  fillColor: "var(--color-success)",
                   color: "#047857",
                   weight: 0.5,
                   fillOpacity: 0.03,
                 }
               } else if (plannedIsos.has(iso)) {
                 return {
-                  fillColor: "#3b82f6",
+                  fillColor: "var(--color-accent-primary)",
                   color: "#1d4ed8",
                   weight: 0.5,
                   fillOpacity: 0.02,
@@ -334,14 +344,14 @@
 
             if (visitedIsos.has(iso)) {
               return {
-                fillColor: "#10b981",
+                fillColor: "var(--color-success)",
                 color: "#047857",
                 weight: 1,
                 fillOpacity: 0.35,
               }
             } else if (plannedIsos.has(iso)) {
               return {
-                fillColor: "#3b82f6",
+                fillColor: "var(--color-accent-primary)",
                 color: "#1d4ed8",
                 weight: 1,
                 fillOpacity: 0.25,
@@ -439,21 +449,21 @@
                     (homeProv.includes(featName) || featName.includes(homeProv))
                   if (isVisited) {
                     return {
-                      fillColor: "#10b981",
+                      fillColor: "var(--color-success)",
                       color: "#059669",
                       weight: 1.5,
                       fillOpacity: 0.6, // Higher opacity for contrast
                     }
                   } else if (isPlanned) {
                     return {
-                      fillColor: "#3b82f6",
-                      color: "#2563eb",
+                      fillColor: "var(--color-accent-primary)",
+                      color: "var(--color-accent-hover)",
                       weight: 1.5,
                       fillOpacity: 0.5,
                     }
                   } else if (isHome && showHome) {
                     return {
-                      fillColor: "#ef4444",
+                      fillColor: "var(--color-danger)",
                       color: "#b91c1c",
                       weight: 1.5,
                       fillOpacity: 0.15,
@@ -502,7 +512,7 @@
       const home = $userProfile.homeLocation
       const customIcon = L.divIcon({
         className: "custom-map-marker",
-        html: `<div class="marker-home" style="background-color: #ef4444;">
+        html: `<div class="marker-home" style="background-color: var(--color-danger);">
                   <span class="marker-emoji">🏠</span>
                </div>`,
         iconSize: [40, 40],
@@ -683,7 +693,7 @@
                   width: 48px;
                   height: 48px;
                   border-radius: 8px;
-                  background-color: #1e293b;
+                  background-color: var(--color-bg-secondary);
                   background-image: url('${bgImage || ""}');
                   background-size: cover;
                   background-position: center;
@@ -698,7 +708,7 @@
                     position: absolute;
                     top: -8px;
                     right: -8px;
-                    background: #ef4444;
+                    background: var(--color-danger);
                     color: white;
                     font-size: 11px;
                     font-weight: 700;
@@ -724,12 +734,17 @@
         console.error("Leaflet MarkerClusterGroup not found!")
       }
 
-      // Initial marker update
-      updateMarkers()
-    } catch (e) {
-      console.error("Error initializing map:", e)
-    }
-  })
+// Initial marker update
+updateMarkers()
+} catch (e) {
+console.error("Error initializing map:", e)
+}
+})
+
+// Listen for navigate-to-trip events from map popups
+if (browser) {
+window.addEventListener('navigate-to-trip', tripNavigateHandler)
+}
 
   async function handleSearch() {
     if (!searchQuery.trim() || !map) return
@@ -750,11 +765,14 @@
     }
   }
 
-  onDestroy(() => {
-    if (map) {
-      map.remove()
-    }
-  })
+onDestroy(() => {
+if (map) {
+map.remove()
+}
+if (browser) {
+window.removeEventListener('navigate-to-trip', tripNavigateHandler)
+}
+})
 </script>
 
 <div class="map-outer">
@@ -804,18 +822,18 @@
     padding: 0.5rem 0.75rem;
     border: 1px solid rgba(71, 85, 105, 0.6);
     border-radius: 8px;
-    background: rgba(15, 23, 42, 0.95);
-    color: #e2e8f0;
+    background: var(--color-bg-main);
+    color: var(--color-text-primary);
     font-size: 0.875rem;
     font-family: inherit;
   }
   .map-search-input::placeholder {
-    color: #64748b;
+    color: var(--color-text-muted);
   }
   .map-search-input:focus {
     outline: none;
     border-color: rgba(96, 165, 250, 0.8);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 0 2px var(--color-accent-muted);
   }
   .map-search-btn {
     display: inline-flex;
@@ -824,7 +842,7 @@
     padding: 0.5rem 0.75rem;
     border: none;
     border-radius: 8px;
-    background: #3b82f6;
+    background: var(--color-accent-primary);
     color: #fff;
     font-size: 0.875rem;
     font-weight: 500;
@@ -832,7 +850,7 @@
     transition: background 0.2s;
   }
   .map-search-btn:hover:not(:disabled) {
-    background: #2563eb;
+    background: var(--color-accent-hover);
   }
   .map-search-btn:disabled {
     opacity: 0.6;
@@ -845,13 +863,13 @@
     z-index: 1000;
     margin: 0;
     font-size: 0.8125rem;
-    color: #f87171;
+    color: var(--color-danger-text);
   }
   .map-wrapper {
     width: 100%;
     height: 100%;
     z-index: 1;
-    background: #1a1a1a;
+    background: var(--color-bg-main);
   }
 
   :global(.leaflet-pane) {
@@ -875,7 +893,7 @@
     width: 36px;
     height: 36px;
     border-radius: 50% 50% 50% 0;
-    background: #3b82f6;
+    background: var(--color-accent-primary);
     position: absolute;
     transform: rotate(-45deg);
     border: 3px solid white;
@@ -907,7 +925,7 @@
     border: 3px solid white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
     overflow: hidden;
-    background: #0f172a;
+    background: var(--color-bg-main);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -924,7 +942,7 @@
     width: 36px;
     height: 36px;
     border-radius: 50% 50% 50% 0;
-    background: #ef4444; /* Red for Home */
+    background: var(--color-danger); /* Red for Home */
     position: absolute;
     transform: rotate(-45deg);
     border: 3px solid white;
@@ -971,8 +989,8 @@
 
   /* Popup Dark Mode Overrides */
   :global(.leaflet-popup-content-wrapper) {
-    background: #1e293b !important;
-    color: #e2e8f0;
+    background: var(--color-bg-secondary) !important;
+    color: var(--color-text-primary);
     border-radius: 12px;
     padding: 0;
     overflow: hidden;
@@ -982,13 +1000,13 @@
     margin: 4px;
   }
   :global(.leaflet-popup-tip) {
-    background: #1e293b !important;
+    background: var(--color-bg-secondary) !important;
   }
   :global(.leaflet-popup-close-button) {
-    color: #94a3b8 !important;
+    color: var(--color-text-secondary) !important;
   }
   :global(.leaflet-popup-close-button:hover) {
-    color: #f1f5f9 !important;
+    color: var(--color-text-primary) !important;
   }
 
   /* Hide map search bar on mobile (mobile panel provides its own) */

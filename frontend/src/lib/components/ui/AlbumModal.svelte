@@ -58,7 +58,6 @@
           bind:value={searchQuery}
           placeholder={$t("trip.filterAlbums")}
           class="search-input"
-          style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; outline: none;"
         />
       </div>
 
@@ -123,8 +122,9 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(15, 23, 42, 0.85); /* Slate 900 con opacidad */
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -132,59 +132,62 @@
   }
 
   .modal.card {
-    background: #1e293b; /* Slate 800 */
-    border-radius: 16px;
-    border: 1px solid #334155; /* Slate 700 */
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border);
     max-width: 500px;
     width: 90%;
     max-height: 85vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-xl);
     padding: 0;
     overflow: hidden;
   }
 
   .modal-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid #334155;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--color-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #0f172a; /* Slate 900 */
   }
 
   .modal-header h3 {
     margin: 0;
-    color: #f8fafc;
-    font-size: 1.25rem;
+    color: var(--color-text-primary);
+    font-size: 1.125rem;
     font-weight: 600;
   }
 
   .close-btn {
     background: transparent;
     border: none;
-    color: #94a3b8;
+    color: var(--color-text-muted);
     font-size: 1.5rem;
     cursor: pointer;
     line-height: 1;
-    padding: 0;
+    padding: 0.25rem;
     margin: 0;
     transition: color 0.2s;
+    border-radius: var(--radius-base);
   }
 
   .close-btn:hover {
-    color: #f1f5f9;
+    color: var(--color-text-primary);
+    background: var(--color-bg-tertiary);
   }
 
   .modal-body {
     padding: 1.5rem;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-light) transparent;
   }
 
   .description {
-    color: #94a3b8;
-    font-size: 0.95rem;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
     margin-bottom: 1.5rem;
     line-height: 1.5;
   }
@@ -192,9 +195,9 @@
   .loading-state {
     text-align: center;
     padding: 2rem;
-    color: #64748b;
-    background: #0f172a;
-    border-radius: 8px;
+    color: var(--color-text-muted);
+    background: var(--color-bg-main);
+    border-radius: var(--radius-base);
   }
 
   .albums-list {
@@ -205,22 +208,22 @@
 
   .album-item {
     display: block;
-    background: #0f172a;
-    border: 1px solid #334155;
-    border-radius: 10px;
+    background: var(--color-bg-main);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
     padding: 1rem;
     cursor: pointer;
     transition: all 0.2s ease;
   }
 
   .album-item:hover {
-    border-color: #475569;
-    background: #1e293b;
+    border-color: var(--color-border-light);
+    background: var(--color-bg-tertiary);
   }
 
   .album-item.selected {
-    border-color: #3b82f6; /* Blue 500 */
-    background: rgba(59, 130, 246, 0.1);
+    border-color: var(--color-accent-primary);
+    background: var(--color-accent-muted);
   }
 
   .hidden-radio {
@@ -237,7 +240,7 @@
   }
 
   .album-name {
-    color: #e2e8f0;
+    color: var(--color-text-primary);
     font-weight: 500;
     display: flex;
     align-items: center;
@@ -246,82 +249,50 @@
 
   .linked-badge {
     font-size: 0.75rem;
-    color: #3b82f6; /* Blue 500 */
-    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-accent-text);
+    background: var(--color-accent-muted);
     padding: 0.1rem 0.4rem;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     font-weight: 600;
   }
 
   .album-count.badge {
-    background: #334155;
-    color: #cbd5e1;
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
     font-size: 0.8rem;
     padding: 0.25rem 0.5rem;
-    border-radius: 12px;
+    border-radius: var(--radius-full);
   }
 
   .album-item.selected .album-count.badge {
-    background: rgba(59, 130, 246, 0.2);
-    color: #93c5fd;
+    background: var(--color-accent-muted);
+    color: var(--color-accent-text);
   }
 
   .modal-footer {
-    padding: 1.5rem;
-    border-top: 1px solid #334155;
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--color-border);
     display: flex;
     justify-content: flex-end;
-    gap: 1rem;
-    background: #0f172a;
+    gap: 0.75rem;
   }
 
-  .btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
+  .search-input {
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--radius-base);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
     transition: all 0.2s;
   }
-
-  .btn-secondary {
-    background: #334155;
-    color: #f1f5f9;
+  .search-input::placeholder {
+    color: var(--color-text-muted);
   }
-
-  .btn-secondary:hover {
-    background: #475569;
-  }
-
-  .btn-primary {
-    background: #3b82f6;
-    color: white;
-  }
-
-  .btn-primary:hover:not(:disabled) {
-    background: #2563eb;
-  }
-
-  .btn-primary:disabled {
-    background: #1e293b;
-    color: #64748b;
-    cursor: not-allowed;
-  }
-
-  .btn-danger {
-    background: #ef4444; /* Red 500 */
-    color: white;
-  }
-
-  .btn-danger:hover:not(:disabled) {
-    background: #dc2626; /* Red 600 */
-  }
-
-  .btn-danger:disabled {
-    background: #1e293b;
-    border-color: #ef4444;
-    color: #ef4444;
-    opacity: 0.5;
-    cursor: not-allowed;
+  .search-input:focus {
+    outline: none;
+    border-color: var(--color-accent-primary);
+    box-shadow: 0 0 0 3px var(--color-accent-muted);
   }
 </style>

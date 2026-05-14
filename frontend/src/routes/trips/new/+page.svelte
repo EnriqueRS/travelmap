@@ -160,7 +160,7 @@
   }
 
   .page-header h1 {
-    color: #60a5fa;
+    color: var(--color-accent-text);
     margin-bottom: 0.5rem;
   }
 
@@ -200,6 +200,6 @@
 
   .btn-remove-country:hover {
     background: rgba(239, 68, 68, 0.2);
-    color: #f87171;
+    color: var(--color-danger-text);
   }
 </style>
