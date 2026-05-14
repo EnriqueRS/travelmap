@@ -300,12 +300,13 @@
   }
 
   // Filters
-  let showCompleted = true
-  let showPlanned = true
-  let showOngoing = true
-  let showHome = true
-  let hiddenTrips: string[] = []
-  let searchQuery = ""
+let showCompleted = true
+let showPlanned = true
+let showOngoing = true
+let showHome = true
+let hiddenTrips: string[] = []
+let soloTripId: string | null = null
+let searchQuery = ""
 
   const tripColors = [
     "var(--color-danger)",
@@ -553,22 +554,24 @@
         : aVisited - bVisited
     })
 
-  // Filter Logic
-  $: filteredTrips = $trips.filter((trip) => {
-    if (hiddenTrips.includes(String(trip.id))) return false
-    if (trip.status === "Planificado" && !showPlanned) return false
-    if (trip.status === "Completado" && !showCompleted) return false
-    if (trip.status === "En curso" && !showOngoing) return false
-    return true
-  })
+// Filter Logic
+$: filteredTrips = $trips.filter((trip) => {
+if (soloTripId && soloTripId !== trip.id) return false
+if (hiddenTrips.includes(String(trip.id))) return false
+if (trip.status === "Planificado" && !showPlanned) return false
+if (trip.status === "Completado" && !showCompleted) return false
+if (trip.status === "En curso" && !showOngoing) return false
+return true
+})
 
   $: filteredPhotos = mapPhotos.filter((photo) => {
     const pTripId = photo.tripId
-    if (!pTripId) return true // Show un-tripped photos always unless user decides otherwise
+    if (!pTripId) return soloTripId ? false : true // Hide un-tripped photos in solo mode
 
     const trip = $trips.find((t) => t.id === pTripId)
-    if (!trip) return true // If it has a tripId that doesn't exist anymore, still show it
+    if (!trip) return soloTripId ? false : true // Hide orphan photos in solo mode
 
+    if (soloTripId && soloTripId !== String(trip.id)) return false
     if (hiddenTrips.includes(String(trip.id))) return false
     if (trip.status === "Planificado" && !showPlanned) return false
     if (trip.status === "Completado" && !showCompleted) return false
@@ -588,12 +591,18 @@
       return false
     }
 
+    // Solo trip filter
+    const locTripId = loc.tripId
+
+    if (soloTripId) {
+      if (!locTripId) return false // Hide locations without trip in solo mode
+      if (String(locTripId) !== soloTripId) return false
+    }
+
     // Status filter
     let isPlanned = false
     let isCompleted = false
     let isOngoing = false
-
-    const locTripId = loc.tripId
 
     if (locTripId) {
       const trip = $trips.find((t) => t.id === locTripId)
@@ -620,14 +629,22 @@
 
   $: completion = Math.round((regions / 195) * 100)
 
-  function toggleTripSelection(tripId: string | number) {
-    const idStr = String(tripId)
-    if (hiddenTrips.includes(idStr)) {
-      hiddenTrips = hiddenTrips.filter((id) => id !== idStr)
-    } else {
-      hiddenTrips = [...hiddenTrips, idStr]
-    }
-  }
+function toggleTripSelection(tripId: string | number) {
+const idStr = String(tripId)
+if (hiddenTrips.includes(idStr)) {
+hiddenTrips = hiddenTrips.filter((id) => id !== idStr)
+} else {
+hiddenTrips = [...hiddenTrips, idStr]
+}
+}
+
+function setSoloTrip(tripId: string) {
+if (soloTripId === tripId) {
+soloTripId = null
+} else {
+soloTripId = tripId
+}
+}
 
   function toggleLayer() {
     currentLayer = currentLayer === "default" ? "satellite" : "default"
@@ -963,29 +980,47 @@
           </div>
         </div>
 
-        <!-- Section: Filtrar por Viaje -->
-        <div class="nav-section">
-          <h3 class="nav-section-header">
-            <Filter size={18} />
-            {$t("map.filterByTrip")}
-          </h3>
+<!-- Section: Filtrar por Viaje -->
+<div class="nav-section">
+<h3 class="nav-section-header">
+<Filter size={18} />
+{$t("map.filterByTrip")}
+</h3>
 
-          <div class="trip-filter-list custom-scrollbar">
-            {#each $trips as trip}
-              <button
-                class="trip-filter-item"
-                class:hidden-trip={hiddenTrips.includes(String(trip.id))}
-                on:click={() => toggleTripSelection(trip.id)}
-              >
-                <span
-                  class="trip-dot"
-                  style="background-color: {tripColorMap[trip.id] || 'var(--color-text-muted)'}"
-                />
-                <span class="trip-name">{trip.name}</span>
-              </button>
-            {/each}
-          </div>
-        </div>
+<div class="trip-filter-list custom-scrollbar">
+{#each $trips as trip}
+<div class="trip-filter-wrapper">
+<button
+class="trip-filter-item"
+class:hidden-trip={hiddenTrips.includes(String(trip.id))}
+class:solo={soloTripId === trip.id}
+on:click={() => toggleTripSelection(trip.id)}
+>
+<span
+class="trip-dot"
+style="background-color: {tripColorMap[trip.id] || '#64748b'}"
+/>
+<span class="trip-name">{trip.name}</span>
+</button>
+<button
+class="trip-solo-btn"
+class:active={soloTripId === trip.id}
+on:click={(e) => {
+e.stopPropagation()
+setSoloTrip(String(trip.id))
+}}
+title={soloTripId === trip.id ? $t("map.showAll") : $t("map.showOnlyThis")}
+>
+{#if soloTripId === trip.id}
+<X size={14} />
+{:else}
+<Eye size={14} />
+{/if}
+</button>
+</div>
+{/each}
+</div>
+</div>
 
         <div class="sidebar-footer">
           <h2 class="section-title">
@@ -1085,6 +1120,7 @@
         {tripColorMap}
         {showHome}
         {showCountryHighlights}
+        {soloTripId}
         height="100%"
         on:mapclick={handleMapClick}
       />
@@ -1887,40 +1923,77 @@
     background: var(--color-accent-hover);
   }
 
-  /* Trip Filter List */
-  .trip-filter-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-height: 250px;
-    overflow-y: auto;
-    padding-right: 0.5rem;
-  }
+/* Trip Filter List */
+.trip-filter-list {
+display: flex;
+flex-direction: column;
+gap: 0.5rem;
+max-height: 250px;
+overflow-y: auto;
+padding-right: 0.5rem;
+}
 
-  .trip-filter-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.6rem 0.75rem;
-    border-radius: 10px;
-    background: transparent;
-    border: none;
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: left;
-    width: 100%;
-  }
+.trip-filter-wrapper {
+display: flex;
+align-items: center;
+gap: 0.5rem;
+}
 
-  .trip-filter-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--color-text-primary);
-  }
+.trip-filter-item {
+display: flex;
+align-items: center;
+gap: 1rem;
+padding: 0.6rem 0.75rem;
+border-radius: 10px;
+background: transparent;
+border: none;
+color: var(--color-text-secondary);
+cursor: pointer;
+transition: all 0.2s;
+text-align: left;
+width: 100%;
+}
 
-  .trip-filter-item.hidden-trip {
-    opacity: 0.4;
-    filter: grayscale(1);
-  }
+.trip-filter-item.solo {
+background: rgba(59, 130, 246, 0.2);
+border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.trip-filter-item:hover {
+background: rgba(255, 255, 255, 0.05);
+color: var(--color-text-primary);
+}
+
+.trip-filter-item.hidden-trip {
+opacity: 0.4;
+filter: grayscale(1);
+}
+
+.trip-solo-btn {
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 0.375rem;
+border-radius: 6px;
+background: transparent;
+border: 1px solid var(--color-border);
+color: var(--color-text-muted);
+cursor: pointer;
+transition: all 0.2s;
+flex-shrink: 0;
+}
+
+.trip-solo-btn:hover {
+background: rgba(59, 130, 246, 0.2);
+border-color: rgba(59, 130, 246, 0.4);
+color: #3b82f6;
+}
+
+.trip-solo-btn.active {
+background: rgba(59, 130, 246, 0.3);
+border-color: #3b82f6;
+color: #3b82f6;
+}
 
   .trip-dot {
     width: 8px;
