@@ -2555,6 +2555,7 @@ color: #3b82f6;
   .modal-body-scroll {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 1.5rem 2rem;
   }
 
@@ -3340,9 +3341,10 @@ color: #3b82f6;
     gap: 0.75rem;
     overflow-x: auto;
     padding: 0.5rem 0;
+    max-width: 100%;
     scrollbar-width: thin;
     scroll-snap-type: x proximity;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
   }
@@ -3401,5 +3403,23 @@ color: #3b82f6;
 
   .photo-remove-btn:hover {
     background: rgba(239, 68, 68, 0.9);
+  }
+
+  /* Mobile adjustments for add location modal */
+  @media (max-width: 768px) {
+    .premium-modal {
+      width: 100%;
+      height: 100vh;
+      max-height: 100vh;
+      border-radius: 0;
+    }
+
+    .modal-body-scroll {
+      padding: 1rem 1.25rem;
+    }
+
+    .photo-preview-scroll {
+      padding: 0.5rem 0;
+    }
   }
 </style>

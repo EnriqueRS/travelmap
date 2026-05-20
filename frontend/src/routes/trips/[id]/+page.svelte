@@ -2664,6 +2664,7 @@ title={$t("trip.noGps")}
   .modal-body-scroll {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 1.5rem 2rem;
   }
 
@@ -2732,8 +2733,9 @@ title={$t("trip.noGps")}
     gap: 0.75rem;
     overflow-x: auto;
     padding: 0.5rem 0.25rem;
+    max-width: 100%;
     scrollbar-width: thin;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity;
