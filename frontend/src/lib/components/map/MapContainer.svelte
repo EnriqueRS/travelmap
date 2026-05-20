@@ -113,41 +113,52 @@ goto(`/trips/${tripId}`)
         ? mapPhotos.find((p) => p.id === locPhotoId)
         : null
 
-      let headerHtml = ""
+      const locTrip = loc.tripId ? trips.find((tr) => tr.id === loc.tripId) : null
+      const categoryLabel = $t(`categories.${loc.category}`)
+
+      let popupContent = ""
       if (locPhoto) {
         const url =
           locPhoto.provider === "local"
             ? `${API_URL}${locPhoto.url}`
             : `${API_URL}/media/photos/${locPhoto.id}/image`
-        headerHtml = `<img src="${url}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />`
-      } else {
-        headerHtml = `<div style="
-          height: 100px; 
-          background: linear-gradient(135deg, var(--color-accent-primary), #8b5cf6); 
-          border-radius: 8px; 
-          margin-bottom: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-size: 24px;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        ">
-          ${getCategoryEmoji(loc.category)}
-        </div>`
-      }
 
-      const popupContent = `
-        <div style="text-align: center; width: 160px;">
-          ${headerHtml}
-          <h3 style="margin: 0; color: var(--color-bg-secondary); font-size: 16px; font-weight: 600;">${
-            loc.name
-          }</h3>
-          <p style="margin: 4px 0 0; color: var(--color-text-muted); font-size: 13px;">${$t(
-            `${loc.name}`,
-          )}</p>
-        </div>
-      `
+        const tripClickHandler = locTrip ? `onclick="window.dispatchEvent(new CustomEvent('navigate-to-trip', {detail: {tripId: '${locTrip.id}'}}))" style="cursor: pointer;"` : ""
+        popupContent = `
+          <div style="text-align: center; width: 220px; padding: 0.5rem;">
+            <img src="${url}" style="width: 100%; border-radius: 8px; margin-bottom: 12px; object-fit: cover; max-height: 150px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);" alt="${loc.name}" loading="lazy" />
+            <h3 style="margin: 0 0 6px; color: var(--color-text-primary); font-size: 15px; font-weight: 600;">${loc.name}</h3>
+            <span style="background: rgba(139, 92, 246, 0.2); color: #c4b5fd; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500;">${getCategoryEmoji(loc.category)} ${categoryLabel}</span>
+            ${locTrip ? `<div style="margin-top: 8px;">
+              <span ${tripClickHandler} style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${$t("trip.tripPrefix")}: ${locTrip.name}</span>
+            </div>` : ""}
+          </div>
+        `
+      } else {
+        popupContent = `
+          <div style="text-align: center; width: 200px; padding: 0.5rem;">
+            <div style="
+              height: 80px; 
+              background: linear-gradient(135deg, var(--color-accent-primary), #8b5cf6); 
+              border-radius: 8px; 
+              margin-bottom: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-size: 28px;
+              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            ">
+              ${getCategoryEmoji(loc.category)}
+            </div>
+            <h3 style="margin: 0 0 6px; color: var(--color-text-primary); font-size: 15px; font-weight: 600;">${loc.name}</h3>
+            <span style="background: rgba(139, 92, 246, 0.2); color: #c4b5fd; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500;">${categoryLabel}</span>
+            ${locTrip ? `<div style="margin-top: 8px;">
+              <span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${$t("trip.tripPrefix")}: ${locTrip.name}</span>
+            </div>` : ""}
+          </div>
+        `
+      }
 
       // Custom Icon logic: show photo if available, otherwise emoji pin
       let customIcon
@@ -184,7 +195,7 @@ goto(`/trips/${tripId}`)
 
       const marker = L.marker([loc.coordinates[0], loc.coordinates[1]], {
         icon: customIcon,
-      }).bindPopup(popupContent)
+      }).bindPopup(popupContent, { className: "dark-popup" })
 
       // Add tooltip with location name
       const tooltipOffset = locPhoto ? [0, -48] : [0, -40]
