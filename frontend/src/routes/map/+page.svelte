@@ -3340,13 +3340,29 @@ color: #3b82f6;
     gap: 0.75rem;
     overflow-x: auto;
     padding: 0.5rem 0;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .photo-preview-scroll::-webkit-scrollbar {
-    display: none;
+    height: 4px;
+  }
+
+  .photo-preview-scroll::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  .photo-preview-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+  }
+
+  .photo-preview-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
   }
 
   .photo-preview-item {

@@ -2732,11 +2732,29 @@ title={$t("trip.noGps")}
     gap: 0.75rem;
     overflow-x: auto;
     padding: 0.5rem 0.25rem;
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
   }
 
   .photo-scroller::-webkit-scrollbar {
-    display: none;
+    height: 4px;
+  }
+
+  .photo-scroller::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  .photo-scroller::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+  }
+
+  .photo-scroller::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
   }
 
   .photo-scroller-item {
@@ -2747,6 +2765,7 @@ title={$t("trip.noGps")}
     overflow: hidden;
     border: 2px solid transparent;
     cursor: pointer;
+    scroll-snap-align: start;
     transition: all 0.2s;
     position: relative;
   }
