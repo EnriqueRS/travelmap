@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@gitlawb/openclaude": "^0.6.0",
+    "opencode-models-discovery": "^0.8.0"
+  }
+}

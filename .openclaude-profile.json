@@ -1,0 +1,9 @@
+{
+  "profile": "openai",
+  "env": {
+    "OPENAI_BASE_URL": "https://integrate.api.nvidia.com/v1",
+    "OPENAI_MODEL": "nvidia/moonshotai/kimi-k2-thinking",
+    "OPENAI_API_KEY": "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"
+  },
+  "createdAt": "2026-04-22T11:30:58.258Z"
+}
