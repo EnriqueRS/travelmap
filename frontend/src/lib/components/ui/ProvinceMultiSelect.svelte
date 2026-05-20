@@ -41,10 +41,9 @@
     dispatch("change", { value: selectedProvinces })
   }
 
-  function getProvinceFlag(province: any) {
-    if (province.flag) return province.flag
+  function getProvinceColors(province: any): [string, string] {
     const region = SPAIN_REGIONS.find((r) => r.id === province.region)
-    return region?.flag
+    return region?.colors || ['#6366f1', '#a855f7']
   }
 
   onMount(() => {
@@ -66,7 +65,8 @@
       {@const province = SPAIN_PROVINCES.find((p) => p.name === provinceName)}
       <div class="province-tag" transition:fade={{ duration: 150 }}>
         {#if province}
-          <img src={getProvinceFlag(province)} alt="" class="tag-flag" />
+          {@const colors = getProvinceColors(province)}
+          <span class="tag-color-dot" style="background: linear-gradient(135deg, {colors[0]}, {colors[1]});" />
         {/if}
         <span>{provinceName}</span>
         <button
@@ -107,6 +107,7 @@
 
       <div class="options-container custom-scrollbar">
         {#each filteredProvinces as province}
+          {@const colors = getProvinceColors(province)}
           <button
             type="button"
             class="option-item"
@@ -114,7 +115,7 @@
             on:click={() => toggleProvince(province.name)}
           >
             <div class="option-content">
-              <img src={getProvinceFlag(province)} alt="" class="option-flag" />
+              <span class="option-color-dot" style="background: linear-gradient(135deg, {colors[0]}, {colors[1]});" />
               <span class="option-name">{province.name}</span>
             </div>
             {#if selectedProvinces.includes(province.name)}
@@ -166,11 +167,12 @@
     font-weight: 500;
   }
 
-  .tag-flag {
-    width: 16px;
-    height: 12px;
-    object-fit: cover;
-    border-radius: 2px;
+  .tag-color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
   }
 
   .remove-btn {
@@ -301,12 +303,12 @@
     gap: 0.75rem;
   }
 
-  .option-flag {
-    width: 24px;
-    height: 18px;
-    object-fit: cover;
-    border-radius: 3px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  .option-color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   }
 
   .option-name {
