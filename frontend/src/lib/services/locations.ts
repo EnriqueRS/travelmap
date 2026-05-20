@@ -14,6 +14,16 @@ const categoryToBackend: Record<string, string> = {
 };
 
 export const locationsService = {
+  async getLocation(id: string) {
+    const token = getToken();
+    if (!token) throw new Error("No authentication token found");
+
+    const response = await axios.get(`${API_URL}/locations/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+
   async createLocation(locationData: any) {
     const token = getToken();
     if (!token) throw new Error("No authentication token found");

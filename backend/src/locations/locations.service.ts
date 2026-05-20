@@ -128,4 +128,14 @@ export class LocationsService {
       .withGraphFetched('photos')
       .orderBy('visit_date', 'desc');
   }
+
+  async getLocationById(userId: number, id: string): Promise<Location> {
+    const location = await Location.query()
+      .findOne({ id, userId })
+      .withGraphFetched('photos');
+    if (!location) {
+      throw new Error('Location not found or unauthorized');
+    }
+    return location;
+  }
 }

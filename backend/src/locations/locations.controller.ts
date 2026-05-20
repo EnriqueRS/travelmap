@@ -27,6 +27,12 @@ export class LocationsController {
     return this.locationsService.getUserLocations(req.user.userId);
   }
 
+  @Get(':id')
+  async getLocation(@Request() req, @Param('id') id: string) {
+    this.logger.debug(`Fetching location ${id} for user ${req.user.userId}`);
+    return this.locationsService.getLocationById(req.user.userId, id);
+  }
+
   @Delete(':id')
   async deleteLocation(@Request() req, @Param('id') id: string) {
     this.logger.debug(`Deleting location ${id} for user ${req.user.userId}`);

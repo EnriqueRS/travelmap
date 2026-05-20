@@ -137,15 +137,14 @@ goto(`/trips/${tripId}`)
         </div>`
       }
 
+      const categoryLabel = loc.category ? (loc.category.charAt(0).toUpperCase() + loc.category.slice(1)) : ''
       const popupContent = `
         <div style="text-align: center; width: 160px;">
           ${headerHtml}
           <h3 style="margin: 0; color: var(--color-bg-secondary); font-size: 16px; font-weight: 600;">${
             loc.name
           }</h3>
-          <p style="margin: 4px 0 0; color: var(--color-text-muted); font-size: 13px;">${$t(
-            `${loc.name}`,
-          )}</p>
+          <p style="margin: 4px 0 0; color: var(--color-text-muted); font-size: 13px;">${categoryLabel}</p>
         </div>
       `
 
@@ -185,6 +184,13 @@ goto(`/trips/${tripId}`)
       const marker = L.marker([loc.coordinates[0], loc.coordinates[1]], {
         icon: customIcon,
       }).bindPopup(popupContent)
+
+      // Dispatch markerclick event when a location marker is clicked
+      marker.on('click', (e: any) => {
+        // Stop the map click event from propagating (prevents add-location mode triggering)
+        L.DomEvent.stopPropagation(e)
+        dispatch('markerclick', { locationId: loc.id })
+      })
 
       // Add tooltip with location name
       const tooltipOffset = locPhoto ? [0, -48] : [0, -40]
