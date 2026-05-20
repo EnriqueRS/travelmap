@@ -192,6 +192,9 @@
         country: modalLocationCountry, // Frontend field
         adminArea1: modalLocationAdminArea1,
         adminArea2: modalLocationAdminArea2,
+        images: selectedPhotoForLocation
+          ? [selectedPhotoForLocation.id]
+          : editingLocation.images || [],
       }
 
       // Update local store
