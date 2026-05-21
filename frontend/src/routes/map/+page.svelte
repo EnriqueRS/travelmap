@@ -2,7 +2,6 @@
   import { onMount, onDestroy } from "svelte"
   import { fade, scale, slide } from "svelte/transition"
   import MapContainer from "$lib/components/map/MapContainer.svelte"
-  import LocationDetailModal from "$lib/components/map/LocationDetailModal.svelte"
   import ProvinceExplorer from "$lib/components/ui/ProvinceExplorer.svelte"
   import ProvinceMultiSelect from "$lib/components/ui/ProvinceMultiSelect.svelte"
   import { SPAIN_PROVINCES } from "$lib/utils/provinces"
@@ -82,12 +81,7 @@
    let newLocationPhotoFiles: FileList | null = null
    let isSavingLocation = false
 
-  // Location Detail Modal State
-  let showLocationDetail = false
-  let selectedLocation: any = null
-  let selectedLocationPhotos: any[] = []
-  let locationDetailLoading = false
-  let locationDetailError = false
+  // Location Detail state (no longer uses modal - info shown in map popup)
 
    // Share Modal State
    let showShareModal = false
@@ -120,33 +114,6 @@
     if (addingMode && mapComponent) {
       toast.success($t("map.clickPrompt"))
     }
-  }
-
-  async function handleMarkerClick(e: CustomEvent<{ locationId: string }>) {
-    const locationId = e.detail.locationId
-    locationDetailLoading = true
-    locationDetailError = false
-    selectedLocation = null
-    selectedLocationPhotos = []
-    showLocationDetail = true
-
-    try {
-      const loc = await locationsService.getLocation(locationId)
-      selectedLocation = loc
-      selectedLocationPhotos = loc.photos || []
-    } catch (err) {
-      console.error("[Map] Error loading location:", err)
-      locationDetailError = true
-    } finally {
-      locationDetailLoading = false
-    }
-  }
-
-  function closeLocationDetail() {
-    showLocationDetail = false
-    selectedLocation = null
-    selectedLocationPhotos = []
-    locationDetailError = false
   }
 
   async function handleMapClick(e: CustomEvent<{ lat: number; lng: number }>) {
@@ -1158,7 +1125,6 @@ title={soloTripId === trip.id ? $t("map.showAll") : $t("map.showOnlyThis")}
         {soloTripId}
         height="100%"
         on:mapclick={handleMapClick}
-        on:markerclick={handleMarkerClick}
       />
 
       <!-- Floating Map Controls -->
@@ -1435,16 +1401,6 @@ title={soloTripId === trip.id ? $t("map.showAll") : $t("map.showOnlyThis")}
       </footer>
     </div>
   </div>
-{/if}
-
-{#if showLocationDetail}
-  <LocationDetailModal
-    location={selectedLocation}
-    photos={selectedLocationPhotos}
-    loading={locationDetailLoading}
-    error={locationDetailError}
-    on:close={closeLocationDetail}
-  />
 {/if}
 
 {#if showProgressModal}

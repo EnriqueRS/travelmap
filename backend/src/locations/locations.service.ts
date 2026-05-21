@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Location } from './entities/location.entity';
 import { Country } from '../geo/entities/country.entity';
 import { Photo } from '../media/entities/photo.entity';
@@ -131,10 +131,10 @@ export class LocationsService {
 
   async getLocationById(userId: number, id: string): Promise<Location> {
     const location = await Location.query()
-      .findOne({ id, userId })
+      .findOne({ id, user_id: userId })
       .withGraphFetched('photos');
     if (!location) {
-      throw new Error('Location not found or unauthorized');
+      throw new NotFoundException('Location not found or unauthorized');
     }
     return location;
   }

@@ -1,7 +1,7 @@
 <script lang="ts">
-import { onMount, onDestroy, createEventDispatcher } from "svelte"
-import { browser } from "$app/environment"
-import { goto } from "$app/navigation"
+  import { onMount, onDestroy, createEventDispatcher } from "svelte"
+  import { browser } from "$app/environment"
+  import { goto } from "$app/navigation"
   import { toast, languageStore } from "$lib/stores/ui"
   import { t } from "$lib/stores/i18n"
   import { getStatusColor, userProfile } from "$lib/stores/data"
@@ -46,20 +46,20 @@ import { goto } from "$app/navigation"
   let currentZoom = 2
   const ZOOM_THRESHOLD_PROVINCES = 4
 
-const dispatch = createEventDispatcher()
-let tripLinesGroup: any
-let photoClusterGroup: any
-let countryHighlightsGroup: any
-let geoJsonData: any = null
-let provincesGeoJSONData: any = null
+  const dispatch = createEventDispatcher()
+  let tripLinesGroup: any
+  let photoClusterGroup: any
+  let countryHighlightsGroup: any
+  let geoJsonData: any = null
+  let provincesGeoJSONData: any = null
 
-// Trip navigation handler
-const tripNavigateHandler = (e: any) => {
-const tripId = e.detail?.tripId
-if (tripId) {
-goto(`/trips/${tripId}`)
-}
-}
+  // Trip navigation handler
+  const tripNavigateHandler = (e: any) => {
+    const tripId = e.detail?.tripId
+    if (tripId) {
+      goto(`/trips/${tripId}`)
+    }
+  }
 
   // 1. Reactive update for DATA changes (Should fit bounds)
   $: if (
@@ -105,7 +105,7 @@ goto(`/trips/${tripId}`)
 
     const bounds = L.latLngBounds()
 
-    // Add new markers
+    // Add new markers for LOCATIONS (teardrop pin style)
     locations.forEach((loc) => {
       const locPhotoId =
         loc.images && loc.images.length > 0 ? loc.images[0] : null
@@ -113,59 +113,71 @@ goto(`/trips/${tripId}`)
         ? mapPhotos.find((p) => p.id === locPhotoId)
         : null
 
+      // Build popup content with full location info (no modal)
       let headerHtml = ""
+      let photoUrl = ""
       if (locPhoto) {
-        const url =
+        photoUrl =
           locPhoto.provider === "local"
             ? `${API_URL}${locPhoto.url}`
             : `${API_URL}/media/photos/${locPhoto.id}/image`
-        headerHtml = `<img src="${url}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />`
+        headerHtml = `<img src="${photoUrl}" style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px 8px 0 0;" />`
       } else {
         headerHtml = `<div style="
-          height: 100px; 
+          height: 80px; 
           background: linear-gradient(135deg, var(--color-accent-primary), #8b5cf6); 
-          border-radius: 8px; 
-          margin-bottom: 8px;
+          border-radius: 8px 8px 0 0;
           display: flex;
           align-items: center;
           justify-content: center;
           color: white;
-          font-size: 24px;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          font-size: 32px;
         ">
           ${getCategoryEmoji(loc.category)}
         </div>`
       }
 
-      const categoryLabel = loc.category ? (loc.category.charAt(0).toUpperCase() + loc.category.slice(1)) : ''
+      const categoryLabel = loc.category
+        ? loc.category.charAt(0).toUpperCase() + loc.category.slice(1)
+        : ""
+      const trip = loc.tripId ? trips.find((t) => t.id === loc.tripId) : null
+      const tripBadge = trip
+        ? `<div style="margin-top: 6px;"><span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${trip.name}</span></div>`
+        : ""
+      const ratingHtml = loc.rating
+        ? `<div style="margin-top: 4px; color: #fbbf24; font-size: 13px;">${"&#9733;".repeat(
+            loc.rating,
+          )}${"&#9734;".repeat(5 - loc.rating)}</div>`
+        : ""
+
       const popupContent = `
-        <div style="text-align: center; width: 160px;">
+        <div class="location-expanded-popup">
           ${headerHtml}
-          <h3 style="margin: 0; color: var(--color-bg-secondary); font-size: 16px; font-weight: 600;">${
-            loc.name
-          }</h3>
-          <p style="margin: 4px 0 0; color: var(--color-text-muted); font-size: 13px;">${categoryLabel}</p>
+          <div style="padding: 10px 12px 12px;">
+            <h3 style="margin: 0; color: var(--color-text-primary); font-size: 15px; font-weight: 700;">${loc.name}</h3>
+            <p style="margin: 3px 0 0; color: var(--color-text-muted); font-size: 12px;">${categoryLabel}</p>
+            ${tripBadge}
+          </div>
         </div>
       `
 
-      // Custom Icon logic: show photo if available, otherwise emoji pin
+      // Custom Icon logic: location markers always use teardrop pin
       let customIcon
       if (locPhoto) {
-        const url =
-          locPhoto.provider === "local"
-            ? `${API_URL}${locPhoto.url}`
-            : `${API_URL}/media/photos/${locPhoto.id}/image`
-        const borderColor = tripColorMap[loc.tripId] || "var(--color-accent-primary)"
+        const borderColor = loc.tripId
+          ? tripColorMap[loc.tripId] || "var(--color-accent-primary)"
+          : "var(--color-accent-primary)"
         customIcon = L.divIcon({
-          className: "custom-photo-marker location-photo-marker",
+          className: "custom-map-marker location-pin-marker",
           html: `
-            <div class="marker-photo-wrapper" style="border-color: ${borderColor}">
-              <img src="${url}" alt="${loc.name}" class="marker-photo-img" />
+            <div class="marker-location-pin" style="border-color: ${borderColor}">
+              <img src="${photoUrl}" alt="${loc.name}" class="marker-location-pin-img" />
+              <div class="marker-location-pin-dot"></div>
             </div>
           `,
-          iconSize: [48, 48],
-          iconAnchor: [24, 48],
-          popupAnchor: [0, -48],
+          iconSize: [44, 56],
+          iconAnchor: [22, 56],
+          popupAnchor: [0, -56],
         })
       } else {
         customIcon = L.divIcon({
@@ -183,17 +195,19 @@ goto(`/trips/${tripId}`)
 
       const marker = L.marker([loc.coordinates[0], loc.coordinates[1]], {
         icon: customIcon,
-      }).bindPopup(popupContent)
+      }).bindPopup(popupContent, {
+        className: "dark-popup location-detail-popup",
+        maxWidth: 240,
+        minWidth: 200,
+      })
 
-      // Dispatch markerclick event when a location marker is clicked
-      marker.on('click', (e: any) => {
-        // Stop the map click event from propagating (prevents add-location mode triggering)
+      // Stop propagation to prevent add-location mode triggering
+      marker.on("click", (e: any) => {
         L.DomEvent.stopPropagation(e)
-        dispatch('markerclick', { locationId: loc.id })
       })
 
       // Add tooltip with location name
-      const tooltipOffset = locPhoto ? [0, -48] : [0, -40]
+      const tooltipOffset = locPhoto ? [0, -56] : [0, -40]
       marker.bindTooltip(loc.name, {
         permanent: false,
         direction: "top",
@@ -205,7 +219,7 @@ goto(`/trips/${tripId}`)
       bounds.extend([loc.coordinates[0], loc.coordinates[1]])
     })
 
-    // Add Photos Markers (solo fotos sin locationId, las otras ya se muestran en el marcador del lugar)
+    // Add Photos Markers (standalone photos without locationId - use SQUARE style to differentiate from location pins)
     mapPhotos.forEach((photo) => {
       // Filtrar fotos vinculadas a un lugar - ya se muestran en el popup del lugar
       if (photo.locationId) {
@@ -225,29 +239,31 @@ goto(`/trips/${tripId}`)
           ? tripColorMap[photoTrip.id] || "var(--color-accent-primary)"
           : "var(--color-warning)"
         const photoIcon = L.divIcon({
-          className: "custom-photo-marker",
+          className: "custom-photo-marker standalone-photo-marker",
           html: `
-            <div class="marker-photo-wrapper" style="border-color: ${borderColor}">
+            <div class="marker-photo-square" style="border-color: ${borderColor}">
               <img src="${url}" alt="${$t(
             "common.mapPhotoAlt",
-          )}" class="marker-photo-img" />
+          )}" class="marker-photo-square-img" />
             </div>
           `,
-          iconSize: [48, 48],
-          iconAnchor: [24, 48],
-          popupAnchor: [0, -48],
+          iconSize: [46, 46],
+          iconAnchor: [23, 46],
+          popupAnchor: [0, -46],
         })
 
-const tripClickHandler = photoTrip ? `onclick="window.dispatchEvent(new CustomEvent('navigate-to-trip', {detail: {tripId: '${photoTrip.id}'}}))" style="cursor: pointer;"` : ''
-const popupContent = `
+        const tripClickHandler = photoTrip
+          ? `onclick="window.dispatchEvent(new CustomEvent('navigate-to-trip', {detail: {tripId: '${photoTrip.id}'}}))" style="cursor: pointer;"`
+          : ""
+        const popupContent = `
     <div style="text-align: center; width: 220px; padding: 0.5rem;">
     <img src="${url}" style="width: 100%; border-radius: 8px; margin-bottom: 12px; object-fit: cover; max-height: 150px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);" />
     ${
-    photoTrip
-    ? `<div style="margin-bottom: 8px;">
+      photoTrip
+        ? `<div style="margin-bottom: 8px;">
     <span ${tripClickHandler} style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${$t(
-    "trip.tripPrefix",
-    )}: ${photoTrip.name}</span>
+            "trip.tripPrefix",
+          )}: ${photoTrip.name}</span>
                      ${
                        photoTrip.countries && photoTrip.countries.length > 0
                          ? `<div style="margin-top: 8px; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">${photoTrip.countries
@@ -261,8 +277,8 @@ const popupContent = `
                          : ""
                      }
                    </div>`
-                : ""
-            }
+        : ""
+    }
             <p style="margin: 0; font-size: 12px; color: var(--color-text-secondary);">${
               photo.metadata?.exif?.dateTimeOriginal
                 ? formatDate(photo.metadata.exif.dateTimeOriginal)
@@ -306,46 +322,53 @@ const popupContent = `
           geoJsonData = await res.json()
         }
 
-// Gather isos
-const visitedIsos = new Set<string>()
-const plannedIsos = new Set<string>()
-trips.forEach((t) => {
-if (t.countries && Array.isArray(t.countries)) {
-t.countries.forEach((alpha2: string) => {
-if (alpha2) {
-const alpha3 = countriesInfo.toAlpha3(alpha2)
-if (alpha3) {
-if (t.status === "Completado" || t.status === "En curso") {
-visitedIsos.add(alpha3)
-} else if (t.status === "Planificado") {
-plannedIsos.add(alpha3)
-}
-}
-}
-})
-}
-})
+        // Gather isos
+        const visitedIsos = new Set<string>()
+        const plannedIsos = new Set<string>()
+        trips.forEach((t) => {
+          if (t.countries && Array.isArray(t.countries)) {
+            t.countries.forEach((alpha2: string) => {
+              if (alpha2) {
+                const alpha3 = countriesInfo.toAlpha3(alpha2)
+                if (alpha3) {
+                  if (t.status === "Completado" || t.status === "En curso") {
+                    visitedIsos.add(alpha3)
+                  } else if (t.status === "Planificado") {
+                    plannedIsos.add(alpha3)
+                  }
+                }
+              }
+            })
+          }
+        })
 
-// Also consider photos with showOnMap and tripId
-mapPhotos.forEach((photo) => {
-if (photo.showOnMap && photo.tripId) {
-const photoTrip = trips.find((t) => t.id === photo.tripId)
-if (photoTrip && photoTrip.countries && Array.isArray(photoTrip.countries)) {
-photoTrip.countries.forEach((alpha2: string) => {
-if (alpha2) {
-const alpha3 = countriesInfo.toAlpha3(alpha2)
-if (alpha3) {
-if (photoTrip.status === "Completado" || photoTrip.status === "En curso") {
-visitedIsos.add(alpha3)
-} else if (photoTrip.status === "Planificado") {
-plannedIsos.add(alpha3)
-}
-}
-}
-})
-}
-}
-})
+        // Also consider photos with showOnMap and tripId
+        mapPhotos.forEach((photo) => {
+          if (photo.showOnMap && photo.tripId) {
+            const photoTrip = trips.find((t) => t.id === photo.tripId)
+            if (
+              photoTrip &&
+              photoTrip.countries &&
+              Array.isArray(photoTrip.countries)
+            ) {
+              photoTrip.countries.forEach((alpha2: string) => {
+                if (alpha2) {
+                  const alpha3 = countriesInfo.toAlpha3(alpha2)
+                  if (alpha3) {
+                    if (
+                      photoTrip.status === "Completado" ||
+                      photoTrip.status === "En curso"
+                    ) {
+                      visitedIsos.add(alpha3)
+                    } else if (photoTrip.status === "Planificado") {
+                      plannedIsos.add(alpha3)
+                    }
+                  }
+                }
+              })
+            }
+          }
+        })
         const geoLayer = L.geoJSON(geoJsonData, {
           style: function (feature: any) {
             const iso = feature.id
@@ -430,33 +453,40 @@ plannedIsos.add(alpha3)
               }
             })
 
-trips.forEach((t) => {
-if (t.provinces && t.provinces.length > 0) {
-t.provinces.forEach((prov: string) => {
-if (t.status === "Completado" || t.status === "En curso") {
-visitedProvinces.add(normalizeString(prov))
-} else if (t.status === "Planificado") {
-plannedProvinces.add(normalizeString(prov))
-}
-})
-}
-})
+            trips.forEach((t) => {
+              if (t.provinces && t.provinces.length > 0) {
+                t.provinces.forEach((prov: string) => {
+                  if (t.status === "Completado" || t.status === "En curso") {
+                    visitedProvinces.add(normalizeString(prov))
+                  } else if (t.status === "Planificado") {
+                    plannedProvinces.add(normalizeString(prov))
+                  }
+                })
+              }
+            })
 
-// Also consider photos with showOnMap and tripId for provinces
-mapPhotos.forEach((photo) => {
-if (photo.showOnMap && photo.tripId) {
-const photoTrip = trips.find((t) => t.id === photo.tripId)
-if (photoTrip && photoTrip.provinces && photoTrip.provinces.length > 0) {
-photoTrip.provinces.forEach((prov: string) => {
-if (photoTrip.status === "Completado" || photoTrip.status === "En curso") {
-visitedProvinces.add(normalizeString(prov))
-} else if (photoTrip.status === "Planificado") {
-plannedProvinces.add(normalizeString(prov))
-}
-})
-}
-}
-})
+            // Also consider photos with showOnMap and tripId for provinces
+            mapPhotos.forEach((photo) => {
+              if (photo.showOnMap && photo.tripId) {
+                const photoTrip = trips.find((t) => t.id === photo.tripId)
+                if (
+                  photoTrip &&
+                  photoTrip.provinces &&
+                  photoTrip.provinces.length > 0
+                ) {
+                  photoTrip.provinces.forEach((prov: string) => {
+                    if (
+                      photoTrip.status === "Completado" ||
+                      photoTrip.status === "En curso"
+                    ) {
+                      visitedProvinces.add(normalizeString(prov))
+                    } else if (photoTrip.status === "Planificado") {
+                      plannedProvinces.add(normalizeString(prov))
+                    }
+                  })
+                }
+              }
+            })
 
             // Ensure visited takes precedence
             visitedProvinces.forEach((p) => plannedProvinces.delete(p))
@@ -718,7 +748,6 @@ plannedProvinces.add(normalizeString(prov))
           maxClusterRadius: 60,
           iconCreateFunction: function (cluster: any) {
             const childCount = cluster.getChildCount()
-            // We use the first photo as the cluster icon background if possible, or just a generic style
             const markers = cluster.getAllChildMarkers()
             // Try to extract image src from custom icon html
             let bgImage = ""
@@ -727,6 +756,22 @@ plannedProvinces.add(normalizeString(prov))
               const match = html.match(/src="([^"]+)"/)
               if (match && match[1]) {
                 bgImage = match[1]
+              }
+            }
+
+            // Check if all photos in cluster belong to the same trip
+            let clusterBorderColor = "white"
+            if (markers.length > 0) {
+              const borderColors = markers.map((m: any) => {
+                const html = m.options.icon.options.html || ""
+                const colorMatch = html.match(/border-color:\s*([^"]+)/)
+                return colorMatch ? colorMatch[1] : null
+              })
+              const uniqueColors = [
+                ...new Set(borderColors.filter((c: string | null) => c)),
+              ]
+              if (uniqueColors.length === 1) {
+                clusterBorderColor = uniqueColors[0] as string
               }
             }
 
@@ -740,7 +785,7 @@ plannedProvinces.add(normalizeString(prov))
                   background-image: url('${bgImage || ""}');
                   background-size: cover;
                   background-position: center;
-                  border: 3px solid white;
+                  border: 3px solid ${clusterBorderColor};
                   box-shadow: 0 4px 8px rgba(0,0,0,0.4);
                   display: flex;
                   align-items: center;
@@ -777,17 +822,17 @@ plannedProvinces.add(normalizeString(prov))
         console.error("Leaflet MarkerClusterGroup not found!")
       }
 
-// Initial marker update
-updateMarkers()
-} catch (e) {
-console.error("Error initializing map:", e)
-}
-})
+      // Initial marker update
+      updateMarkers()
+    } catch (e) {
+      console.error("Error initializing map:", e)
+    }
+  })
 
-// Listen for navigate-to-trip events from map popups
-if (browser) {
-window.addEventListener('navigate-to-trip', tripNavigateHandler)
-}
+  // Listen for navigate-to-trip events from map popups
+  if (browser) {
+    window.addEventListener("navigate-to-trip", tripNavigateHandler)
+  }
 
   async function handleSearch() {
     if (!searchQuery.trim() || !map) return
@@ -808,14 +853,14 @@ window.addEventListener('navigate-to-trip', tripNavigateHandler)
     }
   }
 
-onDestroy(() => {
-if (map) {
-map.remove()
-}
-if (browser) {
-window.removeEventListener('navigate-to-trip', tripNavigateHandler)
-}
-})
+  onDestroy(() => {
+    if (map) {
+      map.remove()
+    }
+    if (browser) {
+      window.removeEventListener("navigate-to-trip", tripNavigateHandler)
+    }
+  })
 </script>
 
 <div class="map-outer">
@@ -932,6 +977,7 @@ window.removeEventListener('navigate-to-trip', tripNavigateHandler)
     border: none;
   }
 
+  /* LOCATION markers - teardrop pin style */
   :global(.marker-pin-custom) {
     width: 36px;
     height: 36px;
@@ -952,6 +998,42 @@ window.removeEventListener('navigate-to-trip', tripNavigateHandler)
     line-height: 1;
   }
 
+  /* LOCATION with photo - teardrop pin with image */
+  :global(.marker-location-pin) {
+    width: 44px;
+    height: 44px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 3px solid var(--color-accent-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    background: var(--color-bg-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  :global(.marker-location-pin-img) {
+    width: 150%;
+    height: 150%;
+    object-fit: cover;
+    transform: rotate(45deg);
+  }
+
+  :global(.marker-location-pin-dot) {
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  /* PHOTO markers - rounded square style (distinct from locations) */
   :global(.custom-photo-marker) {
     display: flex;
     align-items: center;
@@ -960,25 +1042,25 @@ window.removeEventListener('navigate-to-trip', tripNavigateHandler)
     border: none;
   }
 
-  :global(.marker-photo-wrapper) {
-    width: 48px;
-    height: 48px;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg);
-    border: 3px solid white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-    overflow: hidden;
-    background: var(--color-bg-main);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  :global(.standalone-photo-marker) {
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
   }
 
-  :global(.marker-photo-img) {
-    width: 150%;
-    height: 150%;
+  :global(.marker-photo-square) {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    border: 3px solid var(--color-warning);
+    overflow: hidden;
+    background: var(--color-bg-main);
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  }
+
+  :global(.marker-photo-square-img) {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    transform: rotate(45deg);
   }
 
   :global(.marker-home) {
@@ -1040,15 +1122,32 @@ window.removeEventListener('navigate-to-trip', tripNavigateHandler)
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
   }
   :global(.leaflet-popup-content) {
-    margin: 4px;
+    margin: 0;
   }
   :global(.leaflet-popup-tip) {
     background: var(--color-bg-secondary) !important;
   }
   :global(.leaflet-popup-close-button) {
     color: var(--color-text-secondary) !important;
+    z-index: 10;
   }
   :global(.leaflet-popup-close-button:hover) {
+    color: var(--color-text-primary) !important;
+  }
+
+  /* Location detail popup - expanded info */
+  :global(.location-detail-popup .leaflet-popup-content) {
+    margin: 0;
+    width: auto !important;
+  }
+
+  :global(.location-expanded-popup) {
+    width: 220px;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+
+  :global(.location-expanded-popup h3) {
     color: var(--color-text-primary) !important;
   }
 
