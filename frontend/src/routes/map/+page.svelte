@@ -81,6 +81,8 @@
    let newLocationPhotoFiles: FileList | null = null
    let isSavingLocation = false
 
+  // Location Detail state (no longer uses modal - info shown in map popup)
+
    // Share Modal State
    let showShareModal = false
    let shareImageUrl = ""
