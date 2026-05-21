@@ -2802,16 +2802,19 @@ color: #3b82f6;
     border: 1px solid var(--color-bg-secondary);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     display: flex;
+    overflow: hidden;
   }
 
   /* Sidebar */
   .progress-sidebar {
     width: 280px;
+    flex-shrink: 0;
     background: var(--color-bg-tertiary);
     border-right: 1px solid var(--color-bg-secondary);
     display: flex;
     flex-direction: column;
     padding: 2rem 1.5rem;
+    overflow-y: auto;
   }
 
   .progress-header {
@@ -2952,11 +2955,13 @@ color: #3b82f6;
   /* Explorer Main Area */
   .progress-main {
     flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     padding: 2rem 2.5rem;
     position: relative;
     background: var(--color-bg-main);
+    overflow: hidden;
   }
 
   .modal-close-btn {
@@ -3024,9 +3029,8 @@ color: #3b82f6;
 
   .continent-toggles {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
-    overflow-x: auto;
-    padding-bottom: 4px; /* Scrollbar space */
   }
 
   .toggle-btn {
