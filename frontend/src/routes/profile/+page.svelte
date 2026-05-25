@@ -33,6 +33,11 @@
   let isSavingImmich = false
   let immichMessage = { type: "", text: "" }
 
+  // Instagram state
+  let instagramStatus = { isConnected: false, userId: "" }
+  let isConnectingInstagram = false
+  let instagramMessage = { type: "", text: "" }
+
   onMount(async () => {
     try {
       const status = await integrationsService.checkStatus()
@@ -41,8 +46,38 @@
         immichStatus.url = status.url
         immichConfig.url = status.url // Prellenar url
       }
+      if (status.instagram) {
+        instagramStatus.isConnected = true
+        instagramStatus.userId = status.instagramUserId || ""
+      }
     } catch (e) {
-      console.error("No se pudo comprobar el estado de immich", e)
+      console.error("No se pudo comprobar el estado de integraciones", e)
+    }
+
+    // Handle Instagram OAuth callback
+    const urlParams = new URLSearchParams(window.location.search)
+    const instagramCode = urlParams.get("code")
+    const instagramParam = urlParams.get("instagram")
+    if (instagramCode && instagramParam === "callback") {
+      isConnectingInstagram = true
+      try {
+        const res = await integrationsService.connectInstagram(instagramCode)
+        instagramStatus.isConnected = true
+        instagramStatus.userId = res.providerUserId || ""
+        instagramMessage = {
+          type: "success",
+          text: $t("profile.instagramConnected"),
+        }
+      } catch (e: any) {
+        instagramMessage = {
+          type: "error",
+          text: e.response?.data?.message || $t("profile.instagramError"),
+        }
+      } finally {
+        isConnectingInstagram = false
+        // Clean URL params
+        window.history.replaceState({}, "", window.location.pathname)
+      }
     }
   })
 
@@ -67,6 +102,39 @@
       }
     } finally {
       isSavingImmich = false
+    }
+  }
+
+  async function handleInstagramConnect() {
+    isConnectingInstagram = true
+    instagramMessage = { type: "", text: "" }
+    try {
+      const authUrl = await integrationsService.getInstagramAuthUrl()
+      window.location.href = authUrl
+    } catch (e: any) {
+      instagramMessage = {
+        type: "error",
+        text: e.response?.data?.message || $t("profile.instagramNotConfigured"),
+      }
+      isConnectingInstagram = false
+    }
+  }
+
+  async function handleInstagramDisconnect() {
+    instagramMessage = { type: "", text: "" }
+    try {
+      await integrationsService.disconnectInstagram()
+      instagramStatus.isConnected = false
+      instagramStatus.userId = ""
+      instagramMessage = {
+        type: "success",
+        text: $t("profile.instagramDisconnected"),
+      }
+    } catch (e: any) {
+      instagramMessage = {
+        type: "error",
+        text: e.response?.data?.message || $t("profile.instagramDisconnectError"),
+      }
     }
   }
 
@@ -444,7 +512,7 @@
               </div>
               <h2>{$t("profile.integrationTitle")}</h2>
             </div>
-            {#if immichStatus.isConnected}
+            {#if immichStatus.isConnected || instagramStatus.isConnected}
               <div class="status-badge-chip connected">
                 <RefreshCw size={12} />
                 <span>{$t("profile.connected").toUpperCase()}</span>
@@ -516,6 +584,78 @@
               </div>
             {/if}
           </form>
+
+          <!-- Instagram Integration -->
+          <div class="integration-divider"></div>
+
+          <div class="integration-item">
+            <div class="integration-logo">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="1.5"/>
+                <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+                <circle cx="17.5" cy="6.5" r="1" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="integration-text">
+              <h4>{$t("profile.instagramTitle")}</h4>
+              <p>{$t("profile.instagramDesc")}</p>
+            </div>
+            {#if instagramStatus.isConnected}
+              <div class="status-badge-chip connected" style="margin-left: auto;">
+                <RefreshCw size={12} />
+                <span>{$t("profile.connected").toUpperCase()}</span>
+              </div>
+            {/if}
+          </div>
+
+          <div class="integration-form">
+            {#if instagramStatus.isConnected}
+              <div class="form-row">
+                <div class="form-group-modern">
+                  <label>{$t("profile.instagramUserId")}</label>
+                  <input
+                    type="text"
+                    value={instagramStatus.userId}
+                    disabled
+                  />
+                </div>
+              </div>
+              <div class="form-footer">
+                <p class="disclaimer-text">
+                  {$t("profile.instagramConnected")}
+                </p>
+                <button
+                  type="button"
+                  class="btn btn-danger"
+                  on:click={handleInstagramDisconnect}
+                >
+                  {$t("profile.instagramDisconnect")}
+                </button>
+              </div>
+            {:else}
+              <div class="form-footer">
+                <p class="disclaimer-text">
+                  {$t("profile.instagramDesc")}
+                </p>
+                <button
+                  type="button"
+                  class="btn btn-white"
+                  disabled={isConnectingInstagram}
+                  on:click={handleInstagramConnect}
+                >
+                  {isConnectingInstagram
+                    ? $t("profile.instagramConnecting")
+                    : $t("profile.instagramConnect")}
+                </button>
+              </div>
+            {/if}
+
+            {#if instagramMessage.text}
+              <div class="message {instagramMessage.type}">
+                {instagramMessage.text}
+              </div>
+            {/if}
+          </div>
         </div>
       </div>
     </div>
@@ -1404,6 +1544,32 @@
   .btn-white:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+  }
+
+  .btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+
+  .integration-divider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 1.5rem 0;
+  }
+
+  .integration-logo svg {
+    color: var(--color-text-secondary);
   }
 
   @media (max-width: 768px) {

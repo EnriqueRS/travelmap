@@ -223,6 +223,19 @@ export class MediaService {
         this.logger.error(`Error proxying Immich image: ${error.message}`, error.stack);
         throw new NotFoundException('Error obtaining image from Immich');
       }
+    } else if (photo.provider === 'instagram') {
+      try {
+        const response = await axios.get(photo.url, {
+          responseType: 'stream',
+          timeout: 15000,
+        });
+
+        res.set('Content-Type', response.headers['content-type']);
+        return response.data.pipe(res);
+      } catch (error) {
+        this.logger.error(`Error proxying Instagram image: ${error.message}`, error.stack);
+        throw new NotFoundException('Error obtaining image from Instagram');
+      }
     } else {
       throw new NotFoundException('Proveedor de fotos no soportado');
     }

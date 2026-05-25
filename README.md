@@ -186,6 +186,11 @@ PORT=3001
 
 # CORS
 FRONTEND_URL=http://localhost:5173
+
+# Instagram Integration (optional)
+INSTAGRAM_CLIENT_ID=your-instagram-app-id
+INSTAGRAM_CLIENT_SECRET=your-instagram-app-secret
+INSTAGRAM_REDIRECT_URI=http://localhost:5173/profile?instagram=callback
 ```
 
 #### **Ejecutar Migraciones y Seeds**
@@ -451,6 +456,7 @@ npm run format      # Prettier format
 ### Recent Updates / Actualizaciones Recientes
 
 **🇬🇧 English:**
+- **Instagram Integration**: Added Instagram OAuth2 integration allowing users to connect their Instagram account and import photos into their trips. Includes OAuth flow with long-lived token exchange, automatic token refresh, media fetching from Instagram Graph API, and a disconnect option. Configure with `INSTAGRAM_CLIENT_ID`, `INSTAGRAM_CLIENT_SECRET`, and `INSTAGRAM_REDIRECT_URI` environment variables.
 - **Conditional Home Highlight**: The home province highlight and the home marker on the map can now be toggled on and off reactively using the `showHome` setting. This allows users to hide their residence for a cleaner view of their travels or for privacy during screen sharing.
 - **Province-Level Tracking**: Automatically detects the user's home country and province using GPS coordinates and reverse geocoding. Visited provinces are highlighted on the map (initially for Spain), and sub-national statistics are displayed on the user profile.
 - **Mobile Map Page Redesign**: Complete mobile-first redesign of the `/map` page. On screens ≤768px, the desktop sidebar is hidden and replaced with an inline stats panel (trip counts, progress bar, filter chips), a search bar, and a full-screen map. A bottom navigation bar (Map, Trips, Profile) provides easy thumb navigation. The desktop top navbar is simplified to show only the brand and logout button on mobile.
@@ -492,6 +498,7 @@ npm run format      # Prettier format
 - **Province Tracking & Explorer**: Detailed tracking for visited provinces within your home country (starting with Spain). Includes a premium **Province Explorer** with flags and progress bars. 🚩
 
 **🇪🇸 Español:**
+- **Integración con Instagram**: Nueva integración OAuth2 con Instagram que permite a los usuarios conectar su cuenta de Instagram e importar fotos a sus viajes. Incluye flujo OAuth con intercambio de tokens de larga duración, renovación automática de tokens, obtención de medios desde la API de Instagram Graph, y opción de desconexión. Configura con las variables de entorno `INSTAGRAM_CLIENT_ID`, `INSTAGRAM_CLIENT_SECRET` e `INSTAGRAM_REDIRECT_URI`.
 - **Resaltado de Residencia Condicional**: El resaltado de la provincia de residencia y el marcador de hogar en el mapa ahora se pueden activar o desactivar de forma reactiva mediante el ajuste `showHome`. Esto permite a los usuarios ocultar su lugar de residencia para una vista más limpia de sus viajes o por privacidad al compartir pantalla.
 - **Seguimiento a Nivel de Provincia**: Detección automática del país y provincia de residencia del usuario mediante coordenadas GPS y geocodificación inversa. Las provincias visitadas se iluminan en el mapa (inicialmente para España) y se muestran estadísticas sub-nacionales en el perfil de usuario.
 - **Seguimiento y Explorador de Provincias**: Seguimiento detallado de las provincias visitadas dentro de tu país de origen (empezando por España). Incluye un **Explorador de Provincias** premium con banderas y barras de progreso. 🚩
