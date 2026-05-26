@@ -4,9 +4,12 @@ import { User } from './user.entity';
 export interface UserIntegrationProperties {
   id: string; // UUID
   userId: number;
-  provider: 'immich';
+  provider: 'immich' | 'instagram';
   url?: string;
   accessToken?: string;
+  refreshToken?: string;
+  providerUserId?: string;
+  tokenExpiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -14,9 +17,12 @@ export interface UserIntegrationProperties {
 export class UserIntegration extends Model implements UserIntegrationProperties {
   id!: string; // UUID
   userId!: number;
-  provider!: 'immich';
+  provider!: 'immich' | 'instagram';
   url?: string;
   accessToken?: string;
+  refreshToken?: string;
+  providerUserId?: string;
+  tokenExpiresAt?: Date;
   createdAt!: Date;
   updatedAt!: Date;
 
@@ -39,9 +45,12 @@ export class UserIntegration extends Model implements UserIntegrationProperties 
       properties: {
         id: { type: 'string', format: 'uuid' },
         userId: { type: 'integer' },
-        provider: { type: 'string', enum: ['immich'] },
-        url: { type: 'string', maxLength: 1000 },
-        accessToken: { type: 'string', maxLength: 1000 },
+        provider: { type: 'string', enum: ['immich', 'instagram'] },
+        url: { anyOf: [{ type: 'string', maxLength: 1000 }, { type: 'null' }] },
+        accessToken: { anyOf: [{ type: 'string', maxLength: 1000 }, { type: 'null' }] },
+        refreshToken: { anyOf: [{ type: 'string', maxLength: 1000 }, { type: 'null' }] },
+        providerUserId: { anyOf: [{ type: 'string', maxLength: 255 }, { type: 'null' }] },
+        tokenExpiresAt: { anyOf: [{ type: 'string', format: 'date-time' }, { type: 'null' }] },
         createdAt: { type: 'string', format: 'date-time' },
         updatedAt: { type: 'string', format: 'date-time' }
       }

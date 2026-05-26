@@ -17,7 +17,7 @@ export interface PhotoProperties {
     height?: number;
     exif?: any;
   };
-  provider: 'local' | 'immich';
+  provider: 'local' | 'immich' | 'instagram';
   externalId?: string;
   showOnMap: boolean;
   isCover: boolean;
@@ -40,7 +40,7 @@ export class Photo extends Model implements PhotoProperties {
     height?: number;
     exif?: any;
   };
-  provider!: 'local' | 'immich';
+  provider!: 'local' | 'immich' | 'instagram';
   externalId?: string;
   showOnMap!: boolean;
   isCover!: boolean;
@@ -72,7 +72,7 @@ export class Photo extends Model implements PhotoProperties {
         locationId: { anyOf: [{ type: 'string' }, { type: 'null' }] },
         tripId: { anyOf: [{ type: 'string' }, { type: 'null' }] },
         metadata: { type: 'object' },
-        provider: { type: 'string', enum: ['local', 'immich'], default: 'local' },
+        provider: { type: 'string', enum: ['local', 'immich', 'instagram'], default: 'local' },
         externalId: { type: 'string', maxLength: 255 },
         showOnMap: { type: 'boolean', default: false },
         isCover: { type: 'boolean', default: false },
