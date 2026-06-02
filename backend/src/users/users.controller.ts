@@ -32,7 +32,8 @@ export class UsersController {
         tripsCompleted: basicStats.tripsCompleted,
         totalTrips: basicStats.totalTrips,
         placesVisited: basicStats.locationsCount,
-        photosUploaded: basicStats.photosCount
+        photosUploaded: basicStats.photosCount,
+        furthestPlace: basicStats.furthestPlace || null
       }
     };
   }
@@ -78,6 +79,7 @@ export class UsersController {
         totalTrips: basicStats.totalTrips,
         placesVisited: basicStats.locationsCount,
         photosUploaded: basicStats.photosCount,
+        furthestPlace: basicStats.furthestPlace || null
       },
     };
   }

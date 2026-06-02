@@ -52,6 +52,7 @@ export interface UserProfile {
     totalTrips: number;
     placesVisited: number;
     photosUploaded: number;
+    furthestPlace: { name: string; distance: number } | null;
   };
   homeLocation?: {
     name: string;
@@ -213,6 +214,7 @@ const initialProfile: UserProfile = {
     totalTrips: 10,
     placesVisited: 45,
     photosUploaded: 120,
+    furthestPlace: null,
   },
   homeLocation: {
     name: "Madrid",
@@ -356,6 +358,7 @@ export const updateStores = (userData: any) => {
         totalTrips: userData.statistics.totalTrips || 0,
         placesVisited: userData.statistics.placesVisited || 0,
         photosUploaded: userData.statistics.photosUploaded || 0,
+        furthestPlace: userData.statistics.furthestPlace || null,
       },
     }));
   }

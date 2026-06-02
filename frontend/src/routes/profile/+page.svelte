@@ -17,7 +17,7 @@
     ChevronRight,
     Database,
   } from "lucide-svelte"
-  import { userProfile, locations } from "$lib/stores/data"
+  import { userProfile, locations, trips } from "$lib/stores/data"
   import { t } from "$lib/stores/i18n"
   import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
   import LocationPicker from "$lib/components/map/LocationPicker.svelte"
@@ -26,6 +26,8 @@
   import { reverseGeocode } from "$lib/utils/geocode"
   import { onMount } from "svelte"
   import ProvinceExplorer from "$lib/components/ui/ProvinceExplorer.svelte"
+  import { COUNTRIES, getCountryName, getCountryFlag } from "$lib/utils/countries"
+  import { goto } from "$app/navigation"
 
   // Estado Integraciones
   let immichStatus = { isConnected: false, url: "" }
@@ -73,6 +75,7 @@
   // Modal
   let showEditModal = false
   let showProvinceExplorer = false
+  let showVisitedCountriesModal = false
   let editData = { ...$userProfile }
   let isSaving = false
   let saveMessage = { type: "", text: "" }
@@ -197,32 +200,58 @@
     return deg * (Math.PI / 180)
   }
 
+  // Use backend-provided furthestPlace, with client-side fallback
   let furthestPlace: { name: string; distance: number } | null = null
 
-  $: if ($userProfile.homeLocation && $locations.length > 0) {
-    let maxDist = 0
-    let placeName = ""
-    const home = $userProfile.homeLocation
+  $: {
+    // First try backend value
+    if ($userProfile.stats.furthestPlace) {
+      furthestPlace = $userProfile.stats.furthestPlace
+    } else if ($userProfile.homeLocation && $locations.length > 0) {
+      // Client-side fallback
+      let maxDist = 0
+      let placeName = ""
+      const home = $userProfile.homeLocation
 
-    $locations.forEach((loc) => {
-      const dist = calculateDistance(
-        home.coordinates[0],
-        home.coordinates[1],
-        loc.coordinates[0],
-        loc.coordinates[1],
-      )
-      if (dist > maxDist) {
-        maxDist = dist
-        placeName = loc.name
+      $locations.forEach((loc) => {
+        const dist = calculateDistance(
+          home.coordinates[0],
+          home.coordinates[1],
+          loc.coordinates[0],
+          loc.coordinates[1],
+        )
+        if (dist > maxDist) {
+          maxDist = dist
+          placeName = loc.name
+        }
+      })
+
+      if (maxDist > 0) {
+        furthestPlace = { name: placeName, distance: Math.round(maxDist) }
+      } else {
+        furthestPlace = null
       }
-    })
-
-    if (maxDist > 0) {
-      furthestPlace = { name: placeName, distance: Math.round(maxDist) }
     } else {
       furthestPlace = null
     }
   }
+
+  // Visited countries list (derived from trips)
+  $: visitedCountryCodes = (() => {
+    const codes = new Set<string>()
+    $trips.forEach((trip) => {
+      if (Array.isArray(trip.countries)) {
+        trip.countries.forEach((c) => {
+          if (c) codes.add(c.toUpperCase())
+        })
+      }
+    })
+    return Array.from(codes).sort((a, b) => {
+      const nameA = getCountryName(a)
+      const nameB = getCountryName(b)
+      return nameA.localeCompare(nameB)
+    })
+  })()
 
   // Province Statistics
   let provincesVisitedInHomeCountry = 0
@@ -315,7 +344,12 @@
         <div class="sidebar-header">{$t("profile.globalStats")}</div>
 
         <div class="stats-vertical-list">
-          <div class="stats-item-card">
+          <button
+            class="stats-item-card clickable"
+            on:click={() => (showVisitedCountriesModal = true)}
+            title={$t("profile.visitedCountriesTitle")}
+            style="text-align: left; width: 100%;"
+          >
             <div class="stats-item-top">
               <div class="stats-icon-box icon-blue">
                 <Globe size={18} />
@@ -326,7 +360,7 @@
               {$userProfile.stats.countriesVisited}
             </div>
             <div class="stats-label">{$t("profile.countriesVisited")}</div>
-          </div>
+          </button>
 
           {#if $userProfile.homeCountry}
             <button
@@ -361,7 +395,12 @@
             <div class="stats-label">{$t("profile.placesVisited")}</div>
           </div>
 
-          <div class="stats-item-card">
+          <button
+            class="stats-item-card clickable"
+            on:click={() => goto('/trips')}
+            title={$t("profile.totalTrips")}
+            style="text-align: left; width: 100%;"
+          >
             <div class="stats-item-top">
               <div class="stats-icon-box icon-yellow">
                 <Navigation size={18} />
@@ -375,7 +414,7 @@
                 completed: $userProfile.stats.tripsCompleted,
               })}
             </div>
-          </div>
+          </button>
 
           <div class="stats-item-card">
             <div class="stats-item-top">
@@ -732,6 +771,40 @@
       visitedProvinces={visitedProvinceNamesSet}
       on:close={() => (showProvinceExplorer = false)}
     />
+  {/if}
+
+  {#if showVisitedCountriesModal}
+    <div
+      class="modal-overlay"
+      role="button"
+      tabindex="-1"
+      on:click|self={() => (showVisitedCountriesModal = false)}
+      on:keydown={(e) => e.key === "Escape" && (showVisitedCountriesModal = false)}
+    >
+      <div class="modal-glass" style="max-width: 480px;">
+        <div class="modal-header">
+          <h2>{$t("profile.visitedCountriesTitle")}</h2>
+          <button class="close-btn" on:click={() => (showVisitedCountriesModal = false)}>
+            <X size={24} />
+          </button>
+        </div>
+        <div class="scroll-content">
+          {#if visitedCountryCodes.length === 0}
+            <p class="empty-state-text">{$t("profile.noVisitedCountries")}</p>
+          {:else}
+            <div class="visited-countries-list">
+              {#each visitedCountryCodes as code}
+                <div class="visited-country-item">
+                  <span class="country-flag">{getCountryFlag(code)}</span>
+                  <span class="country-name">{getCountryName(code)}</span>
+                  <span class="country-code">{code}</span>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </div>
+    </div>
   {/if}
 </main>
 
@@ -1770,5 +1843,58 @@
     background: #ffffff;
     color: var(--color-accent-primary);
     box-shadow: var(--shadow-sm);
+  }
+
+  /* Visited Countries Modal */
+  .scroll-content {
+    padding: 1.5rem;
+    max-height: 60vh;
+  }
+
+  .empty-state-text {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    padding: 2rem 1rem;
+  }
+
+  .visited-countries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .visited-country-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+
+  .visited-country-item:hover {
+    background: var(--color-bg-elevated);
+  }
+
+  .country-flag {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  .country-name {
+    flex: 1;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
+  .country-code {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    letter-spacing: 0.05em;
   }
 </style>
