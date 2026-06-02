@@ -49,8 +49,10 @@ export interface UserProfile {
   stats: {
     countriesVisited: number;
     tripsCompleted: number;
+    totalTrips: number;
     placesVisited: number;
     photosUploaded: number;
+    furthestPlace: { name: string; distance: number } | null;
   };
   homeLocation?: {
     name: string;
@@ -209,8 +211,10 @@ const initialProfile: UserProfile = {
   stats: {
     countriesVisited: 12,
     tripsCompleted: 8,
+    totalTrips: 10,
     placesVisited: 45,
     photosUploaded: 120,
+    furthestPlace: null,
   },
   homeLocation: {
     name: "Madrid",
@@ -351,8 +355,10 @@ export const updateStores = (userData: any) => {
       stats: {
         countriesVisited: userData.statistics.countriesVisited || 0,
         tripsCompleted: userData.statistics.tripsCompleted || 0,
+        totalTrips: userData.statistics.totalTrips || 0,
         placesVisited: userData.statistics.placesVisited || 0,
         photosUploaded: userData.statistics.photosUploaded || 0,
+        furthestPlace: userData.statistics.furthestPlace || null,
       },
     }));
   }

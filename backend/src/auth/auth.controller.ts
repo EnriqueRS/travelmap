@@ -11,10 +11,11 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() req) {
-    this.logger.debug(`Login attempt: ${req.username}`);
-    const user = await this.authService.validateUser(req.username, req.password);
+    const identifier = req.username || req.email;
+    this.logger.debug(`Login attempt: ${identifier}`);
+    const user = await this.authService.validateUser(identifier, req.password);
     if (!user) {
-      this.logger.warn(`Failed login for: ${req.username}`);
+      this.logger.warn(`Failed login for: ${identifier}`);
       throw new UnauthorizedException('Unauthorized');
     }
     return this.authService.login(user);
