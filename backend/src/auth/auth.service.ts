@@ -1,7 +1,7 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { User } from '../users/user.entity';
 
 @Injectable()
@@ -13,14 +13,18 @@ export class AuthService {
     private jwtService: JwtService,
   ) { }
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(username);
+  async validateUser(identifier: string, pass: string): Promise<any> {
+    // Try username first, then email
+    let user = await this.usersService.findOne(identifier);
+    if (!user) {
+      user = await this.usersService.findByEmail(identifier);
+    }
     if (user && (await bcrypt.compare(pass, user.passwordHash))) {
       const { passwordHash, ...result } = user;
-      this.logger.debug(`User validated: ${username}`);
+      this.logger.debug(`User validated: ${identifier}`);
       return result;
     }
-    this.logger.warn(`Failed validation attempt for user: ${username}`);
+    this.logger.warn(`Failed validation attempt for user: ${identifier}`);
     return null;
   }
 
