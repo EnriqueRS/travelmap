@@ -160,20 +160,24 @@ export class User extends Model implements UserProperties {
 
   // Get basic stats method
   async getBasicStats(): Promise<any> {
-    const [tripsCount, locationsCount, countriesCount] = await Promise.all([
+    const [tripsCompletedCount, totalTripsCount, locationsCount, countriesCount, photosCount] = await Promise.all([
+      Trip.query().where('user_id', this.id).where('status', 'Completado').count('* as count').first(),
       Trip.query().where('user_id', this.id).count('* as count').first(),
       Location.query().where('user_id', this.id).count('* as count').first(),
       UserCountryStatus.query()
         .where('user_id', this.id)
         .where('status', 'visited')
         .count('* as count')
-        .first()
+        .first(),
+      Photo.query().where('user_id', this.id).count('* as count').first()
     ]);
 
     return {
-      tripsCount: parseInt((tripsCount as any)?.count || '0'),
+      tripsCompleted: parseInt((tripsCompletedCount as any)?.count || '0'),
+      totalTrips: parseInt((totalTripsCount as any)?.count || '0'),
       locationsCount: parseInt((locationsCount as any)?.count || '0'),
-      countriesVisited: parseInt((countriesCount as any)?.count || '0')
+      countriesVisited: parseInt((countriesCount as any)?.count || '0'),
+      photosCount: parseInt((photosCount as any)?.count || '0')
     };
   }
 

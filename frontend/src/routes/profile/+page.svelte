@@ -368,8 +368,13 @@
               </div>
               <div class="stats-dash dash-yellow" />
             </div>
-            <div class="stats-number">{$userProfile.stats.tripsCompleted}</div>
-            <div class="stats-label">{$t("profile.completedTrips")}</div>
+            <div class="stats-number">{$userProfile.stats.totalTrips}</div>
+            <div class="stats-label">{$t("profile.totalTrips")}</div>
+            <div class="stats-sublabel">
+              {$t("profile.tripsDetail", {
+                completed: $userProfile.stats.tripsCompleted,
+              })}
+            </div>
           </div>
 
           <div class="stats-item-card">
@@ -1002,6 +1007,12 @@
     color: var(--color-text-muted);
     letter-spacing: 0.05em;
     text-transform: uppercase;
+  }
+
+  .stats-sublabel {
+    font-size: 0.7rem;
+    color: var(--color-text-secondary);
+    margin-top: 0.25rem;
   }
 
   .interests-section {
