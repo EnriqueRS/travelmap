@@ -27,6 +27,11 @@
     isOpen = !isOpen
     if (isOpen) {
       searchQuery = ""
+      // Focus the search input in the next tick
+      setTimeout(() => {
+        const input = dropdownRef?.querySelector("input")
+        if (input) input.focus()
+      }, 0)
     }
   }
 
