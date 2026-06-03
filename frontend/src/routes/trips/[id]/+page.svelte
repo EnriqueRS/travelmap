@@ -328,14 +328,22 @@
     }
   }
 
-  // --- BATCH GPS UPDATE ---
+  // --- BATCH PHOTO OPERATIONS ---
   let isSelectionMode = false
   let selectedPhotosIds: string[] = []
   let showBatchLocationModal = false
+  let lastSelectedIndex: number = -1
 
   function toggleSelectionMode() {
     isSelectionMode = !isSelectionMode
     selectedPhotosIds = []
+    lastSelectedIndex = -1
+  }
+
+  function exitSelectionMode() {
+    isSelectionMode = false
+    selectedPhotosIds = []
+    lastSelectedIndex = -1
   }
 
   function togglePhotoSelection(id: string) {
@@ -343,6 +351,114 @@
       selectedPhotosIds = selectedPhotosIds.filter((pid) => pid !== id)
     } else {
       selectedPhotosIds = [...selectedPhotosIds, id]
+    }
+  }
+
+  function handlePhotoClick(index: number, event: MouseEvent) {
+    const photoId = displayedPhotos[index].id
+
+    if (event.shiftKey && lastSelectedIndex !== -1) {
+      const start = Math.min(lastSelectedIndex, index)
+      const end = Math.max(lastSelectedIndex, index)
+      const rangeIds = displayedPhotos.slice(start, end + 1).map((p) => p.id)
+      if (event.ctrlKey || event.metaKey) {
+        const newSet = new Set([...selectedPhotosIds, ...rangeIds])
+        selectedPhotosIds = [...newSet]
+      } else {
+        selectedPhotosIds = rangeIds
+      }
+    } else if (event.ctrlKey || event.metaKey) {
+      togglePhotoSelection(photoId)
+      lastSelectedIndex = index
+    } else {
+      selectedPhotosIds = [photoId]
+      lastSelectedIndex = index
+    }
+  }
+
+  function selectAllPhotos() {
+    selectedPhotosIds = displayedPhotos.map((p) => p.id)
+  }
+
+  function deselectAllPhotos() {
+    selectedPhotosIds = []
+  }
+
+  async function batchShowOnMap() {
+    try {
+      await mediaService.batchUpdatePhotos(selectedPhotosIds, { showOnMap: true })
+      photos = photos.map((p) =>
+        selectedPhotosIds.includes(p.id) ? { ...p, showOnMap: true } : p,
+      )
+      toast.success(
+        $t("trip.batchUpdateSuccess", { count: selectedPhotosIds.length }),
+      )
+      exitSelectionMode()
+    } catch (err) {
+      console.error("[batchShowOnMap] Error:", err)
+      toast.error($t("trip.batchUpdateError"))
+    }
+  }
+
+  async function batchHideFromMap() {
+    try {
+      await mediaService.batchUpdatePhotos(selectedPhotosIds, { showOnMap: false })
+      photos = photos.map((p) =>
+        selectedPhotosIds.includes(p.id) ? { ...p, showOnMap: false } : p,
+      )
+      toast.success(
+        $t("trip.batchUpdateSuccess", { count: selectedPhotosIds.length }),
+      )
+      exitSelectionMode()
+    } catch (err) {
+      console.error("[batchHideFromMap] Error:", err)
+      toast.error($t("trip.batchUpdateError"))
+    }
+  }
+
+  async function batchHideFromGallery() {
+    try {
+      await mediaService.batchUpdatePhotos(selectedPhotosIds, { isHidden: true })
+      photos = photos.map((p) =>
+        selectedPhotosIds.includes(p.id) ? { ...p, isHidden: true } : p,
+      )
+      toast.success(
+        $t("trip.batchUpdateSuccess", { count: selectedPhotosIds.length }),
+      )
+      exitSelectionMode()
+    } catch (err) {
+      console.error("[batchHideFromGallery] Error:", err)
+      toast.error($t("trip.batchUpdateError"))
+    }
+  }
+
+  async function batchShowInGallery() {
+    try {
+      await mediaService.batchUpdatePhotos(selectedPhotosIds, { isHidden: false })
+      photos = photos.map((p) =>
+        selectedPhotosIds.includes(p.id) ? { ...p, isHidden: false } : p,
+      )
+      toast.success(
+        $t("trip.batchUpdateSuccess", { count: selectedPhotosIds.length }),
+      )
+      exitSelectionMode()
+    } catch (err) {
+      console.error("[batchShowInGallery] Error:", err)
+      toast.error($t("trip.batchUpdateError"))
+    }
+  }
+
+  async function batchDeletePhotos() {
+    const count = selectedPhotosIds.length
+    if (!confirm($t("trip.batchDeleteConfirm", { count }))) return
+    try {
+      await Promise.all(selectedPhotosIds.map((id) => mediaService.deletePhoto(id)))
+      photos = photos.filter((p) => !selectedPhotosIds.includes(p.id))
+      toast.success($t("trip.batchDeleteSuccess", { count }))
+      exitSelectionMode()
+    } catch (err) {
+      console.error("[batchDeletePhotos] Error:", err)
+      toast.error($t("trip.batchDeleteError"))
     }
   }
 
@@ -409,9 +525,8 @@
       })
 
       showBatchLocationModal = false
-      isSelectionMode = false
-      selectedPhotosIds = []
       batchSelectedCoords = null
+      exitSelectionMode()
     } catch (err) {
       console.error("[saveBatchLocation] Error:", err)
       toast.error($t("trip.batchGpsError"))
@@ -1103,13 +1218,78 @@
           </button>
 
           {#if isSelectionMode && selectedPhotosIds.length > 0}
-            <button
-              class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-green-600/20 text-green-400 border border-green-600/30 hover:bg-green-600/30 transition-colors ml-auto"
-              on:click={openBatchLocationPicker}
-            >
-              <MapPin size={16} />
-              {$t("trip.batchGps")} ({selectedPhotosIds.length})
-            </button>
+            <div class="flex items-center gap-2 ml-auto flex-wrap">
+              <span class="text-sm text-slate-400 font-medium">
+                {$t("trip.selectedCount", { count: selectedPhotosIds.length })}
+              </span>
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-700/50 text-slate-300 border border-slate-600/50 hover:bg-slate-700 transition-colors"
+                on:click={selectAllPhotos}
+              >
+                {$t("trip.selectAll")}
+              </button>
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-700/50 text-slate-300 border border-slate-600/50 hover:bg-slate-700 transition-colors"
+                on:click={deselectAllPhotos}
+              >
+                {$t("trip.deselectAll")}
+              </button>
+              <div class="h-5 w-px bg-slate-700/50 mx-1" />
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-600/20 text-green-400 border border-green-600/30 hover:bg-green-600/30 transition-colors"
+                on:click={openBatchLocationPicker}
+                title={$t("trip.batchGps")}
+              >
+                <MapPin size={14} />
+                GPS ({selectedPhotosIds.length})
+              </button>
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600/20 text-blue-400 border border-blue-600/30 hover:bg-blue-600/30 transition-colors"
+                on:click={batchShowOnMap}
+                title={$t("trip.batchShowOnMap")}
+              >
+                <MapPin size={14} />
+                {$t("trip.batchShowOnMap")}
+              </button>
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-700/50 text-slate-300 border border-slate-600/50 hover:bg-slate-700 transition-colors"
+                on:click={batchHideFromMap}
+                title={$t("trip.batchHideFromMap")}
+              >
+                <MapPinOff size={14} />
+                {$t("trip.batchHideFromMap")}
+              </button>
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-700/50 text-slate-300 border border-slate-600/50 hover:bg-slate-700 transition-colors"
+                on:click={batchHideFromGallery}
+                title={$t("trip.batchHide")}
+              >
+                <EyeOff size={14} />
+                {$t("trip.batchHide")}
+              </button>
+              {#if showHiddenPhotos}
+                <button
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 hover:bg-emerald-600/30 transition-colors"
+                  on:click={batchShowInGallery}
+                  title={$t("trip.batchShow")}
+                >
+                  <Eye size={14} />
+                  {$t("trip.batchShow")}
+                </button>
+              {/if}
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                on:click={batchDeletePhotos}
+                title={$t("trip.batchDelete")}
+              >
+                <Trash2 size={14} />
+                {$t("trip.batchDelete")}
+              </button>
+            </div>
+          {:else if isSelectionMode}
+            <span class="text-xs text-slate-500 ml-auto">
+              {$t("trip.shiftClickHint")}
+            </span>
           {/if}
 
           {#if hasImmichPhotos}
@@ -1180,6 +1360,72 @@
             <Trash2 size={20} />
           </button>
         </div>
+
+        {#if isSelectionMode && selectedPhotosIds.length > 0}
+          <div
+            class="mt-2 flex items-center gap-2 flex-wrap bg-slate-800/70 p-2 rounded-xl border border-slate-700/50"
+          >
+            <span class="text-xs text-slate-400 font-medium">
+              {$t("trip.selectedCount", { count: selectedPhotosIds.length })}
+            </span>
+            <button
+              class="p-1.5 rounded-lg bg-slate-700/50 text-slate-300 border border-slate-600/50"
+              on:click={selectAllPhotos}
+              title={$t("trip.selectAll")}
+            >
+              <CheckSquare size={16} />
+            </button>
+            <div class="h-4 w-px bg-slate-700/50" />
+            <button
+              class="p-1.5 rounded-lg bg-green-600/20 text-green-400 border border-green-600/30"
+              on:click={openBatchLocationPicker}
+              title={$t("trip.batchGps")}
+            >
+              <MapPin size={16} />
+            </button>
+            <button
+              class="p-1.5 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-600/30"
+              on:click={batchShowOnMap}
+              title={$t("trip.batchShowOnMap")}
+            >
+              <MapPin size={16} />
+            </button>
+            <button
+              class="p-1.5 rounded-lg bg-slate-700/50 text-slate-300 border border-slate-600/50"
+              on:click={batchHideFromMap}
+              title={$t("trip.batchHideFromMap")}
+            >
+              <MapPinOff size={16} />
+            </button>
+            <button
+              class="p-1.5 rounded-lg bg-slate-700/50 text-slate-300 border border-slate-600/50"
+              on:click={batchHideFromGallery}
+              title={$t("trip.batchHide")}
+            >
+              <EyeOff size={16} />
+            </button>
+            {#if showHiddenPhotos}
+              <button
+                class="p-1.5 rounded-lg bg-emerald-600/20 text-emerald-400 border border-emerald-600/30"
+                on:click={batchShowInGallery}
+                title={$t("trip.batchShow")}
+              >
+                <Eye size={16} />
+              </button>
+            {/if}
+            <button
+              class="p-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20"
+              on:click={batchDeletePhotos}
+              title={$t("trip.batchDelete")}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        {:else if isSelectionMode}
+          <p class="text-xs text-slate-500 mt-2 text-center">
+            {$t("trip.shiftClickHint")}
+          </p>
+        {/if}
       </div>
 
       {#if displayedPhotos.length > 0 || isImportingPhotos}
@@ -1270,11 +1516,17 @@
                       class="relative h-24 w-32 min-w-[128px] snap-center cursor-pointer transition-all rounded-xl overflow-hidden {activeIndex ===
                       i
                         ? 'ring-2 ring-blue-500 shadow-xl scale-105 z-10'
-                        : 'opacity-60 grayscale-[20%] hover:opacity-100 hover:grayscale-0'}"
+                        : 'opacity-60 grayscale-[20%] hover:opacity-100 hover:grayscale-0'} {isSelectionMode && selectedPhotosIds.includes(displayedPhotos[i].id) ? 'ring-2 ring-blue-400 opacity-100 grayscale-0' : ''}"
                       on:click={(e) => {
-                        if (isSelectionMode) {
+                        if (e.shiftKey || e.ctrlKey || e.metaKey) {
                           e.preventDefault()
-                          togglePhotoSelection(displayedPhotos[i].id)
+                          if (!isSelectionMode) {
+                            isSelectionMode = true
+                          }
+                          handlePhotoClick(i, e)
+                        } else if (isSelectionMode) {
+                          e.preventDefault()
+                          handlePhotoClick(i, e)
                         } else {
                           activeIndex = i
                         }
