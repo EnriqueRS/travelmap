@@ -19,7 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Improved
 
-- Country multi-select dropdown now auto-focuses the search filter input when opened, allowing immediate typing
+- Country multi-select dropdown now auto-focuses the search input when opened, allowing immediate filtering without extra clicks
 
 ### Fixed
 
