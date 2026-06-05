@@ -29,9 +29,11 @@ export class UsersController {
       ...result,
       statistics: {
         countriesVisited: basicStats.countriesVisited,
-        tripsCompleted: basicStats.tripsCount,
+        tripsCompleted: basicStats.tripsCompleted,
+        totalTrips: basicStats.totalTrips,
         placesVisited: basicStats.locationsCount,
-        photosUploaded: 0
+        photosUploaded: basicStats.photosCount,
+        furthestPlace: basicStats.furthestPlace || null
       }
     };
   }
@@ -73,9 +75,11 @@ export class UsersController {
       ...result,
       statistics: {
         countriesVisited: basicStats.countriesVisited,
-        tripsCompleted: basicStats.tripsCount,
+        tripsCompleted: basicStats.tripsCompleted,
+        totalTrips: basicStats.totalTrips,
         placesVisited: basicStats.locationsCount,
-        photosUploaded: 0,
+        photosUploaded: basicStats.photosCount,
+        furthestPlace: basicStats.furthestPlace || null
       },
     };
   }

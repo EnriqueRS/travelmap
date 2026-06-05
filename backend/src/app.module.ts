@@ -10,6 +10,8 @@ import { MediaModule } from './media/media.module';
 import { LocationsModule } from './locations/locations.module';
 import { LoggerModule } from './logger/logger.module';
 
+import { HealthModule } from './health/health.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -18,6 +20,7 @@ import { LoggerModule } from './logger/logger.module';
     }),
     LoggerModule,
     DatabaseModule,
+    HealthModule,
     GeoModule,
     AuthModule,
     UsersModule,
