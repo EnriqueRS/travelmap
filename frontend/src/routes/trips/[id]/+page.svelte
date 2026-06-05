@@ -2226,7 +2226,7 @@ title={$t("trip.noGps")}
   .main-photo-card {
     background: var(--color-bg-main);
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     overflow: hidden;
   }
@@ -2353,43 +2353,6 @@ title={$t("trip.noGps")}
     margin-top: 2rem;
   }
 
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    border: 1px solid var(--color-border-light);
-    background: var(--color-bg-secondary);
-    color: var(--color-text-secondary);
-    font-size: 0.9rem;
-  }
-
-  .btn-secondary:hover {
-    transform: translateY(-1px);
-  }
-
-  .btn-danger:hover {
-    transform: translateY(-1px);
-  }
-
-  .btn-sm {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    background: var(--color-accent-primary);
-    color: white;
-  }
-
-  .not-found {
-    text-align: center;
-    padding: 5rem;
-  }
-
   /* Gallery UI */
   .gallery-container {
     display: flex;
@@ -2399,9 +2362,9 @@ title={$t("trip.noGps")}
 
   .main-photo-card {
     background: var(--color-bg-main);
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    border: 1px solid var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
     transition: transform 0.2s;
   }
 
@@ -2419,13 +2382,12 @@ title={$t("trip.noGps")}
     width: 100%;
     aspect-ratio: 16 / 9;
     max-height: 85vh;
-    background: #0a0f1d;
+    background: var(--color-bg-main);
     border-radius: 0.5rem;
     overflow: hidden;
   }
 
   .main-img-bg {
-    /* filter: blur(20px) brightness(0.6); */
     transform: scale(1.1);
   }
 
@@ -2575,7 +2537,7 @@ title={$t("trip.noGps")}
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.6);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -2585,11 +2547,9 @@ title={$t("trip.noGps")}
   }
 
   .premium-modal {
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 28px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
     width: 95%;
     max-width: 550px;
     max-height: 90vh;
@@ -2598,7 +2558,7 @@ title={$t("trip.noGps")}
     overflow: hidden;
     position: relative;
     color: var(--color-text-primary);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-xl);
   }
 
   .modal-header-premium {
@@ -2606,7 +2566,7 @@ title={$t("trip.noGps")}
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
   }
 
   .header-main {
@@ -2618,8 +2578,8 @@ title={$t("trip.noGps")}
   .header-icon {
     width: 48px;
     height: 48px;
-    background: rgba(37, 99, 235, 0.1);
-    border-radius: 14px;
+    background: var(--color-accent-muted);
+    border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2657,7 +2617,7 @@ title={$t("trip.noGps")}
   }
 
   .btn-close-modal:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--color-bg-tertiary);
     color: var(--color-text-primary);
   }
 
@@ -2693,9 +2653,9 @@ title={$t("trip.noGps")}
   .premium-select,
   .premium-textarea {
     background: var(--color-bg-tertiary);
-    border: 1px solid var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
     padding: 0.75rem 1rem;
-    border-radius: 10px;
+    border-radius: var(--radius-base);
     color: var(--color-text-primary);
     font-size: 0.95rem;
     width: 100%;
@@ -2708,7 +2668,8 @@ title={$t("trip.noGps")}
   .premium-textarea:focus {
     outline: none;
     border-color: var(--color-accent-primary);
-    background: rgba(15, 23, 42, 0.8);
+    background: var(--color-bg-tertiary);
+    box-shadow: 0 0 0 3px var(--color-accent-muted);
   }
 
   .full-width-field {
@@ -2801,16 +2762,16 @@ title={$t("trip.noGps")}
     justify-content: flex-end;
     align-items: center;
     gap: 1rem;
-    background: var(--color-bg-main);
-    border-top: 1px solid var(--color-bg-secondary);
+    background: var(--color-bg-secondary);
+    border-top: 1px solid var(--color-border);
   }
 
   .btn-cancel-premium {
     background: transparent;
-    border: 1px solid var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
     color: var(--color-text-muted);
     padding: 0.6rem 1.25rem;
-    border-radius: 12px;
+    border-radius: var(--radius-base);
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
@@ -2818,17 +2779,17 @@ title={$t("trip.noGps")}
   }
 
   .btn-cancel-premium:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--color-bg-tertiary);
     color: var(--color-text-primary);
-    border-color: var(--color-bg-tertiary);
+    border-color: var(--color-border-light);
   }
 
   .btn-save-premium {
-    background: var(--color-accent-hover);
+    background: var(--color-accent-primary);
     color: white;
     border: none;
     padding: 0.6rem 2rem;
-    border-radius: 12px;
+    border-radius: var(--radius-base);
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
@@ -2836,13 +2797,13 @@ title={$t("trip.noGps")}
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    box-shadow: var(--shadow-md);
   }
 
   .btn-save-premium:hover {
-    background: #1d4ed8;
+    background: var(--color-accent-hover);
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+    box-shadow: var(--shadow-lg);
   }
 
   .btn-save-premium:disabled {
@@ -2856,7 +2817,7 @@ title={$t("trip.noGps")}
     color: var(--color-danger-text);
     border: 1px solid var(--color-danger-border);
     padding: 0.6rem 1.25rem;
-    border-radius: 12px;
+    border-radius: var(--radius-base);
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
@@ -2865,7 +2826,7 @@ title={$t("trip.noGps")}
   }
 
   .btn-delete-premium:hover {
-    background: var(--color-danger-border);
+    background: rgba(239, 68, 68, 0.2);
     border-color: rgba(239, 68, 68, 0.4);
     color: var(--color-danger);
   }

@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Design System Migration**: Migrated core UI components to use canonical CSS custom property tokens from the design system
+  - AlbumModal: Replaced HTML `&times;` entity with Lucide X icon per design spec
+  - Profile page: Removed local `.btn` overrides that conflicted with global button styles; unified button classes (`.btn-outline` → `.btn-secondary`, `.btn-white` → `.btn-primary`)
+  - Profile page: Fixed border-radius values to use `var(--radius-*)` tokens; fixed `backdrop-filter` to use consistent `blur(4px)`
+  - Profile page: Replaced hardcoded `#ffffff` colors in light theme overrides with `var(--color-bg-elevated)`
+  - Trip detail page: Migrated premium modal styles to use design tokens (`var(--color-bg-secondary)`, `var(--color-border)`, `var(--radius-xl)`, `var(--shadow-xl)`)
+  - Trip detail page: Removed local `.btn`, `.btn-sm`, `.btn-secondary:hover`, `.btn-danger:hover` overrides that conflicted with global styles
+  - Trip detail page: Fixed hardcoded `#0a0f1d` background to `var(--color-bg-main)`; fixed gallery card borders to `var(--color-border)`
+  - Layout: Replaced hardcoded `rgba(255, 255, 255, ...)` border colors with `var(--color-border)` token for proper theme support
+
 ### Fixed
 
 - Profile statistics: countries visited now counts from both `user_country_statuses` and trip countries arrays (was showing 0)

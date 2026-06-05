@@ -321,7 +321,7 @@
 
       <div class="profile-actions">
         <button
-          class="btn btn-outline"
+          class="btn btn-secondary"
           on:click={() => {
             editData = { ...$userProfile }
             showEditModal = true
@@ -545,7 +545,7 @@
               </p>
               <button
                 type="submit"
-                class="btn btn-white"
+                class="btn btn-primary"
                 disabled={isSavingImmich}
               >
                 {isSavingImmich
@@ -669,7 +669,7 @@
                   />
                   <button
                     type="button"
-                    class="btn btn-outline w-full"
+                    class="btn btn-secondary w-full"
                     on:click={() =>
                       document.getElementById("avatar-upload")?.click()}
                   >
@@ -890,11 +890,11 @@
   }
 
   .pro-badge {
-    background: rgba(37, 99, 235, 0.2);
+    background: var(--color-accent-muted);
     color: var(--color-accent-text);
-    border: 1px solid rgba(59, 130, 246, 0.3);
+    border: 1px solid var(--color-accent-primary);
     padding: 0.2rem 0.6rem;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -927,25 +927,7 @@
     align-items: center;
   }
 
-  .btn-outline {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    font-size: 0.9rem;
-    background: transparent;
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-border-light);
-  }
 
-  .btn-outline:hover {
-    background: var(--color-bg-tertiary);
-  }
 
   .profile-content {
     padding: 2rem;
@@ -986,7 +968,7 @@
   .stats-item-card {
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
-    border-radius: 16px;
+    border-radius: var(--radius-xl);
     padding: 1.25rem;
     display: flex;
     flex-direction: column;
@@ -1018,7 +1000,7 @@
   .stats-icon-box {
     width: 40px;
     height: 40px;
-    border-radius: 8px;
+    border-radius: var(--radius-base);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1095,30 +1077,7 @@
     border: 1px solid var(--color-border);
   }
 
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    border: 1px solid var(--color-border-light);
-    background: var(--color-bg-secondary);
-    color: var(--color-text-secondary);
-    font-size: 0.9rem;
-  }
 
-  .btn-primary:hover {
-    transform: translateY(-1px);
-  }
-
-  .btn-secondary:hover {
-    transform: translateY(-1px);
-  }
 
   @media (max-width: 768px) {
     .header-content {
@@ -1149,9 +1108,6 @@
       width: 100%;
     }
     .profile-actions .btn {
-      flex: 1;
-    }
-    .profile-actions .btn-outline {
       flex: 1;
     }
   }
@@ -1438,7 +1394,7 @@
   .form-group-modern input {
     width: 100%;
     padding: 0.75rem 1rem;
-    border-radius: 8px;
+    border-radius: var(--radius-base);
     border: 1px solid var(--color-border);
     background: var(--color-bg-tertiary);
     color: var(--color-text-primary);
@@ -1468,28 +1424,6 @@
     margin: 0;
   }
 
-  .btn-white {
-    background: var(--color-accent-primary);
-    color: var(--color-text-inverse);
-    border: 1px solid var(--color-accent-primary);
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-white:hover {
-    background: var(--color-accent-hover);
-    border-color: var(--color-accent-hover);
-    transform: translateY(-1px);
-  }
-
-  .btn-white:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-
   @media (max-width: 768px) {
     .form-row {
       flex-direction: column;
@@ -1499,10 +1433,6 @@
       flex-direction: column;
       gap: 1rem;
       align-items: flex-start;
-    }
-
-    .btn-white {
-      width: 100%;
     }
   }
 
@@ -1514,7 +1444,7 @@
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(4px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1753,7 +1683,7 @@
 
   /* ─── Light Theme Profile Enhancements ─── */
   :global(.theme-light) .stats-item-card {
-    background: #ffffff;
+    background: var(--color-bg-elevated);
     border-color: var(--color-border);
     box-shadow: var(--shadow-sm);
   }
@@ -1763,7 +1693,7 @@
   }
 
   :global(.theme-light) .stats-item-card.clickable:hover {
-    background: #ffffff;
+    background: var(--color-bg-elevated);
     border-color: rgba(124, 58, 237, 0.25);
     box-shadow: 0 4px 12px rgba(124, 58, 237, 0.08);
   }
@@ -1799,7 +1729,7 @@
   }
 
   :global(.theme-light) .action-row-btn:hover {
-    background: #ffffff;
+    background: var(--color-bg-elevated);
     box-shadow: var(--shadow-sm);
   }
 
@@ -1813,14 +1743,7 @@
     border: 1px solid var(--color-border);
   }
 
-  :global(.theme-light) .btn-outline {
-    border-color: var(--color-border);
-  }
 
-  :global(.theme-light) .btn-outline:hover {
-    background: var(--color-bg-tertiary);
-    border-color: var(--color-border-light);
-  }
 
   :global(.theme-light) .modal-overlay {
     background: rgba(15, 23, 42, 0.35);
@@ -1840,7 +1763,7 @@
   }
 
   :global(.theme-light) .modern-tab-btn.active {
-    background: #ffffff;
+    background: var(--color-bg-elevated);
     color: var(--color-accent-primary);
     box-shadow: var(--shadow-sm);
   }

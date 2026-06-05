@@ -301,7 +301,7 @@
     background: color-mix(in srgb, var(--color-bg-secondary) 50%, transparent);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05); /* very subtle border */
+    border-bottom: 1px solid var(--color-border);
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -462,7 +462,7 @@
       background: color-mix(in srgb, var(--color-bg-secondary) 85%, transparent);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid var(--color-border);
       z-index: 1000;
       justify-content: space-around;
       align-items: center;

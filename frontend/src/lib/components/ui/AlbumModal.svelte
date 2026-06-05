@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte"
+  import { X } from "lucide-svelte"
   import { t } from "$lib/stores/i18n"
 
   export let albums: any[] = []
@@ -44,7 +45,7 @@
   <div class="modal card">
     <header class="modal-header">
       <h3>{title}</h3>
-      <button class="close-btn" on:click={close}>&times;</button>
+      <button class="close-btn" on:click={close}><X size={20} /></button>
     </header>
 
     <div class="modal-body">
