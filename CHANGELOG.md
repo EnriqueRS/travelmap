@@ -6,8 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Multi-select photos with Shift+click (range select) and Ctrl/Cmd+click (toggle individual)
+- Auto-enter selection mode when Shift/Ctrl clicking thumbnails
+- Batch operations toolbar: Show on Map, Hide from Map, Hide from Gallery, Show in Gallery, Delete
+- Select All / Deselect All buttons in selection mode
+- Selection count indicator showing number of selected photos
+- Mobile-optimized batch operations bar with compact icon buttons
+- Keyboard shortcut hint displayed when in selection mode with no photos selected
+- i18n translations for all new batch operation strings (English and Spanish)
+
+### Improved
+
+- Country multi-select dropdown now auto-focuses the search filter input when opened, allowing immediate typing
+
 ### Fixed
 
+- Photo selection in multi-select mode now properly toggles individual photos while preserving other selections instead of replacing the entire selection
+- Shift+click now adds the selected range to existing selections rather than replacing them; also falls back to `activeIndex` when no previous anchor exists
+- Ctrl/Cmd+click outside selection mode now correctly toggles the clicked photo while keeping any existing selections
 - Profile statistics: countries visited now counts from both `user_country_statuses` and trip countries arrays (was showing 0)
 - Profile statistics: `photosUploaded` now shows actual photo count from database instead of hardcoded 0
 - Profile statistics: `tripsCompleted` now correctly counts only trips with status 'Completado' instead of all trips
