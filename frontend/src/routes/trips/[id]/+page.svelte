@@ -357,17 +357,23 @@
   function handlePhotoClick(index: number, event: MouseEvent) {
     const photoId = displayedPhotos[index].id
 
-    if (event.shiftKey && lastSelectedIndex !== -1) {
-      const start = Math.min(lastSelectedIndex, index)
-      const end = Math.max(lastSelectedIndex, index)
-      const rangeIds = displayedPhotos.slice(start, end + 1).map((p) => p.id)
-      if (event.ctrlKey || event.metaKey) {
-        const newSet = new Set([...selectedPhotosIds, ...rangeIds])
-        selectedPhotosIds = [...newSet]
-      } else {
-        selectedPhotosIds = rangeIds
+    if (event.shiftKey) {
+      let anchor = lastSelectedIndex
+      if (anchor === -1) {
+        anchor = activeIndex >= 0 ? activeIndex : 0
       }
+      const start = Math.min(anchor, index)
+      const end = Math.max(anchor, index)
+      const rangeIds = displayedPhotos.slice(start, end + 1).map((p) => p.id)
+      // Always add range to existing selection
+      const newSet = new Set([...selectedPhotosIds, ...rangeIds])
+      selectedPhotosIds = [...newSet]
+      lastSelectedIndex = index
     } else if (event.ctrlKey || event.metaKey) {
+      togglePhotoSelection(photoId)
+      lastSelectedIndex = index
+    } else if (isSelectionMode) {
+      // In selection mode without modifier keys: toggle, preserving other selections
       togglePhotoSelection(photoId)
       lastSelectedIndex = index
     } else {
