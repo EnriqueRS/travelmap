@@ -26,7 +26,7 @@ CMD ["npm", "run", "start:dev"]
 
 # Build stage
 FROM base AS build
-RUN npm ci && npm cache clean --force
+RUN npm ci --legacy-peer-deps && npm cache clean --force
 COPY . .
 RUN npm run build
 

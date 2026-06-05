@@ -1,7 +1,7 @@
 // utils/constants.ts - Constantes para la aplicación
 
 export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+  import.meta.env.VITE_API_URL || "/api";
 
 export const MAP_STYLES = {
   DARK: "https://api.maptiler.com/maps/streets-v2/style.json?key=YOUR_API_KEY",
