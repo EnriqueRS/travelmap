@@ -141,7 +141,7 @@
                 {/if}
               </div>
               {#if locationPhotos.length > 1}
-                <div class="photo-thumbnails custom-scrollbar">
+                <div class="photo-thumbnails custom-scrollbar" on:wheel={(e) => { e.preventDefault(); e.currentTarget.scrollLeft += e.deltaY; }}>
                   {#each locationPhotos as photo, i}
                     <button
                       class="photo-thumb"

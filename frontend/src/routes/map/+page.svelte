@@ -1343,7 +1343,7 @@ title={soloTripId === trip.id ? $t("map.showAll") : $t("map.showOnlyThis")}
           </label>
 
           {#if newLocationPhotoFiles && newLocationPhotoFiles.length > 0}
-            <div class="photo-preview-scroll">
+            <div class="photo-preview-scroll" on:wheel={(e) => { e.preventDefault(); e.currentTarget.scrollLeft += e.deltaY; }}>
               {#each Array.from(newLocationPhotoFiles) as photo, index}
                 <div class="photo-preview-item">
                   <img src={URL.createObjectURL(photo)} alt="Preview" />
