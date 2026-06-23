@@ -1516,6 +1516,7 @@
               >
                 <div
                   class="flex flex-nowrap justify-start overflow-x-auto gap-3 p-1 snap-x gallery-thumbs-scroll custom-scrollbar"
+                  on:wheel={(e) => { e.preventDefault(); e.currentTarget.scrollLeft += e.deltaY; }}
                 >
                   {#each carouselImages as img, i}
                     <button
@@ -1934,7 +1935,7 @@ title={$t("trip.noGps")}
             >{$t("trip.linkPhotoOptional")}</span
           >
           {#if displayedPhotos.length > 0}
-            <div class="photo-scroller custom-scrollbar">
+            <div class="photo-scroller custom-scrollbar" on:wheel={(e) => { e.preventDefault(); e.currentTarget.scrollLeft += e.deltaY; }}>
               {#each displayedPhotos as photo}
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <!-- svelte-ignore a11y-no-static-element-interactions -->
