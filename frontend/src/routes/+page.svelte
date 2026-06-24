@@ -47,8 +47,14 @@
   // Stats counters — the numeric values come from i18n so both
   // Spanish and English coordinated content stays in sync.
   const stats = [
-    { valueKey: "landing.statTravelersValue", labelKey: "landing.statTravelers" },
-    { valueKey: "landing.statCountriesValue", labelKey: "landing.statCountries" },
+    {
+      valueKey: "landing.statTravelersValue",
+      labelKey: "landing.statTravelers",
+    },
+    {
+      valueKey: "landing.statCountriesValue",
+      labelKey: "landing.statCountries",
+    },
     { valueKey: "landing.statPhotosValue", labelKey: "landing.statPhotos" },
   ]
 </script>
@@ -113,7 +119,7 @@
        3. STATS SECTION
        3 counters with large bold numbers + muted labels.
        ═══════════════════════════════════════════════════════ -->
-  <section class="stats">
+  <!-- <section class="stats">
     <div class="stats-grid">
       {#each stats as { valueKey, labelKey }}
         <div class="stat-item">
@@ -122,7 +128,7 @@
         </div>
       {/each}
     </div>
-  </section>
+  </section> -->
 
   <!-- ═══════════════════════════════════════════════════════
        4. CTA SECTION
@@ -133,8 +139,8 @@
       <h2>{$t("landing.ctaTitle")}</h2>
       <p>{$t("landing.ctaDesc")}</p>
       <a href="/map" class="btn btn-primary btn-lg">
-          <Navigation size={20} />
-          {$t("landing.ctaButton")}
+        <Navigation size={20} />
+        {$t("landing.ctaButton")}
       </a>
     </div>
   </section>
@@ -163,7 +169,10 @@
         rgba(0, 0, 0, 0.45) 50%,
         rgba(0, 0, 0, 0.65) 100%
       ),
-      var(--hero-bg, url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80'));
+      var(
+        --hero-bg,
+        url("https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80")
+      );
     background-size: cover;
     background-position: center 30%;
     background-repeat: no-repeat;
@@ -340,9 +349,12 @@
     background-image: linear-gradient(
         180deg,
         rgba(0, 0, 0, 0.72) 0%,
-        rgba(0, 0, 0, 0.80) 100%
+        rgba(0, 0, 0, 0.8) 100%
       ),
-      var(--hero-bg, url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80'));
+      var(
+        --hero-bg,
+        url("https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80")
+      );
     background-size: cover;
     background-position: center 60%;
     background-repeat: no-repeat;
