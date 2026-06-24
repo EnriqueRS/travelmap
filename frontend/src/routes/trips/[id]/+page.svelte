@@ -41,9 +41,9 @@
   } from "lucide-svelte"
   import { onMount, tick } from "svelte"
   import { fade, slide } from "svelte/transition"
-  import { mediaService, type AppPhoto } from "$lib/services/media"
-  import { integrationsService } from "$lib/services/integrations"
-  import { API_URL } from "$lib/services/auth"
+   import { mediaService, type AppPhoto } from "$lib/services/media"
+   import { integrationsService } from "$lib/services/integrations"
+   import { getTripCoverUrl, getPhotoUrl, getLocationImageUrl } from "$lib/utils/images"
   import { toast } from "$lib/stores/ui"
   import { reverseGeocode } from "$lib/utils/geocode"
   import { normalizeString } from "$lib/utils/string"
@@ -662,9 +662,9 @@
   })
 
   $: computedCoverImage = photos.find((p) => p.isCover)
-    ? getImageUrl(photos.find((p) => p.isCover)!)
+    ? getPhotoUrl(photos.find((p) => p.isCover)!)
     : trip?.coverImage
-    ? `${API_URL}/media/photos/${trip?.coverImage}/image`
+    ? getTripCoverUrl(trip)
     : null
 
   let activeIndex = 0
@@ -801,7 +801,7 @@
   }
 
   function getImageUrl(photo: AppPhoto) {
-    return `${API_URL}/media/photos/${photo.id}/image`
+    return getPhotoUrl(photo)
   }
 
   async function openImmichModal() {

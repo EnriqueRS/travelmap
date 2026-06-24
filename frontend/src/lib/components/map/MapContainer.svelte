@@ -2,7 +2,7 @@
   import { onMount, onDestroy, createEventDispatcher } from "svelte"
   import { browser } from "$app/environment"
   import { goto } from "$app/navigation"
-  import { toast, languageStore } from "$lib/stores/ui"
+import { toast, languageStore } from "$lib/stores/ui"
   import { t } from "$lib/stores/i18n"
   import { getStatusColor, userProfile } from "$lib/stores/data"
   import type { Location } from "$lib/stores/data"
@@ -16,8 +16,18 @@
   import { Search } from "lucide-svelte"
   import type { AppPhoto } from "$lib/services/media"
   import type { Trip } from "$lib/stores/data"
-  import { API_URL } from "$lib/services/auth"
   import { normalizeString } from "$lib/utils/string"
+  import { getPhotoUrl } from "$lib/utils/images"
+
+  // HTML-escape user-supplied strings before injecting into Leaflet popup HTML
+  function escapeHtml(str: string): string {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;")
+  }
 
   export let height = "100%"
   export let locations: Location[] = []
@@ -117,11 +127,8 @@
       let headerHtml = ""
       let photoUrl = ""
       if (locPhoto) {
-        photoUrl =
-          locPhoto.provider === "local"
-            ? `${API_URL}${locPhoto.url}`
-            : `${API_URL}/media/photos/${locPhoto.id}/image`
-        headerHtml = `<img src="${photoUrl}" style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px 8px 0 0;" />`
+        photoUrl = getPhotoUrl(locPhoto)
+        headerHtml = `<img src="${escapeHtml(photoUrl)}" style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px 8px 0 0;" />`
       } else {
         headerHtml = `<div style="
           height: 80px; 
@@ -141,8 +148,9 @@
         ? loc.category.charAt(0).toUpperCase() + loc.category.slice(1)
         : ""
       const trip = loc.tripId ? trips.find((t) => t.id === loc.tripId) : null
+      const safeTripName = trip ? escapeHtml(trip.name) : ""
       const tripBadge = trip
-        ? `<div style="margin-top: 6px;"><span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${trip.name}</span></div>`
+        ? `<div style="margin-top: 6px;"><span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${safeTripName}</span></div>`
         : ""
       const ratingHtml = loc.rating
         ? `<div style="margin-top: 4px; color: #fbbf24; font-size: 13px;">${"&#9733;".repeat(
@@ -150,12 +158,13 @@
           )}${"&#9734;".repeat(5 - loc.rating)}</div>`
         : ""
 
+      const safeLocName = escapeHtml(loc.name)
       const popupContent = `
         <div class="location-expanded-popup">
           ${headerHtml}
           <div style="padding: 10px 12px 12px;">
-            <h3 style="margin: 0; color: var(--color-text-primary); font-size: 15px; font-weight: 700;">${loc.name}</h3>
-            <p style="margin: 3px 0 0; color: var(--color-text-muted); font-size: 12px;">${categoryLabel}</p>
+            <h3 style="margin: 0; color: var(--color-text-primary); font-size: 15px; font-weight: 700;">${safeLocName}</h3>
+            <p style="margin: 3px 0 0; color: var(--color-text-muted); font-size: 12px;">${escapeHtml(categoryLabel)}</p>
             ${tripBadge}
           </div>
         </div>
@@ -171,7 +180,7 @@
           className: "custom-map-marker location-pin-marker",
           html: `
             <div class="marker-location-pin" style="border-color: ${borderColor}">
-              <img src="${photoUrl}" alt="${loc.name}" class="marker-location-pin-img" />
+              <img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(loc.name)}" class="marker-location-pin-img" />
               <div class="marker-location-pin-dot"></div>
             </div>
           `,
@@ -226,10 +235,7 @@
         return
       }
       if (photo.metadata?.exif?.latitude && photo.metadata?.exif?.longitude) {
-        const url =
-          photo.provider === "local"
-            ? `${API_URL}${photo.url}`
-            : `${API_URL}/media/photos/${photo.id}/image`
+        const url = getPhotoUrl(photo)
         const photoTripId = photo.tripId
         const photoTrip = photoTripId
           ? trips.find((t) => t.id === photoTripId)

@@ -17,7 +17,7 @@
   import { getCountryFlag, getCountryName } from "$lib/utils/countries"
   import { languageStore } from "$lib/stores/ui"
   import { t } from "$lib/stores/i18n"
-  import { API_URL } from "$lib/services/auth"
+  import { getTripCoverUrl } from "$lib/utils/images"
   import ImagePlaceholder from "$lib/components/ui/ImagePlaceholder.svelte"
   import DatePicker from "$lib/components/ui/DatePicker.svelte"
 
@@ -258,8 +258,9 @@
           >
             <div class="trip-image">
               {#if trip.coverImage && trip.coverImage.length > 5 && trip.coverImage !== trip.name}
-                <img
-                  src={`${API_URL}/media/photos/${trip.coverImage}/image`}
+                 <img
+                   src={getTripCoverUrl(trip) || ""}
+
                   alt={$t("trip.coverAlt", { name: trip.name })}
                 />
               {:else}

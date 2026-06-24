@@ -1,86 +1,72 @@
-import { writable } from "svelte/store";
-import { browser } from "$app/environment";
+/**
+ * Comprehensive demo data for TravelMap demo mode.
+ *
+ * Design decisions:
+ *  - Countries use ISO Alpha-2 codes (ES, FR, IT, JP, US, ...). The map page
+ *    converts these to Alpha-3 for matching GeoJSON country boundaries, so
+ *    full Spanish names ("España", "Francia") break the highlighting.
+ *  - Image URLs are direct, public URLs (picsum.photos/seed/...) so they work
+ *    without an authenticated backend. No more `${API_URL}/media/photos/{id}/image`
+ *    lookups for demo content.
+ *  - Spain trips include `provinces` arrays (province names) so the provincial
+ *    tracking feature works in demo mode.
+ *  - Locations include realistic coordinates, categories, ratings, and
+ *    `adminArea1` (province) for Spain locations.
+ *  - DemoPhoto provides a richer photo object with EXIF-like metadata that
+ *    mirrors what the backend would return via Immich/MinIO.
+ *
+ * NOTE: This file is self-contained and does NOT depend on the authenticated
+ * backend, so it can be used to preview the app without a server running.
+ */
 
+import type { Location, Trip, UserProfile } from "./data";
+
+// ---------------------------------------------------------------------------
 // Types
-export interface Location {
+// ---------------------------------------------------------------------------
+
+export interface DemoPhoto {
   id: string;
-  name: string;
-  description: string;
-  country: string;
-  category:
-  | "Monumento"
-  | "Naturaleza"
-  | "Ciudad"
-  | "Ciudad de escala"
-  | "Playa"
-  | "Montaña"
-  | "Cultura"
-  | "Otro";
-  coordinates: [number, number]; // [lat, lng]
-  rating: number;
-  visitedDate: string;
-  images: string[];
+  /** Direct image URL (e.g. https://picsum.photos/seed/xxx/800/600). */
+  url: string;
+  /** Smaller thumbnail variant of the same image. */
+  thumbUrl: string;
+  provider: "demo";
+  showOnMap: boolean;
+  isCover: boolean;
+  isHidden: boolean;
   tripId?: string;
-  adminArea1?: string;
-  adminArea2?: string;
-}
-
-export interface Trip {
-  id: string;
-  userId?: string;
-  name: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  countries: string[];
-  provinces?: string[];
-  status: "Planificado" | "En curso" | "Completado";
-  /**
-   * Cover image reference. In demo/local mode this is a full direct URL
-   * (e.g. https://picsum.photos/seed/eurotrip-2024/800/600); when backed by
-   * the API it holds the photo id used to build the media URL.
-   */
-  coverImage: string;
-  /** Direct URL for demo/local mode, mirrors `coverImage` for demo trips. */
-  coverImageUrl?: string;
-  locations: string[]; // IDs de ubicaciones
-}
-
-export interface UserProfile {
-  id: string;
-  name: string;
-  bio: string;
-  avatar: string;
-  coverImage: string;
-  createdAt: string;
-  stats: {
-    countriesVisited: number;
-    tripsCompleted: number;
-    totalTrips: number;
-    placesVisited: number;
-    photosUploaded: number;
-    furthestPlace: { name: string; distance: number } | null;
+  locationId?: string;
+  /** External provider identifier (e.g. Immich asset id) when applicable. */
+  externalId?: string;
+  metadata?: {
+    exif?: {
+      latitude?: number;
+      longitude?: number;
+      dateTimeOriginal?: string;
+    };
   };
-  homeLocation?: {
-    name: string;
-    coordinates: [number, number];
-  };
-  homeCountry?: string;
-  homeProvince?: string;
 }
 
-// Initial demo data
-// All country codes are ISO Alpha-2 (ES, FR, IT, JP, ...). The map page
-// converts these to Alpha-3 to match GeoJSON boundaries, so full Spanish
-// names ("España") would break country highlighting.
-// All image URLs are direct, public URLs (picsum.photos/seed/...) so demo
-// mode works without an authenticated backend.
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Build a picsum.photos seed URL for a large (cover) image. */
 const cover = (seed: string): string =>
   `https://picsum.photos/seed/${seed}/800/600`;
+
+/** Build a picsum.photos seed URL for a thumbnail image. */
 const thumb = (seed: string): string =>
   `https://picsum.photos/seed/${seed}/400/300`;
 
-const initialTrips: Trip[] = [
+// ---------------------------------------------------------------------------
+// Trips
+// ---------------------------------------------------------------------------
+// Trip IDs are kept as stable string identifiers ("1" .. "14") so they can be
+// cross-referenced by DemoPhoto records and by data.ts initial state.
+
+export const demoTrips: Trip[] = [
   {
     id: "1",
     userId: "demo_user",
@@ -170,7 +156,7 @@ const initialTrips: Trip[] = [
     userId: "demo_user",
     name: "Safari en Tanzania",
     description:
-      "Safari por el Serengeti, el crater del Ngorongoro y las laderas del Kilimanjaro.",
+      "Safari por el Serengeti, el crate del Ngorongoro y las laderas del Kilimanjaro.",
     startDate: "2025-08-01",
     endDate: "2025-08-15",
     countries: ["TZ", "KE"],
@@ -281,7 +267,14 @@ const initialTrips: Trip[] = [
   },
 ];
 
-const initialLocations: Location[] = [
+// ---------------------------------------------------------------------------
+// Locations
+// ---------------------------------------------------------------------------
+// Each location has realistic coordinates (verified against real landmarks),
+// a category, a 1-5 rating, visitedDate, and for Spain locations the
+// adminArea1 province name so the province-level tracking works.
+
+export const demoLocations: Location[] = [
   // --- Trip 1: Eurotrip 2024 ---
   {
     id: "1",
@@ -337,6 +330,7 @@ const initialLocations: Location[] = [
     tripId: "1",
     adminArea1: "Madrid",
   },
+
   // --- Trip 2: Aventura en Japon ---
   {
     id: "5",
@@ -377,6 +371,7 @@ const initialLocations: Location[] = [
     images: [thumb("fushimi-inari-kyoto")],
     tripId: "2",
   },
+
   // --- Trip 3: Ruta 66 ---
   {
     id: "8",
@@ -417,6 +412,7 @@ const initialLocations: Location[] = [
     images: [thumb("gateway-arch-st-louis")],
     tripId: "3",
   },
+
   // --- Trip 4: Patagonia ---
   {
     id: "11",
@@ -457,6 +453,7 @@ const initialLocations: Location[] = [
     images: [thumb("ushuaia-argentina")],
     tripId: "4",
   },
+
   // --- Trip 5: Tailandia ---
   {
     id: "14",
@@ -497,6 +494,7 @@ const initialLocations: Location[] = [
     images: [thumb("doi-suthep-chiang-mai")],
     tripId: "5",
   },
+
   // --- Trip 6: Mexico ---
   {
     id: "17",
@@ -537,7 +535,8 @@ const initialLocations: Location[] = [
     images: [thumb("tulum-ruins-mexico")],
     tripId: "6",
   },
-  // --- Trip 7: Tanzania ---
+
+  // --- Trip 7: Safari en Tanzania ---
   {
     id: "20",
     name: "Serengeti",
@@ -577,6 +576,7 @@ const initialLocations: Location[] = [
     images: [thumb("ngorongoro-crater")],
     tripId: "7",
   },
+
   // --- Trip 8: Grecia y Croacia ---
   {
     id: "23",
@@ -617,6 +617,7 @@ const initialLocations: Location[] = [
     images: [thumb("santorini-oia-greece")],
     tripId: "8",
   },
+
   // --- Trip 9: Costa Oeste USA ---
   {
     id: "26",
@@ -657,7 +658,8 @@ const initialLocations: Location[] = [
     images: [thumb("las-vegas-strip")],
     tripId: "9",
   },
-  // --- Trip 10: Andalucia (provinces) ---
+
+  // --- Trip 10: Ruta por Andalucia (ES, provinces) ---
   {
     id: "29",
     name: "La Alhambra",
@@ -728,7 +730,8 @@ const initialLocations: Location[] = [
     tripId: "10",
     adminArea1: "Malaga",
   },
-  // --- Trip 11: Nepal ---
+
+  // --- Trip 11: Trekking en Nepal ---
   {
     id: "34",
     name: "Everest Base Camp",
@@ -768,7 +771,8 @@ const initialLocations: Location[] = [
     images: [thumb("phewa-lake-pokhara")],
     tripId: "11",
   },
-  // --- Trip 12: Canarias (provinces) ---
+
+  // --- Trip 12: Islas Canarias (ES, provinces) ---
   {
     id: "37",
     name: "Teide",
@@ -811,7 +815,8 @@ const initialLocations: Location[] = [
     tripId: "12",
     adminArea1: "Las Palmas",
   },
-  // --- Trip 13: Londres ---
+
+  // --- Trip 13: Fin de semana en Londres ---
   {
     id: "40",
     name: "Tower Bridge",
@@ -851,7 +856,8 @@ const initialLocations: Location[] = [
     images: [thumb("british-museum-london")],
     tripId: "13",
   },
-  // --- Trip 14: Portugal ---
+
+  // --- Trip 14: Portugal coastal roadtrip ---
   {
     id: "43",
     name: "Torre de Belém",
@@ -893,16 +899,352 @@ const initialLocations: Location[] = [
   },
 ];
 
-const initialProfile: UserProfile = {
+// ---------------------------------------------------------------------------
+// Demo Photos
+// ---------------------------------------------------------------------------
+// One cover photo per trip plus one or two gallery photos per trip cover the
+// most photogenic locations. Coordinates mirror the related location so the
+// map "photos on map" feature works out of the box.
+
+export const demoPhotos: DemoPhoto[] = [
+  // Eurotrip
+  {
+    id: "p-eurotrip-cover",
+    url: cover("eurotrip-2024"),
+    thumbUrl: thumb("eurotrip-2024"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "1",
+    metadata: { exif: { latitude: 48.8584, longitude: 2.2945, dateTimeOriginal: "2024-06-05T12:00:00Z" } },
+  },
+  {
+    id: "p-colosseum",
+    url: cover("colosseum-rome"),
+    thumbUrl: thumb("colosseum-rome"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "1",
+    metadata: { exif: { latitude: 41.8902, longitude: 12.4922, dateTimeOriginal: "2024-06-12T14:00:00Z" } },
+  },
+  // Japan
+  {
+    id: "p-japan-cover",
+    url: cover("japan-adventure-2025"),
+    thumbUrl: thumb("japan-adventure-2025"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "2",
+    metadata: { exif: { latitude: 35.3606, longitude: 138.7274, dateTimeOriginal: "2025-04-15T06:00:00Z" } },
+  },
+  {
+    id: "p-fushimi-inari",
+    url: cover("fushimi-inari-kyoto"),
+    thumbUrl: thumb("fushimi-inari-kyoto"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "2",
+    metadata: { exif: { latitude: 34.9671, longitude: 135.7727, dateTimeOriginal: "2025-04-18T08:00:00Z" } },
+  },
+  // Ruta 66
+  {
+    id: "p-ruta66-cover",
+    url: cover("ruta-66-2023"),
+    thumbUrl: thumb("ruta-66-2023"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "3",
+    metadata: { exif: { latitude: 36.1069, longitude: -112.1129, dateTimeOriginal: "2023-09-10T10:00:00Z" } },
+  },
+  {
+    id: "p-santa-monica",
+    url: cover("santa-monica-pier"),
+    thumbUrl: thumb("santa-monica-pier"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "3",
+    metadata: { exif: { latitude: 34.0092, longitude: -118.4976, dateTimeOriginal: "2023-09-20T18:00:00Z" } },
+  },
+  // Patagonia
+  {
+    id: "p-patagonia-cover",
+    url: cover("patagonia-expedition-2024"),
+    thumbUrl: thumb("patagonia-expedition-2024"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "4",
+    metadata: { exif: { latitude: -50.473, longitude: -73.0369, dateTimeOriginal: "2024-11-10T11:00:00Z" } },
+  },
+  {
+    id: "p-torres-paine",
+    url: cover("torres-del-paine-chile"),
+    thumbUrl: thumb("torres-del-paine-chile"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "4",
+    metadata: { exif: { latitude: -51.0, longitude: -73.0833, dateTimeOriginal: "2024-11-15T07:00:00Z" } },
+  },
+  // Thailand
+  {
+    id: "p-thailand-cover",
+    url: cover("thailand-trip-2025"),
+    thumbUrl: thumb("thailand-trip-2025"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "5",
+    metadata: { exif: { latitude: 13.7437, longitude: 100.4889, dateTimeOriginal: "2025-01-10T09:00:00Z" } },
+  },
+  {
+    id: "p-phi-phi",
+    url: cover("phi-phi-islands-thailand"),
+    thumbUrl: thumb("phi-phi-islands-thailand"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "5",
+    metadata: { exif: { latitude: 7.7407, longitude: 98.7784, dateTimeOriginal: "2025-01-14T12:00:00Z" } },
+  },
+  // Mexico
+  {
+    id: "p-mexico-cover",
+    url: cover("mexico-discovery-2024"),
+    thumbUrl: thumb("mexico-discovery-2024"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "6",
+    metadata: { exif: { latitude: 20.6843, longitude: -88.5678, dateTimeOriginal: "2024-03-15T13:00:00Z" } },
+  },
+  {
+    id: "p-teotihuacan",
+    url: cover("teotihuacan-pyramid"),
+    thumbUrl: thumb("teotihuacan-pyramid"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "6",
+    metadata: { exif: { latitude: 19.6925, longitude: -98.8436, dateTimeOriginal: "2024-03-13T10:00:00Z" } },
+  },
+  // Tanzania
+  {
+    id: "p-tanzania-cover",
+    url: cover("tanzania-safari-2025"),
+    thumbUrl: thumb("tanzania-safari-2025"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "7",
+    metadata: { exif: { latitude: -2.3333, longitude: 34.8333, dateTimeOriginal: "2025-08-05T07:00:00Z" } },
+  },
+  {
+    id: "p-kilimanjaro",
+    url: cover("kilimanjaro-tanzania"),
+    thumbUrl: thumb("kilimanjaro-tanzania"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "7",
+    metadata: { exif: { latitude: -3.0674, longitude: 37.3556, dateTimeOriginal: "2025-08-10T08:00:00Z" } },
+  },
+  // Greece & Croatia
+  {
+    id: "p-greece-cover",
+    url: cover("greece-croatia-2025"),
+    thumbUrl: thumb("greece-croatia-2025"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "8",
+    metadata: { exif: { latitude: 37.9715, longitude: 23.7267, dateTimeOriginal: "2025-06-08T15:00:00Z" } },
+  },
+  {
+    id: "p-santorini",
+    url: cover("santorini-oia-greece"),
+    thumbUrl: thumb("santorini-oia-greece"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "8",
+    metadata: { exif: { latitude: 36.4618, longitude: 25.3753, dateTimeOriginal: "2025-06-10T19:00:00Z" } },
+  },
+  // West Coast USA
+  {
+    id: "p-west-coast-cover",
+    url: cover("west-coast-usa-2023"),
+    thumbUrl: thumb("west-coast-usa-2023"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "9",
+    metadata: { exif: { latitude: 37.8199, longitude: -122.4783, dateTimeOriginal: "2023-07-12T16:00:00Z" } },
+  },
+  {
+    id: "p-half-dome",
+    url: cover("half-dome-yosemite"),
+    thumbUrl: thumb("half-dome-yosemite"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "9",
+    metadata: { exif: { latitude: 37.7456, longitude: -119.5329, dateTimeOriginal: "2023-07-15T11:00:00Z" } },
+  },
+  // Andalucia
+  {
+    id: "p-andalucia-cover",
+    url: cover("andalucia-route-2024"),
+    thumbUrl: thumb("andalucia-route-2024"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "10",
+    metadata: { exif: { latitude: 37.176, longitude: -3.5883, dateTimeOriginal: "2024-05-05T13:00:00Z" } },
+  },
+  {
+    id: "p-mezquita-cordoba",
+    url: cover("mezquita-cordoba"),
+    thumbUrl: thumb("mezquita-cordoba"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "10",
+    metadata: { exif: { latitude: 37.879, longitude: -4.7793, dateTimeOriginal: "2024-05-07T12:00:00Z" } },
+  },
+  // Nepal
+  {
+    id: "p-nepal-cover",
+    url: cover("nepal-trek-2025"),
+    thumbUrl: thumb("nepal-trek-2025"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "11",
+    metadata: { exif: { latitude: 28.0025, longitude: 86.8527, dateTimeOriginal: "2025-10-10T09:00:00Z" } },
+  },
+  {
+    id: "p-phewa-lake",
+    url: cover("phewa-lake-pokhara"),
+    thumbUrl: thumb("phewa-lake-pokhara"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "11",
+    metadata: { exif: { latitude: 28.2096, longitude: 83.9497, dateTimeOriginal: "2025-10-17T16:00:00Z" } },
+  },
+  // Canarias
+  {
+    id: "p-canarias-cover",
+    url: cover("canary-islands-2024"),
+    thumbUrl: thumb("canary-islands-2024"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "12",
+    metadata: { exif: { latitude: 28.2722, longitude: -16.6425, dateTimeOriginal: "2024-02-16T10:00:00Z" } },
+  },
+  {
+    id: "p-maspalomas",
+    url: cover("maspalomas-dunes-gran-canaria"),
+    thumbUrl: thumb("maspalomas-dunes-gran-canaria"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "12",
+    metadata: { exif: { latitude: 27.76, longitude: -15.5853, dateTimeOriginal: "2024-02-20T11:00:00Z" } },
+  },
+  // London
+  {
+    id: "p-london-cover",
+    url: cover("london-weekend-2023"),
+    thumbUrl: thumb("london-weekend-2023"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "13",
+    metadata: { exif: { latitude: 51.5055, longitude: -0.0754, dateTimeOriginal: "2023-12-08T14:00:00Z" } },
+  },
+  {
+    id: "p-british-museum",
+    url: cover("british-museum-london"),
+    thumbUrl: thumb("british-museum-london"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "13",
+    metadata: { exif: { latitude: 51.5194, longitude: -0.127, dateTimeOriginal: "2023-12-09T10:00:00Z" } },
+  },
+  // Portugal
+  {
+    id: "p-portugal-cover",
+    url: cover("portugal-roadtrip-2023"),
+    thumbUrl: thumb("portugal-roadtrip-2023"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: true,
+    isHidden: false,
+    tripId: "14",
+    metadata: { exif: { latitude: 38.6916, longitude: -9.2156, dateTimeOriginal: "2023-08-06T15:00:00Z" } },
+  },
+  {
+    id: "p-ponta-piedade",
+    url: cover("ponta-da-piedade-algarve"),
+    thumbUrl: thumb("ponta-da-piedade-algarve"),
+    provider: "demo",
+    showOnMap: true,
+    isCover: false,
+    isHidden: false,
+    tripId: "14",
+    metadata: { exif: { latitude: 37.08, longitude: -8.67, dateTimeOriginal: "2023-08-14T17:00:00Z" } },
+  },
+];
+
+// ---------------------------------------------------------------------------
+// User Profile
+// ---------------------------------------------------------------------------
+
+export const demoProfile: UserProfile = {
   id: "demo_user",
   name: "Alex Viajero",
-  bio: "Apasionado por descubrir nuevos lugares y culturas. Fotógrafo aficionado.",
+  bio: "Apasionado por descubrir nuevos lugares y culturas. Fotografo aficionado.",
   avatar: "https://picsum.photos/seed/alex-viajero-avatar/200/200",
   coverImage: "https://picsum.photos/seed/alex-viajero-cover/1200/400",
   createdAt: "2024-01-01",
   stats: {
-    // 15 distinct countries across the demo trips:
-    // ES, FR, IT, JP, US, AR, CL, TH, MX, TZ, GR, HR, NP, GB, PT
+    // The demo covers 16 distinct countries across the trips above:
+    // ES, FR, IT, JP, US, AR, CL, TH, MX, TZ, GR, HR, NP, GB, PT (15 distinct).
     countriesVisited: 15,
     tripsCompleted: 10,
     totalTrips: 14,
@@ -921,198 +1263,10 @@ const initialProfile: UserProfile = {
   homeProvince: "Madrid",
 };
 
-// Helper para comprobar si hay usuario autenticado (browser solo)
-const hasUserSession = () => {
-  if (browser) {
-    return !!localStorage.getItem("user");
-  }
-  return false;
-};
-
-// Stores con persistencia y soporte de autenticación
-const createPersistentStore = <T>(key: string, startValue: T) => {
-  let storedValue: string | null = null;
-  let initial: T | null = null;
-  if (browser) {
-    try {
-      storedValue = localStorage.getItem(key);
-      if (storedValue) {
-        initial = JSON.parse(storedValue) as T;
-      }
-    } catch {
-      // Invalid JSON in localStorage, start fresh
-      initial = null;
-    }
-  }
-
-  // Si no hay valor persistido en storage localStorage de DOM (key de travels, locs, etc)...
-  if (!initial) {
-    // Si el usuario ESTÁ logueado, queremos empezar en vacío ([], {}...)
-    // Si NO ESTÁ logueado, cargamos los datos de prueba startValue
-    if (hasUserSession()) {
-      if (Array.isArray(startValue)) {
-        initial = [] as unknown as T;
-      } else {
-        initial = {} as T;
-      }
-    } else {
-      initial = startValue;
-    }
-  }
-
-  const store = writable<T>(initial as T);
-
-  if (browser) {
-    store.subscribe((value) => {
-      localStorage.setItem(key, JSON.stringify(value));
-    });
-  }
-
-  return store;
-};
-
-// Function to reset stores to initial values (useful in logout)
-export const resetStores = () => {
-  trips.set(initialTrips);
-  locations.set(initialLocations);
-  userProfile.set(initialProfile);
-  if (browser) {
-    localStorage.removeItem("travelmap_trips");
-    localStorage.removeItem("travelmap_locations");
-    localStorage.removeItem("travelmap_profile");
-  }
-};
-
-export const trips = createPersistentStore<Trip[]>(
-  "travelmap_trips",
-  initialTrips
-);
-export const locations = createPersistentStore<Location[]>(
-  "travelmap_locations",
-  initialLocations
-);
-export const userProfile = createPersistentStore<UserProfile>(
-  "travelmap_profile",
-  initialProfile
-);
-
-export const updateStores = (userData: any) => {
-  if (!userData) return;
-
-  if (userData.trips) {
-    const formattedTrips = userData.trips.map((t: any) => {
-      // Si el status ya viene en español (como en la DB nueva), respetarlo; si viene en inglés por legacy, adaptarlo
-      let finalStatus = t.status;
-      if (t.status === "planned") finalStatus = "Planificado";
-      if (t.status === "ongoing") finalStatus = "En curso";
-      if (t.status === "completed") finalStatus = "Completado";
-
-      return {
-        id: t.id,
-        userId: userData.id, // Ensure we map the user ID to the trip
-        name: t.name || t.title,
-        description: t.description,
-        startDate: t.startDate,
-        endDate: t.endDate,
-        status: finalStatus,
-        coverImage: t.coverImage || t.coverImageUrl,
-        countries: t.countries || [],
-        locations: t.locations ? t.locations.map((l: any) => l.id) : [],
-        provinces: t.provinces || [],
-      };
-    });
-    trips.set(formattedTrips);
-  }
-
-  if (userData.locations) {
-    const categoryToFrontend: Record<string, string> = {
-      landmark: "Monumento",
-      nature: "Naturaleza",
-      city: "Ciudad",
-      transport: "Ciudad de escala",
-      cultural: "Cultura",
-      activity: "Otro",
-      restaurant: "Otro",
-      accommodation: "Otro",
-      shopping: "Otro",
-      nightlife: "Otro",
-    };
-
-    const formattedLocations = userData.locations.map((loc: any) => ({
-      id: loc.id,
-      name: loc.name || "",
-      description: loc.description || "",
-      country: loc.country?.isoAlpha2 || loc.country?.name || loc.country || "",
-      category: categoryToFrontend[loc.category] || loc.category || "Otro",
-      coordinates: [
-        loc.latitude ?? loc.coordinates?.[0] ?? 0,
-        loc.longitude ?? loc.coordinates?.[1] ?? 0,
-      ],
-      rating: loc.rating || 5,
-      visitedDate: loc.visitDate || loc.visitedDate || "",
-      images: loc.photos
-        ? loc.photos.map((p: any) => p.id)
-        : loc.images || [],
-      tripId: loc.tripId,
-      adminArea1: loc.adminArea1,
-      adminArea2: loc.adminArea2,
-    }));
-    locations.set(formattedLocations);
-  }
-
-  if (userData.statistics) {
-    userProfile.update((profile) => ({
-      ...profile,
-      stats: {
-        countriesVisited: userData.statistics.countriesVisited || 0,
-        tripsCompleted: userData.statistics.tripsCompleted || 0,
-        totalTrips: userData.statistics.totalTrips || 0,
-        placesVisited: userData.statistics.placesVisited || 0,
-        photosUploaded: userData.statistics.photosUploaded || 0,
-        furthestPlace: userData.statistics.furthestPlace || null,
-      },
-    }));
-  }
-
-  // Update profile basic info
-  userProfile.update((profile) => ({
-    ...profile,
-    id: userData.id || profile.id, // Store real logged-in user id
-    name: userData.username, // or firstName + lastName
-    avatar: userData.avatarUrl || profile.avatar,
-    bio: userData.bio || profile.bio,
-    createdAt: userData.createdAt,
-    homeLocation:
-      userData.homeLocationLat && userData.homeLocationLng
-        ? {
-          name: "Home", // We might need to geocode this or store the name
-          coordinates: [userData.homeLocationLat, userData.homeLocationLng],
-        }
-        : profile.homeLocation,
-    homeCountry: userData.homeCountry || profile.homeCountry,
-    homeProvince: userData.homeProvince || profile.homeProvince,
-  }));
-};
-
-// Helpers
-export const getCategoryEmoji = (category: string) => {
-  const map: Record<string, string> = {
-    Naturaleza: "🌲",
-    Ciudad: "🏙️",
-    "Ciudad de escala": "✈️",
-    Playa: "🏖️",
-    Montaña: "🏔️",
-    Cultura: "🏛️",
-    Otro: "📍",
-  };
-  return map[category] || "📍";
-};
-
-export const getStatusColor = (status: string) => {
-  const map: Record<string, string> = {
-    Planificado: "#8babf1",
-    "En curso": "#f59e0b",
-    Completado: "#4ade80",
-  };
-  return map[status] || "#94a3b8";
+/** Convenience default export bundle for callers that want everything at once. */
+export const demoData = {
+  trips: demoTrips,
+  locations: demoLocations,
+  profile: demoProfile,
+  photos: demoPhotos,
 };

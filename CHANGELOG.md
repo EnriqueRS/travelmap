@@ -16,10 +16,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Mobile-optimized batch operations bar with compact icon buttons
 - Keyboard shortcut hint displayed when in selection mode with no photos selected
 - i18n translations for all new batch operation strings (English and Spanish)
+- **14 realistic demo trips** covering 16 countries (ES, FR, IT, JP, US, AR, CL, TH, MX, TZ, KE, GR, HR, NP, GB, PT) with working photos from picsum.photos
+- **45 demo locations** with real coordinates, categories, ratings, and Spain province tracking
+- **29 demo photos** with EXIF metadata for map display — all using direct URLs (no backend needed)
+- **Demo mode CRUD service** (`demo.ts`): create trips, locations, and upload photos locally via localStorage without authentication
+- **Image URL utility** (`images.ts`): shared functions `getTripCoverUrl`, `getPhotoUrl`, `getLocationImageUrl` that handle both direct URLs (demo) and API-based URLs (authenticated)
+- **Example trips showcase** on landing page — 3 demo trip cards visible to unauthenticated users
+- **Demo photos auto-seeding** into localStorage on first load in demo mode
+- MIME type validation for file uploads in demo mode (rejects non-image files)
+- URL safety validation for external photo links in demo mode
+- localStorage quota error handling for demo photo storage
+- try/catch protection for JSON.parse in persistent stores (prevents crash on corrupted localStorage)
 
 ### Improved
 
 - Country multi-select dropdown now auto-focuses the search input when opened, allowing immediate filtering without extra clicks
+- **All demo trip/location data now uses ISO Alpha-2 country codes** (ES, FR, IT...) instead of full Spanish names — fixes map country highlighting
+- **Trip coverImage stores direct URLs** for demo mode, with `coverImageUrl` fallback for seamless image display
+- **All image URLs in pages and map** now use shared utility functions that detect whether the URL is direct or needs API construction
+- **XSS protection**: user-supplied strings (trip names, location names) are HTML-escaped before rendering in Leaflet map popups
+- Landing page: replaced all emoji icons with lucide-svelte icons for consistency
 
 ### Fixed
 
@@ -28,6 +44,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Ctrl/Cmd+click outside selection mode now correctly toggles the clicked photo while keeping any existing selections
 - Profile statistics: countries visited now counts from both `user_country_statuses` and trip countries arrays (was showing 0)
 - Profile statistics: `photosUploaded` now shows actual photo count from database instead of hardcoded 0
+- **Broken image URLs** throughout the app — all `${API_URL}/media/photos/{id}/image` references now check for direct URLs first via shared utility
+- **Map country/province highlighting** — demo data now uses ISO Alpha-2 codes so `countriesInfo.toAlpha3()` works correctly for GeoJSON matching
+- **Demo photos not showing** in gallery and map — now auto-seeded into localStorage on first demo-mode load
+- Removed `console.log` leak of formatted trip data (security hardening)
 - Profile statistics: `tripsCompleted` now correctly counts only trips with status 'Completado' instead of all trips
 - Furthest place calculation: excludes locations with (0,0) coordinates
 - Furthest place calculation: calculates country centroids from `geometry_json` when `centroid_lat` is null

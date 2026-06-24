@@ -2,8 +2,8 @@
   import { createEventDispatcher } from "svelte"
   import { fade, scale } from "svelte/transition"
   import { MapPin, X, Star, Calendar, Tag, Globe, Map as MapIcon, ExternalLink } from "lucide-svelte"
-  import { t } from "$lib/stores/i18n"
-  import { API_URL } from "$lib/services/auth"
+   import { t } from "$lib/stores/i18n"
+   import { getPhotoUrl as getSharedPhotoUrl } from "$lib/utils/images"
   import type { Location } from "$lib/stores/data"
   import type { AppPhoto } from "$lib/services/media"
   import { formatDate } from "$lib/utils/formatters"
@@ -25,10 +25,7 @@
   }
 
   function getPhotoUrl(photo: AppPhoto): string {
-    if (photo.provider === "local") {
-      return `${API_URL}${photo.url}`
-    }
-    return `${API_URL}/media/photos/${photo.id}/image`
+    return getSharedPhotoUrl(photo)
   }
 
   function getCategoryEmoji(category: string): string {
