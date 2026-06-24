@@ -57,10 +57,6 @@ RUN mkdir -p uploads logs && \
 # Cambiar a usuario no-root
 USER nodejs
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3001/health || exit 1
-
 EXPOSE 3001
 
 # Usar dumb-init para manejo de señales
