@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Landing page redesign with cinematic travel photo background (Unsplash) and dark overlay
+- Hero section: full-viewport with "Registra cada paso de tu aventura" heading, subtitle, and two CTAs (Explorar Mapa / Mis Viajes)
+- Features section: 3 feature cards (Mapa Interactivo, Galería de Fotos, Planificador de Viajes)
+- Stats section: 3 counters (120k+ Travelers, 195 Countries, 4M+ Photos)
+- CTA section with photo background matching hero style
+- i18n keys for all new landing page sections (ES/EN)
+
+### Changed
+
+- Landing page hero now uses hardcoded white text with enhanced text-shadows for consistent contrast across all themes (Light, Deep Sea, Neon Obsidian)
+- Landing page feature cards replaced old demo trips showcase with cleaner 3-card layout
+- Removed unused BarChart3 icon import from landing page
+
 - Multi-select photos with Shift+click (range select) and Ctrl/Cmd+click (toggle individual)
 - Auto-enter selection mode when Shift/Ctrl clicking thumbnails
 - Batch operations toolbar: Show on Map, Hide from Map, Hide from Gallery, Show in Gallery, Delete
