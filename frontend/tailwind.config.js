@@ -67,8 +67,8 @@ export default {
         'glow': 'var(--shadow-glow)',
       },
       fontFamily: {
-        heading: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        body: ['Inter', 'system-ui', 'sans-serif'],
+        heading: ['Playfair Display', 'Georgia', 'serif'],
+        body: ['DM Sans', 'system-ui', 'sans-serif'],
       },
       transitionDuration: {
         'fast': '150ms',

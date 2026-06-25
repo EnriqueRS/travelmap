@@ -1,6 +1,6 @@
-# TravelMap Design System — Horizonte
+# TravelMap Design System — Expedition
 
-> This document defines the canonical design system for TravelMap. It is sourced from the **Horizonte** design system defined in the Stitch MCP project (`projects/3992922722222120718`). All new UI code MUST follow these specifications.
+> This document defines the canonical design system for TravelMap. All new UI code MUST follow these specifications.
 
 ---
 
@@ -24,9 +24,9 @@
 
 ## 1. Brand & Style
 
-The design system is built for a modern travel experience, evoking feelings of exploration, reliability, and ease. The personality is adventurous yet structured, providing a "digital compass" for the modern traveler.
+The design system is built for a modern travel experience, evoking feelings of exploration, reliability, and ease. The personality is adventurous yet refined — editorial, sophisticated, warm.
 
-The visual style is **Corporate Modern with Glassmorphic accents**. It utilizes high-quality photography as a backdrop for interactive elements, maintaining a professional clarity while introducing depth through subtle translucency and gradients. The UI prioritizes content legibility and ease of navigation through a clean, card-based architecture that feels lightweight and expansive.
+The visual style is **Editorial Modern with warm tonal depth**. It pairs a warm charcoal base with a distinctive ocean blue accent, creating a premium travel-magazine feel. The UI prioritizes content legibility and ease of navigation through a clean, card-based architecture with generous whitespace and refined typography.
 
 ---
 
@@ -48,33 +48,27 @@ Examples: `--color-bg-main`, `--color-text-muted`, `--radius-md`
 
 ### 3.1 Brand Palette
 
-The palette is rooted in a sophisticated deep purple-to-blue gradient (`#4a569d`). This primary core is supported by functional neutrals that ensure high accessibility.
+The palette is rooted in a sophisticated ocean blue (`#1a7adb`) against a warm charcoal background (`#121212`). This primary core is supported by warm neutrals that feel organic and refined, avoiding cold or generic tones.
 
 | Role | Hex | Usage |
 |---|---|---|
-| **Primary** | `#4a569d` | High-impact surfaces, hero section, primary buttons, active states |
-| **Primary Dark** | `#323e84` | Hover states, pressed states |
-| **On Primary** | `#ffffff` | Text on primary backgrounds |
-| **Primary Container** | `#ccd1ff` | Container backgrounds, muted primary areas |
-| **Secondary** | `#3a5d9e` | Secondary actions, badges |
-| **Secondary Container** | `#97b8ff` | Muted secondary backgrounds |
-| **Tertiary** | `#2b29bb` | Interactive icons, small callouts |
-| **Tertiary Container** | `#4647d3` | Tertiary backgrounds |
+| **Primary** | `#1a7adb` | Primary buttons, active states, key interactive elements |
+| **Primary Hover** | `#1565c0` | Hover states, pressed states |
+| **On Primary** | `#121212` / `#ffffff` | Text on primary backgrounds (varies by theme) |
+| **Primary Accent Text** | `#4a9adb` | Accent-colored links and highlights on dark bg |
+| **Secondary** | `#d4c5a9` | Warm sand accents, secondary badges, decorative elements |
+| **Secondary Hover** | `#c4b494` | Secondary hover states |
 
 ### 3.2 Surface & Background Colors
 
-Pure white (`#FFFFFF`) is used for primary cards, while the neutral background (`#f7f9fb`) provides subtle contrast.
+Warm charcoal for dark theme, warm cream for light theme. No cold grays.
 
-| Token | Hex | Tailwind | Usage |
+| Token | Dark Theme | Light Theme | Usage |
 |---|---|---|---|
-| `--color-surface` | `#f7f9fb` | `bg-surface` | Page background |
-| `--color-surface-dim` | `#d8dadc` | `bg-surface-dim` | Dimmed surfaces |
-| `--color-surface-bright` | `#f7f9fb` | `bg-surface-bright` | Bright surfaces |
-| `--color-surface-container-lowest` | `#ffffff` | `bg-surface-container-lowest` | Elevated cards |
-| `--color-surface-container-low` | `#f2f4f6` | `bg-surface-container-low` | Subtle containers |
-| `--color-surface-container` | `#eceef0` | `bg-surface-container` | Default containers |
-| `--color-surface-container-high` | `#e6e8ea` | `bg-surface-container-high` | Elevated containers |
-| `--color-surface-container-highest` | `#e0e3e5` | `bg-surface-container-highest` | Highest elevation |
+| `--color-bg-main` | `#121212` | `#f5f2eb` | Page background |
+| `--color-bg-secondary` | `#1a1a1a` | `#faf8f4` | Cards, containers |
+| `--color-bg-tertiary` | `#242424` | `#eeebe4` | Subtle surfaces, input backgrounds |
+| `--color-bg-elevated` | `#2a2a2a` | `#ffffff` | Elevated cards, popovers |
 
 ### 3.3 Text Colors
 
@@ -89,18 +83,18 @@ Pure white (`#FFFFFF`) is used for primary cards, while the neutral background (
 
 | Token | Hex | Usage |
 |---|---|---|
-| `--color-error` | `#ba1a1a` | Destructive actions, errors |
-| `--color-on-error` | `#ffffff` | Text on error backgrounds |
-| `--color-error-container` | `#ffdad6` | Muted error background |
+| `--color-error` | `#d94a4a` | Destructive actions, errors |
+| `--color-success` | `#3a9d6e` | Success states |
+| `--color-warning` | `#d4943a` | Warning states |
 
 ### 3.5 Map Status Colors
 
 | Token | Hex | Usage |
 |---|---|---|
-| `--color-map-visited` | `#4a569d` | Visited country/province fill |
-| `--color-map-planned` | `#f59e0b` | Planned trip fill |
-| `--color-map-home` | `#ef4444` | Home marker |
-| `--color-map-highlight` | `#6366f1` | Hover/selected feature |
+| `--color-map-visited` | `#1a7adb` | Visited country/province fill |
+| `--color-map-planned` | `#d4c5a9` | Planned trip fill |
+| `--color-map-home` | `#d94a4a` | Home marker |
+| `--color-map-highlight` | `#4a9adb` | Hover/selected feature |
 
 ### 3.6 Color Usage Rules
 
@@ -115,23 +109,17 @@ Pure white (`#FFFFFF`) is used for primary cards, while the neutral background (
 
 ### 4.1 Font Family
 
-The system uses **Inter** exclusively to maintain a clean, systematic, and highly legible interface.
+The system uses **DM Sans** for body text and **Playfair Display** for headings — a distinctive editorial pairing that avoids generic sans-serif interfaces.
 
-| Token | Value | Usage |
-|---|---|---|
-| `--font-family` | `Inter, system-ui, sans-serif` | All text |
-
-### 4.2 Type Scale
-
-| Level | Size | Weight | Line Height | Letter Spacing | Usage |
+| Level | Font | Size | Weight | Line Height | Usage |
 |---|---|---|---|---|---|
-| **Display LG** | `48px` | 700 | `56px` | `-0.02em` | Hero headings, landing page |
-| **Headline LG** | `32px` | 700 | `40px` | `-0.01em` | Page titles |
-| **Headline LG (Mobile)** | `28px` | 700 | `36px` | — | Page titles on mobile |
-| **Title MD** | `20px` | 600 | `28px` | — | Card titles, modal titles |
-| **Body LG** | `16px` | 400 | `24px` | — | Primary body text |
-| **Body SM** | `14px` | 400 | `20px` | — | Default body, card content |
-| **Label Bold** | `12px` | 600 | `16px` | — | Labels, buttons, metadata |
+| **Display** | Playfair Display | `2rem` (32px) | 700 | 1.25 | Page titles, hero |
+| **Headline** | Playfair Display | `1.625rem` (26px) | 600 | 1.3 | Section titles, modal titles |
+| **Subheadline** | Playfair Display | `1.375rem` (22px) | 600 | 1.35 | Card titles, subsections |
+| **Title** | DM Sans | `1.125rem` (18px) | 600 | 1.4 | Small section headers |
+| **Body Large** | DM Sans | `1rem` (16px) | 400 | 1.5 | Primary body text |
+| **Body** | DM Sans | `0.875rem` (14px) | 400 | 1.5 | Default body, card content |
+| **Caption** | DM Sans | `0.75rem` (12px) | 500 | 1.5 | Timestamps, metadata |
 
 ### 4.3 Typography Rules
 
@@ -235,10 +223,10 @@ Depth is created through a combination of **Ambient Shadows** and **Tonal Layeri
 
 | Variant | Background | Text | Border | Usage |
 |---|---|---|---|---|
-| **Primary** | `#4a569d` (primary) | `#ffffff` | None | Primary CTA |
-| **Primary Hover** | `#323e84` | `#ffffff` | None | Primary CTA hover |
-| **Secondary** | Transparent | `#4a569d` | `2px solid #4a569d` | Secondary actions |
-| **Ghost** | Transparent | `#4a569d` | None | Tertiary actions |
+| **Primary** | `#1a7adb` (ocean blue) | `#121212` (dark) / `#ffffff` (light) | None | Primary CTA |
+| **Primary Hover** | `#1565c0` | `#121212` / `#ffffff` | None | Primary CTA hover |
+| **Secondary** | Transparent | `#1a7adb` | `2px solid #1a7adb` | Secondary actions |
+| **Ghost** | Transparent | `#4a9adb` | None | Tertiary actions |
 
 #### Sizes
 
@@ -259,7 +247,7 @@ Depth is created through a combination of **Ambient Shadows** and **Tonal Layeri
 | Property | Value |
 |---|---|
 | Background | Soft grey `#f1f5f9` (default), white on focus |
-| Border | None (default); `2px solid #4a569d` (focus) |
+| Border | None (default); `2px solid #1a7adb` (focus) |
 | Border Radius | `--radius-base` (8px) |
 | Padding | `0.625rem 0.75rem` |
 | Font | `Inter, 0.875rem` |
@@ -285,7 +273,7 @@ Feature cards are the heart of this system. They must include a centered icon in
 |---|---|
 | Background | White (`#ffffff`) |
 | Border Radius | `--radius-md` (12px) |
-| Shadow | `0px 4px 20px rgba(74, 86, 157, 0.08)` |
+| Shadow | `0px 4px 20px rgba(26, 122, 219, 0.08)` |
 | Padding | `--space-md` (24px) |
 
 ### 8.5 Chips / Badges
@@ -295,7 +283,7 @@ Used for categories (e.g., "Vuelos", "Hoteles"). Chips should be pill-shaped wit
 | Property | Value |
 |---|---|
 | Shape | Pill (`--radius-full`) |
-| Background | `rgba(74, 86, 157, 0.1)` |
+| Background | `rgba(26, 122, 219, 0.1)` |
 | Text | `#191c1e` |
 | Font | `12px`, 600 weight |
 | Padding | `px-3 py-1` |
@@ -374,12 +362,10 @@ Themes are implemented via CSS custom properties on a root-level class. Componen
 
 ### Current Theme
 
-TravelMap currently uses a **Light** theme as defined by the Horizonte design system:
-- Surface background: `#f7f9fb`
-- Card background: `#ffffff`
-- Primary: `#4a569d`
-- Text: `#191c1e`
-- Font: Inter
+TravelMap currently uses the **Expedition** design system with three themes:
+- **Expedition Dark** (default): Warm charcoal background, ocean blue accent, Playfair Display + DM Sans
+- **Light Mode**: Warm cream background, deeper blue accent
+- **Obsidian**: True black, electric blue neon accents
 
 ### Theme Compliance Checklist
 
@@ -460,17 +446,11 @@ Many components bypass the CSS custom property theming system entirely. Variable
 
 | Current Pattern | Replace With |
 |---|---|
-| `#0f172a` | `var(--color-surface-container-lowest)` or `var(--color-surface-container-low)` |
-| `#1e293b` | `var(--color-surface-container)` |
-| `#334155` | `var(--color-surface-container-high)` |
-| `#3b82f6` | `var(--color-primary)` or `#4a569d` |
-| `#94a3b8` | `var(--color-on-surface-variant)` |
-| `#64748b` | `var(--color-outline)` |
-| `#475569` | `var(--color-outline-variant)` |
-| `#ef4444` | `var(--color-error)` |
-| `rgba(239,68,68,0.1)` | `var(--color-error-container)` or equivalent |
-| Arbitrary `border-radius` | Token from `--radius-*` scale |
-| Arbitrary `padding`/`margin` | Token from `--space-*` scale |
+| `#0f172a` | `var(--color-bg-main)` or `#121212` |
+| `#1e293b` | `var(--color-bg-secondary)` or `#1a1a1a` |
+| `#3b82f6` | `var(--color-accent-primary)` or `#1a7adb` |
+| `#4f46e5` | `var(--color-accent-primary)` or `#1565c0` |
+| `#4a569d` | `var(--color-accent-primary)` or `#1a7adb` |
 
 ---
 

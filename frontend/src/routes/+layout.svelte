@@ -146,7 +146,7 @@
                   <span
                     class={currentTheme === "theme-sea-blue"
                       ? "text-accent-primary font-medium"
-                      : "text-text-primary"}>{$t("nav.themeSeaBlue")}</span
+                      : "text-text-primary"}>{$t("nav.themeExpedition")}</span
                   >
                   {#if currentTheme === "theme-sea-blue"}
                     <Check size={14} class="text-accent-primary" />
@@ -172,7 +172,7 @@
                   <span
                     class={currentTheme === "theme-neon-obsidian"
                       ? "text-accent-primary font-medium"
-                      : "text-text-primary"}>{$t("nav.themeNeon")}</span
+                      : "text-text-primary"}>{$t("nav.themeObsidian")}</span
                   >
                   {#if currentTheme === "theme-neon-obsidian"}
                     <Check size={14} class="text-accent-primary" />

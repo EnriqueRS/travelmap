@@ -13,9 +13,9 @@ export const translations = {
       home: "Inicio",
       changeTheme: "Cambiar Tema",
       changeLanguage: "Cambiar Idioma",
-      themeSeaBlue: "Deep Sea",
+      themeExpedition: "Expedición",
       themeLight: "Modo Claro",
-      themeNeon: "Neon Obsidian",
+      themeObsidian: "Obsidiana",
     },
     // Login & Register
     auth: {
@@ -484,9 +484,9 @@ landing: {
       login: "Login",
       logout: "Log out",
       home: "Home",
-      themeSeaBlue: "Deep Sea",
+      themeExpedition: "Expedition",
       themeLight: "Light Mode",
-      themeNeon: "Neon Obsidian",
+      themeObsidian: "Obsidian",
     },
     // Login & Register
     auth: {

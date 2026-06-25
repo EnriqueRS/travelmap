@@ -1,5 +1,5 @@
-/* src/app.css - TravelMap Design System */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+/* src/app.css - TravelMap Design System "Expedition" */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,177 +8,164 @@
 @layer base {
   :root {
     /* ═══════════════════════════════════════════════════════
-       DEFAULT THEME: Sea Blue (Dark)
-       Modern deep-blue dark theme with vibrant accents
+       DEFAULT THEME: Expedition Dark
+       Warm charcoal editorial — travel magazine aesthetic
        ═══════════════════════════════════════════════════════ */
 
-    /* Backgrounds */
-    --color-bg-main: #0a0f1e;
-    --color-bg-secondary: #131b2e;
-    --color-bg-tertiary: #1c2640;
-    --color-bg-elevated: #1e2a45;
+    /* Backgrounds — warm, deep, luxurious */
+    --color-bg-main: #121212;
+    --color-bg-secondary: #1a1a1a;
+    --color-bg-tertiary: #242424;
+    --color-bg-elevated: #2a2a2a;
 
-    /* Text */
-    --color-text-primary: #f1f5f9;
-    --color-text-secondary: #94a3b8;
-    --color-text-muted: #64748b;
-    --color-text-inverse: #0a0f1e;
+    /* Text — warm off-white for readability */
+    --color-text-primary: #f0ede8;
+    --color-text-secondary: #a39e96;
+    --color-text-muted: #7a7570;
+    --color-text-inverse: #121212;
 
-    /* Accent / Brand */
-    --color-accent-primary: #3b82f6;
-    --color-accent-hover: #2563eb;
-    --color-accent-muted: rgba(59, 130, 246, 0.12);
-    --color-accent-text: #60a5fa;
+    /* Accent — Ocean Blue: rich, distinctive, no purple */
+    --color-accent-primary: #1a7adb;
+    --color-accent-hover: #1565c0;
+    --color-accent-muted: rgba(26, 122, 219, 0.12);
+    --color-accent-text: #4a9adb;
 
-    /* Borders */
-    --color-border: #1e2a45;
-    --color-border-light: #2d3f5e;
+    /* Secondary — Warm sand, vintage map feel */
+    --color-secondary: #d4c5a9;
+    --color-secondary-hover: #c4b494;
+    --color-secondary-muted: rgba(212, 197, 169, 0.12);
+
+    /* Borders — warm-toned */
+    --color-border: #2a2826;
+    --color-border-light: #3a3835;
 
     /* Status: Danger */
-    --color-danger: #ef4444;
-    --color-danger-hover: #dc2626;
-    --color-danger-muted: rgba(239, 68, 68, 0.1);
-    --color-danger-border: rgba(239, 68, 68, 0.2);
-    --color-danger-text: #f87171;
+    --color-danger: #d94a4a;
+    --color-danger-hover: #c23d3d;
+    --color-danger-muted: rgba(217, 74, 74, 0.1);
+    --color-danger-border: rgba(217, 74, 74, 0.25);
+    --color-danger-text: #e86868;
 
     /* Status: Success */
-    --color-success: #10b981;
-    --color-success-hover: #059669;
-    --color-success-muted: rgba(16, 185, 129, 0.1);
-    --color-success-text: #34d399;
+    --color-success: #3a9d6e;
+    --color-success-hover: #2e8a5f;
+    --color-success-muted: rgba(58, 157, 110, 0.1);
+    --color-success-text: #4db880;
 
     /* Status: Warning */
-    --color-warning: #f59e0b;
-    --color-warning-hover: #d97706;
-    --color-warning-muted: rgba(245, 158, 11, 0.1);
-    --color-warning-text: #fbbf24;
+    --color-warning: #d4943a;
+    --color-warning-hover: #c0842e;
+    --color-warning-muted: rgba(212, 148, 58, 0.1);
+    --color-warning-text: #e0a84a;
 
     /* Map Status Colors */
-    --color-map-visited: #3b82f6;
-    --color-map-planned: #f59e0b;
-    --color-map-wished: #a855f7;
-    --color-map-home: #ef4444;
-    --color-map-highlight: #60a5fa;
+    --color-map-visited: #1a7adb;
+    --color-map-planned: #1a7adb;
+    --color-map-wished: #7a8a9a;
+    --color-map-home: #d94a4a;
+    --color-map-highlight: #4a9adb;
 
-    /* Tertiary accent (amber) */
-    --color-third: #f59e0b;
-    --color-third-hover: #d97706;
+    /* Tertiary accent */
+    --color-third: #d4c5a9;
+    --color-third-hover: #c4b494;
 
-    /* Radius Scale */
-    --radius-sm: 0.25rem;
+    /* Radius Scale — refined, slightly sharper */
+    --radius-sm: 0.1875rem;
     --radius-md: 0.375rem;
     --radius-base: 0.5rem;
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
-    --radius-2xl: 1.5rem;
+    --radius-2xl: 1.25rem;
     --radius-full: 9999px;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-    --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+    /* Shadows — deep but soft */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.35);
+    --shadow-glow: 0 0 24px rgba(26, 122, 219, 0.12);
 
     /* Typography */
-    --font-heading: "Plus Jakarta Sans", system-ui, sans-serif;
-    --font-body: Inter, system-ui, sans-serif;
+    --font-heading: "Playfair Display", Georgia, serif;
+    --font-body: "DM Sans", system-ui, sans-serif;
 
     /* Transitions */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* ═══════════════════════════════════════════════════════
-     LIGHT THEME: Clean & Refined
-     Warm whites, subtle depth, professional feel
+     LIGHT THEME: Warm Paper
+     Creamy off-white with warm undertones
      ═══════════════════════════════════════════════════════ */
   .theme-light {
-    /* Backgrounds - warm white palette with clear hierarchy */
-    --color-bg-main: #f7f8fc;
-    --color-bg-secondary: #ffffff;
-    --color-bg-tertiary: #eef1f8;
+    --color-bg-main: #f5f2eb;
+    --color-bg-secondary: #faf8f4;
+    --color-bg-tertiary: #eeebe4;
     --color-bg-elevated: #ffffff;
 
-    /* Text - strong contrast with warm undertones */
-    --color-text-primary: #1a1f36;
-    --color-text-secondary: #3c4257;
-    --color-text-muted: #6b7394;
-    --color-text-inverse: #ffffff;
+    --color-text-primary: #1c1917;
+    --color-text-secondary: #5c5650;
+    --color-text-muted: #8a847e;
+    --color-text-inverse: #faf8f4;
 
-    /* Accent / Brand - vibrant blue with better saturation */
-    --color-accent-primary: #4f46e5;
-    --color-accent-hover: #4338ca;
-    --color-accent-muted: rgba(79, 70, 229, 0.08);
-    --color-accent-text: #4f46e5;
+    --color-accent-primary: #1565c0;
+    --color-accent-hover: #0d4f9a;
+    --color-accent-muted: rgba(21, 101, 192, 0.08);
+    --color-accent-text: #1565c0;
 
-    /* Borders - subtle but visible */
-    --color-border: #e3e8f0;
-    --color-border-light: #d1d9e6;
+    --color-secondary: #b8a88c;
+    --color-secondary-hover: #a8987c;
+    --color-secondary-muted: rgba(184, 168, 140, 0.12);
 
-    /* Status: Danger */
-    --color-danger: #dc2626;
-    --color-danger-hover: #b91c1c;
-    --color-danger-muted: rgba(220, 38, 38, 0.08);
-    --color-danger-border: rgba(220, 38, 38, 0.2);
-    --color-danger-text: #dc2626;
+    --color-border: #e5e0d8;
+    --color-border-light: #d5d0c8;
 
-    /* Status: Success */
-    --color-success: #059669;
-    --color-success-hover: #047857;
-    --color-success-muted: rgba(5, 150, 105, 0.08);
-    --color-success-text: #059669;
+    --color-third: #b8a88c;
+    --color-third-hover: #a8987c;
 
-    /* Status: Warning */
-    --color-warning: #d97706;
-    --color-warning-hover: #b45309;
-    --color-warning-muted: rgba(217, 119, 6, 0.08);
-    --color-warning-text: #d97706;
-
-    /* Tertiary accent - purple */
-    --color-third: #7c3aed;
-    --color-third-hover: #6d28d9;
-
-    /* Shadows - soft and layered for depth */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.03);
-    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.04), 0 4px 8px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.04), 0 10px 20px -4px rgba(0, 0, 0, 0.08);
-    --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.06), 0 20px 40px -8px rgba(0, 0, 0, 0.1);
-    --shadow-glow: 0 0 20px rgba(79, 70, 229, 0.08);
+    --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.04), 0 1px 3px rgba(28, 25, 23, 0.03);
+    --shadow-md: 0 2px 4px rgba(28, 25, 23, 0.04), 0 4px 8px rgba(28, 25, 23, 0.06);
+    --shadow-lg: 0 4px 12px rgba(28, 25, 23, 0.06), 0 8px 24px rgba(28, 25, 23, 0.08);
+    --shadow-xl: 0 8px 24px rgba(28, 25, 23, 0.08), 0 16px 48px rgba(28, 25, 23, 0.1);
+    --shadow-glow: 0 0 20px rgba(21, 101, 192, 0.06);
   }
 
   /* ═══════════════════════════════════════════════════════
      NEON OBSIDIAN THEME: Cyberpunk
-     True black with neon cyan accents
+     True black with neon vermilion energy
      ═══════════════════════════════════════════════════════ */
   .theme-neon-obsidian {
-    --color-bg-main: #030303;
+    --color-bg-main: #050505;
     --color-bg-secondary: #0a0a0a;
-    --color-bg-tertiary: #111111;
-    --color-bg-elevated: #151515;
+    --color-bg-tertiary: #141414;
+    --color-bg-elevated: #181818;
 
-    --color-text-primary: #f0f0f0;
-    --color-text-secondary: #a0a0a0;
-    --color-text-muted: #666666;
-    --color-text-inverse: #030303;
+    --color-text-primary: #f0ede8;
+    --color-text-secondary: #9a9590;
+    --color-text-muted: #6a6560;
+    --color-text-inverse: #050505;
 
-    --color-accent-primary: #00e5ff;
-    --color-accent-hover: #00bcd4;
-    --color-accent-muted: rgba(0, 229, 255, 0.08);
-    --color-accent-text: #00e5ff;
+    --color-accent-primary: #00b4ff;
+    --color-accent-hover: #0099e6;
+    --color-accent-muted: rgba(0, 180, 255, 0.1);
+    --color-accent-text: #00b4ff;
+
+    --color-secondary: #6a9aba;
+    --color-secondary-hover: #5a8aaa;
+    --color-secondary-muted: rgba(106, 154, 186, 0.08);
 
     --color-border: #1a1a1a;
     --color-border-light: #2a2a2a;
 
-    --color-third: #ff003c;
-    --color-third-hover: #cc0030;
+    --color-third: #00b4ff;
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -4px rgba(0, 0, 0, 0.6);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
-    --shadow-glow: 0 0 30px rgba(0, 229, 255, 0.15), 0 0 60px rgba(0, 229, 255, 0.05);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.7);
+    --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.8);
+    --shadow-glow: 0 0 30px rgba(0, 180, 255, 0.15), 0 0 60px rgba(0, 180, 255, 0.05);
   }
 
   /* ═══════════════════════════════════════════════════════
@@ -201,18 +188,16 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     color: var(--color-text-primary);
-    letter-spacing: -0.025em;
   }
 
-  h1 { font-size: 1.875rem; font-weight: 700; line-height: 1.3; }
-  h2 { font-size: 1.5rem; font-weight: 600; line-height: 1.3; }
-  h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.4; }
+  h1 { font-size: 2rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; }
+  h2 { font-size: 1.625rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.005em; }
+  h3 { font-size: 1.375rem; font-weight: 600; line-height: 1.35; }
   h4 { font-size: 1.125rem; font-weight: 600; line-height: 1.4; }
 }
 
 /* ═══════════════════════════════════════════════════════
-   COMPONENT LAYER: Canonical UI Components
-   These are the ONLY button/input/card styles allowed.
+   COMPONENT LAYER
    ═══════════════════════════════════════════════════════ */
 @layer components {
 
@@ -220,6 +205,7 @@
   .btn {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-200 border outline-none cursor-pointer select-none;
     border-radius: var(--radius-base);
+    font-family: var(--font-body);
   }
 
   .btn:disabled {
@@ -230,7 +216,6 @@
     transform: scale(0.97);
   }
 
-  /* Primary: Main CTA (blue/accent) */
   .btn-primary {
     background-color: var(--color-accent-primary);
     color: var(--color-text-inverse);
@@ -247,7 +232,6 @@
     outline-offset: 2px;
   }
 
-  /* Secondary: Alternative actions (muted) */
   .btn-secondary {
     background-color: var(--color-bg-tertiary);
     color: var(--color-text-primary);
@@ -257,14 +241,12 @@
   .btn-secondary:hover:not(:disabled) {
     background-color: var(--color-border-light);
     border-color: var(--color-border-light);
-    color: var(--color-text-primary);
   }
   .btn-secondary:focus-visible {
     outline: 2px solid var(--color-accent-primary);
     outline-offset: 2px;
   }
 
-  /* Ghost: Minimal/toolbar actions */
   .btn-ghost {
     background-color: transparent;
     color: var(--color-text-secondary);
@@ -279,22 +261,20 @@
     outline-offset: 2px;
   }
 
-  /* Danger: Destructive actions (outlined/muted) */
   .btn-danger {
     background-color: var(--color-danger-muted);
     color: var(--color-danger-text);
     border-color: var(--color-danger-border);
   }
   .btn-danger:hover:not(:disabled) {
-    background-color: rgba(239, 68, 68, 0.2);
-    border-color: rgba(239, 68, 68, 0.4);
+    background-color: rgba(217, 74, 74, 0.18);
+    border-color: rgba(217, 74, 74, 0.35);
   }
   .btn-danger:focus-visible {
     outline: 2px solid var(--color-danger);
     outline-offset: 2px;
   }
 
-  /* Danger Solid: Confirmation of destructive action */
   .btn-danger-solid {
     background-color: var(--color-danger);
     color: #ffffff;
@@ -311,7 +291,6 @@
     outline-offset: 2px;
   }
 
-  /* Button Sizes */
   .btn-sm {
     @apply px-3 py-1.5 text-xs gap-1.5;
     min-height: 28px;
@@ -328,6 +307,7 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-base);
     color: var(--color-text-primary);
+    font-family: var(--font-body);
   }
   .input-box::placeholder {
     color: var(--color-text-muted);
@@ -380,9 +360,9 @@
   /* ─── MODALS ──────────────────────────────────────────── */
   .modal-overlay {
     @apply fixed inset-0 flex items-center justify-center z-[100] p-4;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
 
   .modal-container {
@@ -409,6 +389,7 @@
   .modal-title {
     @apply text-lg font-semibold;
     color: var(--color-text-primary);
+    font-family: var(--font-heading);
   }
 
   .modal-body {
@@ -444,7 +425,7 @@
   .badge-success {
     background-color: var(--color-success-muted);
     color: var(--color-success-text);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(58, 157, 110, 0.2);
   }
   .badge-pill {
     border-radius: var(--radius-full);
@@ -470,11 +451,10 @@
   background: rgba(10, 10, 10, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 180, 255, 0.08);
   box-shadow: var(--shadow-glow);
 }
 
-/* Neon Obsidian: Sharper corners */
 .theme-neon-obsidian .btn,
 .theme-neon-obsidian .input-box {
   border-radius: var(--radius-sm);
@@ -484,43 +464,38 @@
   border-radius: var(--radius-base);
 }
 
-/* Neon Obsidian: Neon glow buttons */
 .theme-neon-obsidian .btn-primary {
   background: transparent;
   color: var(--color-accent-primary);
   border: 1px solid var(--color-accent-primary);
-  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2), inset 0 0 10px rgba(0, 229, 255, 0.05);
+  box-shadow: 0 0 10px rgba(0, 180, 255, 0.15), inset 0 0 10px rgba(0, 180, 255, 0.03);
 }
 .theme-neon-obsidian .btn-primary:hover:not(:disabled) {
   background: var(--color-accent-primary);
   color: var(--color-text-inverse);
-  box-shadow: 0 0 25px rgba(0, 229, 255, 0.5), 0 0 50px rgba(0, 229, 255, 0.2);
+  box-shadow: 0 0 25px rgba(0, 180, 255, 0.4), 0 0 50px rgba(0, 180, 255, 0.15);
 }
 
-/* Neon Obsidian: Neon focus rings */
 .theme-neon-obsidian .input-box:focus {
-  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.3), 0 0 15px rgba(0, 229, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(0, 180, 255, 0.25), 0 0 15px rgba(0, 180, 255, 0.08);
 }
 
-/* Neon Obsidian: Modal glow */
 .theme-neon-obsidian .modal-container {
-  border: 1px solid rgba(0, 229, 255, 0.15);
-  box-shadow: 0 0 40px rgba(0, 229, 255, 0.1), var(--shadow-xl);
+  border: 1px solid rgba(0, 180, 255, 0.1);
+  box-shadow: 0 0 40px rgba(0, 180, 255, 0.08), var(--shadow-xl);
 }
 
-/* Light theme: Elevated cards with more shadow */
+/* Light theme overrides */
 .theme-light .card-elevated {
   box-shadow: var(--shadow-lg);
 }
 
-/* Light theme: Cards with subtle border and clean shadows */
 .theme-light .card,
 .theme-light .card-elevated {
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-md);
 }
 
-/* Light theme: Inputs with cleaner look */
 .theme-light .input-box {
   background-color: #ffffff;
   border-color: var(--color-border);
@@ -531,7 +506,6 @@
   background-color: #ffffff;
 }
 
-/* Light theme: Secondary buttons with soft style */
 .theme-light .btn-secondary {
   background-color: #ffffff;
   border-color: var(--color-border);
@@ -543,34 +517,28 @@
   border-color: var(--color-border-light);
 }
 
-/* Light theme: Ghost buttons */
 .theme-light .btn-ghost:hover:not(:disabled) {
   background-color: var(--color-bg-tertiary);
 }
 
-/* Light theme: Danger buttons */
 .theme-light .btn-danger {
-  background-color: rgba(220, 38, 38, 0.06);
-  border-color: rgba(220, 38, 38, 0.15);
+  background-color: rgba(217, 74, 74, 0.06);
+  border-color: rgba(217, 74, 74, 0.15);
 }
 
-/* Light theme: Modal with stronger shadow */
 .theme-light .modal-container {
-  box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 20px 60px -10px rgba(28, 25, 23, 0.12), 0 0 0 1px rgba(28, 25, 23, 0.04);
 }
 
-/* Light theme: Modal overlay slightly lighter */
 .theme-light .modal-overlay {
-  background-color: rgba(15, 23, 42, 0.4);
+  background-color: rgba(28, 25, 23, 0.35);
 }
 
-/* Light theme: Badges */
 .theme-light .badge-default {
   background-color: var(--color-bg-tertiary);
   border-color: var(--color-border);
 }
 
-/* Light theme: Toast */
 .theme-light .toast {
   background-color: #ffffff;
   box-shadow: var(--shadow-lg);
@@ -593,7 +561,6 @@ a:hover {
    UTILITIES
    ═══════════════════════════════════════════════════════ */
 
-/* Scrollbar: Single consistent implementation */
 .scroll-content {
   overflow-y: auto;
   scrollbar-width: thin;
@@ -610,13 +577,11 @@ a:hover {
   border-radius: var(--radius-full);
 }
 
-/* Focus visible utility */
 .focus-ring:focus-visible {
   outline: 2px solid var(--color-accent-primary);
   outline-offset: 2px;
 }
 
-/* Transition utilities */
 .transition-theme {
   transition: background-color var(--transition-slow), color var(--transition-slow), border-color var(--transition-slow);
 }
