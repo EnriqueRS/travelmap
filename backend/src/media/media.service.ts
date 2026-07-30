@@ -188,9 +188,10 @@ export class MediaService {
 
   /**
    * Stream a photo directly to the response, bypassing CORS.
+   * Verifies that the photo belongs to the authenticated user.
    */
-  async streamPhotoImage(id: string, res: Response) {
-    const photo = await Photo.query().findById(id);
+  async streamPhotoImage(id: string, userId: number, res: Response) {
+    const photo = await Photo.query().findOne({ id, user_id: userId });
 
     if (!photo) {
       throw new NotFoundException('Foto no encontrada');

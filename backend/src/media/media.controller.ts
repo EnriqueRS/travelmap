@@ -78,10 +78,11 @@ export class MediaController {
   }
 
   @Get('photos/:id/image')
-  async getPhotoImage(@Param('id') id: string, @Res() res: Response) {
-    this.logger.debug(`Streaming photo image: ${id}`);
+  @UseGuards(JwtAuthGuard)
+  async getPhotoImage(@Request() req, @Param('id') id: string, @Res() res: Response) {
+    this.logger.debug(`Streaming photo image: ${id} for user ${req.user.userId}`);
     try {
-      await this.mediaService.streamPhotoImage(id, res);
+      await this.mediaService.streamPhotoImage(id, req.user.userId, res);
     } catch (error) {
       if (error instanceof NotFoundException) {
         res.status(404).json({ message: error.message });

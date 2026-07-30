@@ -26,8 +26,13 @@ export function getLocationImageUrl(image: string): string {
 
 /**
  * Returns the image URL for a photo object. Works with AppPhoto and DemoPhoto.
+ * Immich photos must go through the backend proxy which adds the x-api-key header,
+ * because browsers cannot send custom headers with <img> tags.
  */
 export function getPhotoUrl(photo: { url?: string; id: string; provider?: string }): string {
+  if (photo.provider === 'immich') {
+    return `${API_URL}/media/photos/${photo.id}/image`;
+  }
   if (photo.url?.startsWith("http")) return photo.url;
   if (photo.url) return `${API_URL}${photo.url}`;
   return `${API_URL}/media/photos/${photo.id}/image`;

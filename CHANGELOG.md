@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Immich image previews 401 error**: Photos from Immich were not loading because the browser's `<img>` tag cannot send custom `x-api-key` headers. `getPhotoUrl()` now routes Immich photos through the backend proxy (`/media/photos/:id/image`) which adds the API key server-side.
+
+### Security
+
+- **Added JWT auth guard** to the `GET /media/photos/:id/image` proxy endpoint, which was previously publicly accessible without authentication.
+- **Added user ownership check** in `streamPhotoImage()` — the endpoint now verifies the requesting user owns the photo before streaming it.
+
 ### Added
 
 - Landing page redesign with cinematic travel photo background (Unsplash) and dark overlay
