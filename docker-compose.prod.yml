@@ -21,6 +21,10 @@ services:
       JWT_SECRET: tm-prod-jwt-key-x9k2m4p7q
       JWT_EXPIRES_IN: 7d
       FRONTEND_URL: https://travelmap.custombots.es
+      LITELLM_BASE_URL: https://litellm.custombots.es
+      LITELLM_API_KEY: sk-ah1R4x4jJBIP8jk1tZ12lQ
+      LITELLM_MODEL: nan/deepseek-v4-flash
+      LITELLM_TIMEOUT: 30000
     volumes:
       - travelmap_uploads:/app/uploads
     networks:
