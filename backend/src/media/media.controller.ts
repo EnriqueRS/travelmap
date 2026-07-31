@@ -84,6 +84,7 @@ export class MediaController {
     try {
       await this.mediaService.streamPhotoImage(id, req.user.userId, res);
     } catch (error) {
+      this.logger.error(`Error streaming photo ${id}: ${error.message}`, error.stack);
       if (error instanceof NotFoundException) {
         res.status(404).json({ message: error.message });
       } else {

@@ -1,4 +1,15 @@
-import { API_URL } from "$lib/services/auth";
+import { API_URL, getToken } from "$lib/services/auth";
+
+/** UUID regex — solo aceptamos IDs con este formato para fotos del backend */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Append auth token as query param so <img> tags can authenticate */
+function addToken(url: string): string {
+  const token = getToken();
+  if (!token) return url;
+  const sep = url.includes("?") ? "&" : "?";
+  return `${url}${sep}token=${encodeURIComponent(token)}`;
+}
 
 /**
  * Returns the correct image URL for a trip cover.
@@ -8,8 +19,9 @@ import { API_URL } from "$lib/services/auth";
 export function getTripCoverUrl(trip: { coverImage: string; coverImageUrl?: string }): string | null {
   if (trip.coverImageUrl) return trip.coverImageUrl;
   if (trip.coverImage?.startsWith("http")) return trip.coverImage;
-  if (trip.coverImage && trip.coverImage.length > 5) {
-    return `${API_URL}/media/photos/${trip.coverImage}/image`;
+  // Solo construir URL si coverImage es un UUID válido
+  if (trip.coverImage && UUID_RE.test(trip.coverImage.trim())) {
+    return addToken(`${API_URL}/media/photos/${trip.coverImage.trim()}/image`);
   }
   return null;
 }
@@ -20,7 +32,7 @@ export function getTripCoverUrl(trip: { coverImage: string; coverImageUrl?: stri
  */
 export function getLocationImageUrl(image: string): string {
   if (image?.startsWith("http")) return image;
-  if (image && image.length > 5) return `${API_URL}/media/photos/${image}/image`;
+  if (image && UUID_RE.test(image.trim())) return addToken(`${API_URL}/media/photos/${image.trim()}/image`);
   return "";
 }
 
@@ -31,11 +43,13 @@ export function getLocationImageUrl(image: string): string {
  */
 export function getPhotoUrl(photo: { url?: string; id: string; provider?: string }): string {
   if (photo.provider === 'immich') {
-    return `${API_URL}/media/photos/${photo.id}/image`;
+    return addToken(`${API_URL}/media/photos/${photo.id}/image`);
   }
   if (photo.url?.startsWith("http")) return photo.url;
-  if (photo.url) return `${API_URL}${photo.url}`;
-  return `${API_URL}/media/photos/${photo.id}/image`;
+  if (photo.url) return addToken(`${API_URL}${photo.url}`);
+  // Solo si el id es un UUID válido
+  if (UUID_RE.test(photo.id)) return addToken(`${API_URL}/media/photos/${photo.id}/image`);
+  return "";
 }
 
 /**
@@ -44,6 +58,5 @@ export function getPhotoUrl(photo: { url?: string; id: string; provider?: string
 export function isValidImageUrl(url: string | null | undefined): boolean {
   if (!url) return false;
   if (url.startsWith("http")) return true;
-  if (url.length > 5) return true; // Could be a valid ID
-  return false;
+  return UUID_RE.test(url);
 }

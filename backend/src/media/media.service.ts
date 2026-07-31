@@ -191,7 +191,20 @@ export class MediaService {
    * Verifies that the photo belongs to the authenticated user.
    */
   async streamPhotoImage(id: string, userId: number, res: Response) {
-    const photo = await Photo.query().findOne({ id, user_id: userId });
+    // Validar que el ID sea un UUID antes de consultar la DB
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id.trim())) {
+      this.logger.debug(`Invalid photo ID format (not a UUID): "${id}"`);
+      throw new NotFoundException('Foto no encontrada');
+    }
+
+    let photo;
+    try {
+      photo = await Photo.query().findOne({ id: id.trim(), user_id: userId });
+    } catch (error) {
+      this.logger.error(`DB error querying photo ${id}: ${error.message}`, error.stack);
+      throw new NotFoundException('Foto no encontrada');
+    }
 
     if (!photo) {
       throw new NotFoundException('Foto no encontrada');
