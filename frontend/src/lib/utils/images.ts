@@ -13,12 +13,15 @@ function addToken(url: string): string {
 
 /**
  * Returns the correct image URL for a trip cover.
- * If coverImage is already a full URL (starts with http), use it directly.
- * Otherwise, treat it as a photo ID and construct the API URL.
+ * - If coverImage starts with http, use it directly (full URL).
+ * - If coverImage starts with /, use it as a static asset path.
+ * - If coverImageUrl is set, use it directly (demo mode).
+ * - Otherwise, treat coverImage as a photo ID and construct the API URL.
  */
 export function getTripCoverUrl(trip: { coverImage: string; coverImageUrl?: string }): string | null {
   if (trip.coverImageUrl) return trip.coverImageUrl;
   if (trip.coverImage?.startsWith("http")) return trip.coverImage;
+  if (trip.coverImage?.startsWith("/images/")) return trip.coverImage;
   // Solo construir URL si coverImage es un UUID válido
   if (trip.coverImage && UUID_RE.test(trip.coverImage.trim())) {
     return addToken(`${API_URL}/media/photos/${trip.coverImage.trim()}/image`);

@@ -54,7 +54,7 @@
         countries: selectedCountries,
         provinces: selectedProvinces,
         status,
-        coverImage: name,
+        coverImage: `/images/covers/empty-cover-${Math.floor(Math.random() * 4) + 1}.png`,
         locations: [],
       }
 

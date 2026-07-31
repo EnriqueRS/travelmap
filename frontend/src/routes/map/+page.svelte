@@ -205,7 +205,7 @@
         countries: newLocationCountry ? [newLocationCountry] : [],
         provinces: newTripProvinces,
         status: "Planificado",
-        coverImage: "default-cover",
+        coverImage: `/images/covers/empty-cover-${Math.floor(Math.random() * 4) + 1}.png`,
         locations: [],
       }
       trips.update((t) => [...t, newTrip])

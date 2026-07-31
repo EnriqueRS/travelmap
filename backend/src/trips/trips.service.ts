@@ -50,7 +50,7 @@ export class TripsService {
       countries: Array.isArray(createData.countries) ? createData.countries : [],
       provinces: Array.isArray(createData.provinces) ? createData.provinces : [],
       currency: 'EUR',
-      coverImage: createData.coverImage
+      coverImage: createData.coverImage || `/images/covers/empty-cover-${Math.floor(Math.random() * 4) + 1}.png`,
     };
 
     const trip = await Trip.query().insert(backendPayload);

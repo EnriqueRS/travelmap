@@ -131,8 +131,8 @@
         </button>
         <div class="auth-links">
           <a href="/register">{$t("auth.registerBtn")}</a>
-          <span class="auth-links-muted" title={$t("common.demoBanner")}
-            >{$t("auth.forgotPassword")}</span
+          <a href="/forgot-password" class="auth-links-reset"
+            >{$t("auth.forgotPassword")}</a
           >
         </div>
       </form>
@@ -400,10 +400,14 @@
   .auth-links a:hover {
     color: var(--color-accent-primary);
   }
-  .auth-links-muted {
+  .auth-links-reset {
     font-size: 0.875rem;
+    font-weight: 500;
     color: var(--color-text-muted);
-    cursor: default;
+    text-decoration: none;
+  }
+  .auth-links-reset:hover {
+    color: var(--color-accent-primary);
   }
 
   .auth-panel-quote {

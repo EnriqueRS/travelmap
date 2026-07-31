@@ -15,6 +15,31 @@ export class UsersService {
     return User.query().where('email', email).first();
   }
 
+  async findByResetToken(token: string): Promise<User | undefined> {
+    this.logger.debug(`Finding user by reset token`);
+    return User.query().where('reset_token', token).first();
+  }
+
+  async setResetToken(userId: number, token: string, expires: Date): Promise<void> {
+    await User.query().patchAndFetchById(userId, {
+      resetToken: token,
+      resetExpires: expires.toISOString(),
+    } as any);
+    this.logger.debug(`Reset token set for user ${userId}`);
+  }
+
+  async clearResetToken(userId: number): Promise<void> {
+    await User.query().patchAndFetchById(userId, {
+      resetToken: null,
+      resetExpires: null,
+    } as any);
+  }
+
+  async updatePassword(userId: number, passwordHash: string): Promise<void> {
+    await User.query().patchAndFetchById(userId, { passwordHash } as any);
+    this.logger.debug(`Password updated for user ${userId}`);
+  }
+
   async create(data: Partial<User>): Promise<User> {
     const user = await User.query().insert(data);
     this.logger.debug(`User created: ${user.id}`);

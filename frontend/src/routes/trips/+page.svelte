@@ -259,12 +259,15 @@
             <div class="trip-image">
               {#if trip.coverImage && trip.coverImage.length > 5 && trip.coverImage !== trip.name}
                  <img
-                   src={getTripCoverUrl(trip) || ""}
+                    src={getTripCoverUrl(trip) || ""}
 
                   alt={$t("trip.coverAlt", { name: trip.name })}
                 />
               {:else}
-                <ImagePlaceholder text={trip.name} type="trip" />
+                <img
+                  src={`/images/covers/empty-cover-${(trip.name.length % 4) + 1}.png`}
+                  alt={$t("trip.coverAlt", { name: trip.name })}
+                />
               {/if}
 
               <!-- Updated Status Badge Design -->

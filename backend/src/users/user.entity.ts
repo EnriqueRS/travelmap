@@ -20,6 +20,8 @@ export interface UserProperties {
   homeLocationLng?: number;
   homeCountry?: string;
   homeProvince?: string;
+  resetToken?: string;
+  resetExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +41,8 @@ export class User extends Model implements UserProperties {
   homeLocationLng?: number;
   homeCountry?: string;
   homeProvince?: string;
+  resetToken?: string;
+  resetExpires?: Date;
   createdAt!: Date;
   updatedAt!: Date;
 
@@ -77,6 +81,8 @@ export class User extends Model implements UserProperties {
         homeLocationLng: { type: ['number', 'null'] },
         homeCountry: { type: ['string', 'null'], maxLength: 2 },
         homeProvince: { type: ['string', 'null'], maxLength: 100 },
+        resetToken: { type: ['string', 'null'], maxLength: 255 },
+        resetExpires: { type: ['string', 'null'], format: 'date-time' },
         createdAt: { type: 'string', format: 'date-time' },
         updatedAt: { type: 'string', format: 'date-time' }
       }
