@@ -41,6 +41,7 @@
   import { COUNTRIES, getCountryName } from "$lib/utils/countries"
   import { normalizeString } from "$lib/utils/string"
   import { locationsService } from "$lib/services/locations"
+  import AiBuddy from "$lib/components/ai/AiBuddy.svelte"
 
   // Bind to map component
   let mapComponent: any
@@ -1160,6 +1161,8 @@ title={soloTripId === trip.id ? $t("map.showAll") : $t("map.showOnlyThis")}
     </div>
   </section>
 </main>
+
+<AiBuddy />
 
 {#if showAddLocationModal}
   <div

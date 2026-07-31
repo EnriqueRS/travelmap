@@ -9,6 +9,7 @@ import { IntegrationsModule } from './integrations/integrations.module';
 import { MediaModule } from './media/media.module';
 import { LocationsModule } from './locations/locations.module';
 import { LoggerModule } from './logger/logger.module';
+import { AiModule } from './ai/ai.module';
 
 import { HealthModule } from './health/health.module';
 
@@ -28,6 +29,7 @@ import { HealthModule } from './health/health.module';
     IntegrationsModule,
     MediaModule,
     LocationsModule,
+    AiModule,
   ],
   controllers: [],
   providers: [],
